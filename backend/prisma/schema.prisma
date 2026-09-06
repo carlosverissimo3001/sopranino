@@ -63,8 +63,9 @@ model GameSession {
   userId String @map("user_id")
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  playlistId String   @map("playlist_id")
-  mode       GameMode @default(ALL)
+  playlistId   String   @map("playlist_id")
+  trackGroupId String?  @map("track_group_id")
+  mode         GameMode @default(ALL)
 
   trackId String @map("track_id")
   track   Track  @relation(fields: [trackId], references: [id])
