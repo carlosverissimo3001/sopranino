@@ -124,13 +124,25 @@ export class GameSessionRepository {
    * @param mode - The game mode (e.g. DAILY, NORMAL)
    * @returns The active GameSession if found, null otherwise
    * */
+  /**
+   * Both ids are required rather than optional: Prisma drops an undefined
+   * filter, which quietly turned this into "any active round in this mode" and
+   * handed a player the round they left open somewhere else.
+   */
   async findActiveSession(
     userId: string,
     mode: GameMode,
-    playlistId?: string,
+    playlistId: string,
+    trackGroupId: string | null,
   ): Promise<GameSessionEntity | null> {
     const session = await this.prisma.gameSession.findFirst({
-      where: { userId, mode, status: GameStatus.PLAYING, playlistId },
+      where: {
+        userId,
+        mode,
+        status: GameStatus.PLAYING,
+        playlistId,
+        trackGroupId,
+      },
       orderBy: { createdAt: 'desc' },
     });
     return session ? mapGameSession(session as PrismaGameSessionResult) : null;

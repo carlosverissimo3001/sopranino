@@ -94,6 +94,15 @@ export class GameService {
     const userTimezone =
       await this.userPreferencesService.getUserTimezone(userId);
 
+    // A group and the wider pool are both stored under the sentinel playlist,
+    // so the group id is the only thing that tells two of them apart.
+    const isPool = !!trackGroupId || playlistId === POOL_PLAYLIST_ID;
+    const storedPlaylistId = isPool ? POOL_PLAYLIST_ID : playlistId;
+
+    if (mode !== GameMode.DAILY && !storedPlaylistId) {
+      throw new BadRequestException('Playlist ID is required');
+    }
+
     const existing =
       mode === GameMode.DAILY
         ? await this.gameSessionRepository.findTodayDailySession(
@@ -103,7 +112,8 @@ export class GameService {
         : await this.gameSessionRepository.findActiveSession(
             userId,
             mode,
-            playlistId,
+            storedPlaylistId!,
+            trackGroupId ?? null,
           );
 
     // If there's an active session (or already played daily) for this user and mode,
@@ -136,10 +146,7 @@ export class GameService {
       return this.startPoolGame(userId, mode);
     }
 
-    const targetPlaylistId = playlistId;
-    if (!targetPlaylistId) {
-      throw new BadRequestException('Playlist ID is required');
-    }
+    const targetPlaylistId = storedPlaylistId!;
 
     const { selectedTrack, previewUrl } = await this.resolveTrackWithPreview(
       sessionId,
@@ -217,6 +224,7 @@ export class GameService {
     const game = await this.gameSessionRepository.createSession({
       user: { connect: { id: userId } },
       playlistId: POOL_PLAYLIST_ID,
+      trackGroupId,
       mode,
       track: { connect: { id: track.id } },
       currentRound: 0,

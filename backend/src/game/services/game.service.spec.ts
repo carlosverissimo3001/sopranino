@@ -75,6 +75,9 @@ describe('GameService', () => {
   const mockGameSessionRepository = {
     findByIdWithTrack: jest.fn(),
     updateSessionProgress: jest.fn(),
+    findActiveSession: jest.fn(),
+    findTodayDailySession: jest.fn(),
+    createSession: jest.fn(),
   };
 
   const mockTrackRepository = {};
@@ -555,6 +558,94 @@ describe('GameService', () => {
         [],
         'group-eighties',
       );
+    });
+  });
+
+  describe('starting a round', () => {
+    const GROUP_A = 'group-seventies';
+    const GROUP_B = 'group-nineties';
+
+    beforeEach(() => {
+      mockAuthService.getUserBySessionId.mockResolvedValue({
+        id: OWNER_USER_ID,
+      });
+      mockGameSessionRepository.findActiveSession.mockResolvedValue(null);
+      mockGameSessionRepository.createSession.mockResolvedValue(
+        makeGameSession(),
+      );
+      mockTrackGroupService.requireById.mockResolvedValue({
+        id: GROUP_A,
+        type: 'DECADE',
+      });
+      mockPoolService.pickTrack.mockResolvedValue(
+        new TrackEntity({
+          id: 'pool-1',
+          name: 'Track',
+          artistName: 'Artist',
+          allArtists: ['Artist'],
+          lastScrapedAt: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }),
+      );
+      mockTrackService.resolvePreview.mockResolvedValue(
+        'https://preview/pool-1.mp3',
+      );
+    });
+
+    // The reported bug: starting the nineties handed back the seventies round
+    // that was still open, because the lookup was scoped to neither.
+    it('looks for a round in the group being asked for', async () => {
+      await service.startGame(OWNER_SESSION_ID, {
+        trackGroupId: GROUP_B,
+        mode: GameMode.ALL,
+      });
+
+      expect(mockGameSessionRepository.findActiveSession).toHaveBeenCalledWith(
+        OWNER_USER_ID,
+        GameMode.ALL,
+        'pool',
+        GROUP_B,
+      );
+    });
+
+    it('records the group a round drew from', async () => {
+      await service.startGame(OWNER_SESSION_ID, {
+        trackGroupId: GROUP_B,
+        mode: GameMode.ALL,
+      });
+
+      expect(mockGameSessionRepository.createSession).toHaveBeenCalledWith(
+        expect.objectContaining({ trackGroupId: GROUP_B }),
+      );
+    });
+
+    // Null, never undefined: Prisma drops an undefined filter, which is what
+    // turned this lookup into "any active round in this mode".
+    it('asks for a round with no group when a playlist was chosen', async () => {
+      await service
+        .startGame(OWNER_SESSION_ID, {
+          playlistId: 'playlist-a',
+          mode: GameMode.ALL,
+        })
+        .catch(() => undefined);
+
+      expect(mockGameSessionRepository.findActiveSession).toHaveBeenCalledWith(
+        OWNER_USER_ID,
+        GameMode.ALL,
+        'playlist-a',
+        null,
+      );
+    });
+
+    it('refuses a round that names neither a playlist nor a group', async () => {
+      await expect(
+        service.startGame(OWNER_SESSION_ID, { mode: GameMode.ALL }),
+      ).rejects.toThrow(BadRequestException);
+
+      expect(
+        mockGameSessionRepository.findActiveSession,
+      ).not.toHaveBeenCalled();
     });
   });
 
