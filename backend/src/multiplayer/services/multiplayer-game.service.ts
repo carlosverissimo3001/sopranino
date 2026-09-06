@@ -230,10 +230,17 @@ export class MultiplayerGameService {
     roomId: string,
   ): Promise<ScoreboardDto> {
     const { id: userId } = await this.authService.getUserBySessionId(sessionId);
-    const room = await this.roomRepository.findById(roomId);
+    let room = await this.roomRepository.findById(roomId);
 
     if (!room) {
       throw new NotFoundException('Room not found');
+    }
+
+    // Completion is otherwise only judged at the moment a round ends. Anyone
+    // opening the scoreboard is a second chance to notice the room is over.
+    if (room.status === RoomStatus.PLAYING) {
+      await this.checkRoomCompletion(roomId, room.roundCount);
+      room = (await this.roomRepository.findById(roomId)) ?? room;
     }
 
     const isPlayer = room.players.some((p) => p.userId === userId);
@@ -337,29 +344,36 @@ export class MultiplayerGameService {
     // the heartbeat window, so a refresh does not count as leaving.
     const present = new Set(await this.presence.onlineUserIds(roomId));
 
-    // Nobody left to show results to: leave it playing rather than finishing a
-    // room behind everyone's back. A dead room is the cleanup job's problem.
-    if (present.size === 0) {
-      return;
-    }
+    let anyoneFinished = false;
 
     for (const player of room.players) {
-      if (!present.has(player.userId)) {
-        continue;
-      }
-
       const completedCount =
         await this.gameSessionRepository.countCompletedSessions(
           player.userId,
           roomId,
         );
 
-      if (completedCount < roundCount) {
-        return; // Someone still here has rounds left
+      if (completedCount >= roundCount) {
+        anyoneFinished = true;
+        continue;
+      }
+
+      // Only a player who is both unfinished and still here is worth waiting
+      // on. Presence is not a condition for ending a room everyone has already
+      // played out: their results are here when they come back, and a socket
+      // that blinked at the wrong moment used to strand them forever.
+      if (present.has(player.userId)) {
+        return;
       }
     }
 
-    // Everyone still in the room has finished
+    // Nobody played it out, so there is no result to announce. Expiry is the
+    // cleanup job's business; completing it here would invent one.
+    if (!anyoneFinished) {
+      return;
+    }
+
+    // Nobody is left with rounds to play
     const updated = await this.roomRepository.updateStatus(
       roomId,
       RoomStatus.COMPLETED,
