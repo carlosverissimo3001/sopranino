@@ -5,7 +5,10 @@ import Image from 'next/image';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown, ChevronUp, Music2, TimerReset, Zap } from 'lucide-react';
 import type { GauntletHistoryEntryDto } from '@/sdk/models/GauntletHistoryEntryDto';
-import { GauntletHistoryEntryDtoDifficultyEnum as Difficulty } from '@/sdk/models/GauntletHistoryEntryDto';
+import {
+  GauntletHistoryEntryDtoDifficultyEnum as Difficulty,
+  GauntletHistoryEntryDtoSourceEnum as Source,
+} from '@/sdk/models/GauntletHistoryEntryDto';
 import { formatDate } from '@/utils/date-utils';
 import { cardVariants } from './card-motion';
 
@@ -111,11 +114,23 @@ export function GauntletHistoryCard({
                   ) : null}
                 </div>
 
-                <span
-                  className={`rounded-full border px-2 py-1 text-[10px] font-bold ${difficulty.classes}`}
-                >
-                  {difficulty.label}
-                </span>
+                <div className="flex items-center gap-1.5">
+                  {/* A run on your own playlist is yours to keep, but it was
+                      never comparable with anyone else's. */}
+                  {entry.source === Source.Playlist ? (
+                    <span
+                      title="Played on your own playlist, so it is not ranked"
+                      className="rounded-full border border-fg/10 px-2 py-1 text-[10px] font-bold text-fg/40"
+                    >
+                      Practice
+                    </span>
+                  ) : null}
+                  <span
+                    className={`rounded-full border px-2 py-1 text-[10px] font-bold ${difficulty.classes}`}
+                  >
+                    {difficulty.label}
+                  </span>
+                </div>
               </div>
 
               {entry.tracks.length > 0 ? (

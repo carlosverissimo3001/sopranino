@@ -91,8 +91,8 @@ export const queryKeys = {
   gauntlet: {
     all: ['gauntlet'] as const,
     personalBest: ['gauntlet', 'personalBest'] as const,
-    leaderboard: (period?: string) =>
-      ['gauntlet', 'leaderboard', period] as const,
+    leaderboard: (period?: string, difficulty?: string) =>
+      ['gauntlet', 'leaderboard', period, difficulty] as const,
     allHistory: ['gauntlet', 'history'] as const,
     history: (params?: {
       page?: number;

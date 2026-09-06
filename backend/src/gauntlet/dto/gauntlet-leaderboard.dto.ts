@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { GauntletDifficulty } from '@prisma/client';
 
 export class GauntletLeaderboardEntryDto {
   @ApiProperty({ description: 'Rank position (1-based)' })
@@ -48,4 +49,10 @@ export class GauntletLeaderboardDto {
     enum: ['daily', 'weekly', 'alltime'],
   })
   period: 'daily' | 'weekly' | 'alltime';
+
+  @ApiProperty({
+    description: 'The difficulty this leaderboard ranks',
+    enum: GauntletDifficulty,
+  })
+  difficulty: GauntletDifficulty;
 }

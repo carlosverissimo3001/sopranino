@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import {
+  GauntletDifficulty,
   GauntletEndReason,
   GauntletRunStatus,
   GauntletSource,
@@ -342,6 +343,7 @@ export class GauntletService {
         date: formatDate(completedAt, 'yyyy-MM-dd'),
         score: run.score,
         difficulty: run.difficulty,
+        source: run.source,
         durationSeconds: Math.max(
           differenceInSeconds(completedAt, run.createdAt),
           0,
@@ -377,6 +379,7 @@ export class GauntletService {
     period: LeaderboardPeriod,
     limit: number,
     offset: number,
+    difficulty: GauntletDifficulty,
   ): Promise<GauntletLeaderboardDto> {
     const { id: userId } = await this.authService.getUserBySessionId(sessionId);
 
@@ -386,6 +389,7 @@ export class GauntletService {
       startDate,
       limit,
       offset,
+      difficulty,
     );
 
     const entries = rawEntries.map((entry, index) => {
@@ -416,6 +420,7 @@ export class GauntletService {
     const userBest = await this.gauntletRunRepository.findUserBestInPeriod(
       userId,
       startDate,
+      difficulty,
     );
 
     let userEntry: GauntletLeaderboardDto['userEntry'];
@@ -424,11 +429,12 @@ export class GauntletService {
         await this.gauntletRunRepository.countUsersWithHigherScore(
           userBest,
           startDate,
+          difficulty,
         );
       userEntry = { rank: betterCount + 1, score: userBest };
     }
 
-    return { entries, userEntry, period };
+    return { entries, userEntry, period, difficulty };
   }
 
   private getPeriodStartDate(period: LeaderboardPeriod): Date | null {

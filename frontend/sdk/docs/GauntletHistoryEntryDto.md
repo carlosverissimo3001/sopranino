@@ -10,6 +10,7 @@ Name | Type
 `date` | string
 `score` | number
 `difficulty` | string
+`source` | string
 `tracks` | [Array&lt;TrackEntity&gt;](TrackEntity.md)
 `durationSeconds` | number
 
@@ -24,6 +25,7 @@ const example = {
   "date": null,
   "score": null,
   "difficulty": null,
+  "source": null,
   "tracks": null,
   "durationSeconds": null,
 } satisfies GauntletHistoryEntryDto

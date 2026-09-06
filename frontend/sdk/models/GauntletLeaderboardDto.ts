@@ -52,6 +52,12 @@ export interface GauntletLeaderboardDto {
      * @memberof GauntletLeaderboardDto
      */
     period: GauntletLeaderboardDtoPeriodEnum;
+    /**
+     * The difficulty this leaderboard ranks
+     * @type {string}
+     * @memberof GauntletLeaderboardDto
+     */
+    difficulty: GauntletLeaderboardDtoDifficultyEnum;
 }
 
 
@@ -65,6 +71,17 @@ export const GauntletLeaderboardDtoPeriodEnum = {
 } as const;
 export type GauntletLeaderboardDtoPeriodEnum = typeof GauntletLeaderboardDtoPeriodEnum[keyof typeof GauntletLeaderboardDtoPeriodEnum];
 
+/**
+ * @export
+ */
+export const GauntletLeaderboardDtoDifficultyEnum = {
+    Easy: 'EASY',
+    Medium: 'MEDIUM',
+    Hard: 'HARD',
+    Expert: 'EXPERT'
+} as const;
+export type GauntletLeaderboardDtoDifficultyEnum = typeof GauntletLeaderboardDtoDifficultyEnum[keyof typeof GauntletLeaderboardDtoDifficultyEnum];
+
 
 /**
  * Check if a given object implements the GauntletLeaderboardDto interface.
@@ -72,6 +89,7 @@ export type GauntletLeaderboardDtoPeriodEnum = typeof GauntletLeaderboardDtoPeri
 export function instanceOfGauntletLeaderboardDto(value: object): value is GauntletLeaderboardDto {
     if (!('entries' in value) || value['entries'] === undefined) return false;
     if (!('period' in value) || value['period'] === undefined) return false;
+    if (!('difficulty' in value) || value['difficulty'] === undefined) return false;
     return true;
 }
 
@@ -88,6 +106,7 @@ export function GauntletLeaderboardDtoFromJSONTyped(json: any, ignoreDiscriminat
         'entries': ((json['entries'] as Array<any>).map(GauntletLeaderboardEntryDtoFromJSON)),
         'userEntry': json['userEntry'] == null ? undefined : GauntletUserLeaderboardEntryDtoFromJSON(json['userEntry']),
         'period': json['period'],
+        'difficulty': json['difficulty'],
     };
 }
 
@@ -105,6 +124,7 @@ export function GauntletLeaderboardDtoToJSONTyped(value?: GauntletLeaderboardDto
         'entries': ((value['entries'] as Array<any>).map(GauntletLeaderboardEntryDtoToJSON)),
         'userEntry': GauntletUserLeaderboardEntryDtoToJSON(value['userEntry']),
         'period': value['period'],
+        'difficulty': value['difficulty'],
     };
 }
 

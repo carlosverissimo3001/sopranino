@@ -1944,7 +1944,7 @@ example().catch(console.error);
 
 ## gauntletControllerGetLeaderboard
 
-> GauntletLeaderboardDto gauntletControllerGetLeaderboard(period, limit, offset)
+> GauntletLeaderboardDto gauntletControllerGetLeaderboard(period, limit, offset, difficulty)
 
 Get gauntlet leaderboard
 
@@ -1972,6 +1972,8 @@ async function example() {
     limit: 8.14,
     // number (optional)
     offset: 8.14,
+    // 'EASY' | 'MEDIUM' | 'HARD' | 'EXPERT' | Which board to read. A 7s run and a 1s run are not the same feat, so each difficulty ranks on its own. (optional)
+    difficulty: difficulty_example,
   } satisfies GauntletControllerGetLeaderboardRequest;
 
   try {
@@ -1994,6 +1996,7 @@ example().catch(console.error);
 | **period** | `daily`, `weekly`, `alltime` | Time period for the leaderboard | [Optional] [Defaults to `&#39;alltime&#39;`] [Enum: daily, weekly, alltime] |
 | **limit** | `number` |  | [Optional] [Defaults to `10`] |
 | **offset** | `number` |  | [Optional] [Defaults to `0`] |
+| **difficulty** | `EASY`, `MEDIUM`, `HARD`, `EXPERT` | Which board to read. A 7s run and a 1s run are not the same feat, so each difficulty ranks on its own. | [Optional] [Defaults to `&#39;MEDIUM&#39;`] [Enum: EASY, MEDIUM, HARD, EXPERT] |
 
 ### Return type
 

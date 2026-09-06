@@ -15,7 +15,11 @@ import {
 } from 'lucide-react';
 import { useMe } from '@/hooks/auth/useMe';
 import { useGauntletLeaderboard } from '@/hooks/speed-run/useSpeedrunLeaderboard';
-import { GauntletControllerGetLeaderboardPeriodEnum as Period } from '@/sdk/apis/ApiApi';
+import {
+  GauntletControllerGetLeaderboardDifficultyEnum as Difficulty,
+  GauntletControllerGetLeaderboardPeriodEnum as Period,
+} from '@/sdk/apis/ApiApi';
+import { SNIPPET_STEPS } from '@/lib/snippet-timeline';
 import type { GauntletLeaderboardEntryDto } from '@/sdk/models/GauntletLeaderboardEntryDto';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useRouter } from 'next/navigation';
@@ -24,6 +28,22 @@ const PERIODS: { value: Period; label: string }[] = [
   { value: Period.Daily, label: 'Today' },
   { value: Period.Weekly, label: 'This Week' },
   { value: Period.Alltime, label: 'All Time' },
+];
+
+// A 7s run and a 1s run are not the same feat, so each ranks on its own board.
+const DIFFICULTIES: { value: Difficulty; label: string; duration: string }[] = [
+  { value: Difficulty.Easy, label: 'Easy', duration: `${SNIPPET_STEPS[4]}s` },
+  {
+    value: Difficulty.Medium,
+    label: 'Medium',
+    duration: `${SNIPPET_STEPS[3]}s`,
+  },
+  { value: Difficulty.Hard, label: 'Hard', duration: `${SNIPPET_STEPS[2]}s` },
+  {
+    value: Difficulty.Expert,
+    label: 'Expert',
+    duration: `${SNIPPET_STEPS[1]}s`,
+  },
 ];
 
 const PODIUM_STYLES: Record<
@@ -161,8 +181,13 @@ function LeaderboardRow({
 
 export function SpeedRunLeaderboard() {
   const [period, setPeriod] = useState<Period>(Period.Alltime);
+  const [difficulty, setDifficulty] = useState<Difficulty>(Difficulty.Medium);
   const { data: user } = useMe();
-  const { data, isLoading, error } = useGauntletLeaderboard(period, !!user);
+  const { data, isLoading, error } = useGauntletLeaderboard(
+    period,
+    difficulty,
+    !!user,
+  );
   const router = useRouter();
 
   const entries = data?.entries ?? [];
@@ -191,7 +216,8 @@ export function SpeedRunLeaderboard() {
           <Trophy className="w-5 h-5 text-amber-600 dark:text-amber-400" />
         </div>
         <p className="text-fg/40 text-sm">
-          The best speed runs across all players
+          The best runs on the curated pool. Everyone here played the same
+          tracks at the same length.
         </p>
       </div>
 
@@ -218,6 +244,31 @@ export function SpeedRunLeaderboard() {
         </div>
       </div>
 
+      <div className="flex justify-center">
+        <div className="flex items-center gap-1 p-1 rounded-full bg-fg/[0.03] border border-fg/8">
+          {DIFFICULTIES.map((d) => {
+            const isActive = difficulty === d.value;
+            return (
+              <button
+                key={d.value}
+                type="button"
+                onClick={() => setDifficulty(d.value)}
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold tabular-nums transition-all ${
+                  isActive
+                    ? 'bg-orange-500/20 text-orange-700 dark:text-orange-300'
+                    : 'text-fg/40 hover:text-fg/70'
+                }`}
+              >
+                {d.duration}
+                <span className="ml-1.5 text-[10px] font-bold uppercase tracking-wide opacity-60">
+                  {d.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Content */}
       {isLoading ? (
         <div className="flex justify-center py-16">
@@ -233,13 +284,13 @@ export function SpeedRunLeaderboard() {
         <div className="text-center py-16 space-y-3">
           <Flame className="w-8 h-8 text-fg/20 mx-auto" />
           <p className="text-fg/40 text-sm">
-            No runs yet{' '}
-            {period === Period.Daily
-              ? 'today'
-              : period === Period.Weekly
-                ? 'this week'
-                : ''}
-            . Be the first!
+            {`No ranked runs yet${
+              period === Period.Daily
+                ? ' today'
+                : period === Period.Weekly
+                  ? ' this week'
+                  : ''
+            }. Be the first!`}
           </p>
           <Link
             href="/speed-run"
@@ -251,7 +302,7 @@ export function SpeedRunLeaderboard() {
         </div>
       ) : (
         <motion.div
-          key={period}
+          key={`${period}-${difficulty}`}
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2 }}

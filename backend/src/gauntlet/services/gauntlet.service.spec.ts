@@ -75,6 +75,7 @@ describe('GauntletService.getLeaderboard', () => {
       'alltime',
       10,
       0,
+      GauntletDifficulty.MEDIUM,
     );
 
     expect(entries[0]).toMatchObject({
@@ -94,6 +95,7 @@ describe('GauntletService.getLeaderboard', () => {
       'alltime',
       10,
       0,
+      GauntletDifficulty.MEDIUM,
     );
 
     expect(entries[0]).toEqual({
@@ -117,6 +119,7 @@ describe('GauntletService.getLeaderboard', () => {
       'alltime',
       10,
       0,
+      GauntletDifficulty.MEDIUM,
     );
 
     expect(entries.map((e) => e.rank)).toEqual([1, 2, 3]);
@@ -133,6 +136,7 @@ describe('GauntletService.getLeaderboard', () => {
       'alltime',
       10,
       0,
+      GauntletDifficulty.MEDIUM,
     );
 
     expect(entries[0]).toMatchObject({
@@ -152,6 +156,7 @@ describe('GauntletService.getLeaderboard', () => {
       'alltime',
       10,
       10,
+      GauntletDifficulty.MEDIUM,
     );
 
     expect(entries[0].userId).toBe('hidden:11');

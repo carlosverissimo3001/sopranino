@@ -261,6 +261,7 @@ export interface GauntletControllerGetLeaderboardRequest {
     period?: GauntletControllerGetLeaderboardPeriodEnum;
     limit?: number;
     offset?: number;
+    difficulty?: GauntletControllerGetLeaderboardDifficultyEnum;
 }
 
 export interface GauntletControllerGetRunStateRequest {
@@ -1448,6 +1449,10 @@ export class ApiApi extends runtime.BaseAPI {
             queryParameters['offset'] = requestParameters['offset'];
         }
 
+        if (requestParameters['difficulty'] != null) {
+            queryParameters['difficulty'] = requestParameters['difficulty'];
+        }
+
         const headerParameters: runtime.HTTPHeaders = {};
 
 
@@ -2598,6 +2603,16 @@ export const GauntletControllerGetLeaderboardPeriodEnum = {
     Alltime: 'alltime'
 } as const;
 export type GauntletControllerGetLeaderboardPeriodEnum = typeof GauntletControllerGetLeaderboardPeriodEnum[keyof typeof GauntletControllerGetLeaderboardPeriodEnum];
+/**
+ * @export
+ */
+export const GauntletControllerGetLeaderboardDifficultyEnum = {
+    Easy: 'EASY',
+    Medium: 'MEDIUM',
+    Hard: 'HARD',
+    Expert: 'EXPERT'
+} as const;
+export type GauntletControllerGetLeaderboardDifficultyEnum = typeof GauntletControllerGetLeaderboardDifficultyEnum[keyof typeof GauntletControllerGetLeaderboardDifficultyEnum];
 /**
  * @export
  */
