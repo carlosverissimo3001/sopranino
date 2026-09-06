@@ -21,6 +21,7 @@ import { useTimezoneSync } from '@/hooks/user-preferences/useTimezoneSync';
 import { useSpotifyReturnMark } from '@/hooks/auth/useSpotifyReturnMark';
 import { UnverifiedEmailBanner } from '@/components/auth/UnverifiedEmailBanner';
 import { TrackGroupView } from '@/components/features/track-group/TrackGroupView';
+import { CuratedGroups } from '@/components/features/track-group/CuratedGroups';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { TrackGroupDtoTypeEnum } from '@/sdk';
 
@@ -167,10 +168,11 @@ export function HomeClient({ canSignIn }: { canSignIn: boolean }) {
                   anyone it is not for, and nothing renders nothing. */}
               <TrackGroupView
                 type={TrackGroupDtoTypeEnum.Special}
+                title="Special"
                 defaultOpen
               />
 
-              <TrackGroupView defaultOpen={!hasSpotify} />
+              <CuratedGroups defaultOpen={!hasSpotify} />
             </motion.div>
           ) : (
             <UnauthenticatedView canSignIn={canSignIn} />

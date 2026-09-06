@@ -11,7 +11,6 @@ import { TrackGroupDtoTypeEnum } from '@/sdk';
 interface TrackGroupViewProps {
   defaultOpen: boolean;
   type?: TrackGroupDtoTypeEnum;
-  /** Falls back to the group's own name, which is where a special one gets it. */
   title?: string;
 }
 
@@ -30,8 +29,6 @@ function TrackGroupViewComponent({
   title = 'Curated playlists',
 }: TrackGroupViewProps) {
   const { data: groups, isPending, isError } = useTrackGroups(type);
-  // A special group is its own section, so it names it.
-  const heading = groups?.length === 1 ? 'Special' : title;
 
   // Nothing is rendered from a guess while this loads: a grid that fills with
   // defaults and then rearranges is worse than one that arrives late.
@@ -59,8 +56,8 @@ function TrackGroupViewComponent({
 
   return (
     <CollapsibleSection
-      title={heading}
-      titleLabel={heading}
+      title={title}
+      titleLabel={title}
       defaultOpen={defaultOpen}
     >
       <motion.div

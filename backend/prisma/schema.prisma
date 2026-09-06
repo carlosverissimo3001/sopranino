@@ -154,6 +154,8 @@ model PoolTrack {
   /// group and would be a surprise anywhere else.
   special Boolean @default(false)
 
+  genres String[] @default([])
+
   refreshedAt DateTime @default(now()) @map("refreshed_at")
   createdAt   DateTime @default(now()) @map("created_at")
 
