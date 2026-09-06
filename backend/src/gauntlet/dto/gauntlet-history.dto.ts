@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { GauntletDifficulty } from '@prisma/client';
+import { GauntletDifficulty, GauntletSource } from '@prisma/client';
 import { TrackEntity } from '../../track/entities/track.entity';
 
 export class GauntletHistoryEntryDto {
@@ -17,6 +17,13 @@ export class GauntletHistoryEntryDto {
     enum: GauntletDifficulty,
   })
   difficulty: GauntletDifficulty;
+
+  @ApiProperty({
+    description:
+      'What the run drew from. Only a curated run is ranked against other players.',
+    enum: GauntletSource,
+  })
+  source: GauntletSource;
 
   @ApiProperty({
     description: 'The tracks that were played in the run',

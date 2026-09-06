@@ -8,6 +8,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
+import { GauntletDifficulty } from '@prisma/client';
 import {
   ApiCookieAuth,
   ApiOperation,
@@ -104,6 +105,7 @@ export class GauntletController {
       dto.period ?? 'alltime',
       dto.limit ?? 10,
       dto.offset ?? 0,
+      dto.difficulty ?? GauntletDifficulty.MEDIUM,
     );
   }
 

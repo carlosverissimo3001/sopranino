@@ -52,6 +52,12 @@ export interface GauntletHistoryEntryDto {
      */
     difficulty: GauntletHistoryEntryDtoDifficultyEnum;
     /**
+     * What the run drew from. Only a curated run is ranked against other players.
+     * @type {string}
+     * @memberof GauntletHistoryEntryDto
+     */
+    source: GauntletHistoryEntryDtoSourceEnum;
+    /**
      * The tracks that were played in the run
      * @type {Array<TrackEntity>}
      * @memberof GauntletHistoryEntryDto
@@ -77,6 +83,15 @@ export const GauntletHistoryEntryDtoDifficultyEnum = {
 } as const;
 export type GauntletHistoryEntryDtoDifficultyEnum = typeof GauntletHistoryEntryDtoDifficultyEnum[keyof typeof GauntletHistoryEntryDtoDifficultyEnum];
 
+/**
+ * @export
+ */
+export const GauntletHistoryEntryDtoSourceEnum = {
+    Playlist: 'PLAYLIST',
+    Curated: 'CURATED'
+} as const;
+export type GauntletHistoryEntryDtoSourceEnum = typeof GauntletHistoryEntryDtoSourceEnum[keyof typeof GauntletHistoryEntryDtoSourceEnum];
+
 
 /**
  * Check if a given object implements the GauntletHistoryEntryDto interface.
@@ -86,6 +101,7 @@ export function instanceOfGauntletHistoryEntryDto(value: object): value is Gaunt
     if (!('date' in value) || value['date'] === undefined) return false;
     if (!('score' in value) || value['score'] === undefined) return false;
     if (!('difficulty' in value) || value['difficulty'] === undefined) return false;
+    if (!('source' in value) || value['source'] === undefined) return false;
     if (!('tracks' in value) || value['tracks'] === undefined) return false;
     if (!('durationSeconds' in value) || value['durationSeconds'] === undefined) return false;
     return true;
@@ -105,6 +121,7 @@ export function GauntletHistoryEntryDtoFromJSONTyped(json: any, ignoreDiscrimina
         'date': json['date'],
         'score': json['score'],
         'difficulty': json['difficulty'],
+        'source': json['source'],
         'tracks': ((json['tracks'] as Array<any>).map(TrackEntityFromJSON)),
         'durationSeconds': json['durationSeconds'],
     };
@@ -125,6 +142,7 @@ export function GauntletHistoryEntryDtoToJSONTyped(value?: GauntletHistoryEntryD
         'date': value['date'],
         'score': value['score'],
         'difficulty': value['difficulty'],
+        'source': value['source'],
         'tracks': ((value['tracks'] as Array<any>).map(TrackEntityToJSON)),
         'durationSeconds': value['durationSeconds'],
     };

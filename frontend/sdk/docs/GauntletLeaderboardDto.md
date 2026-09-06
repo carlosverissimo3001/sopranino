@@ -9,6 +9,7 @@ Name | Type
 `entries` | [Array&lt;GauntletLeaderboardEntryDto&gt;](GauntletLeaderboardEntryDto.md)
 `userEntry` | [GauntletUserLeaderboardEntryDto](GauntletUserLeaderboardEntryDto.md)
 `period` | string
+`difficulty` | string
 
 ## Example
 
@@ -20,6 +21,7 @@ const example = {
   "entries": null,
   "userEntry": null,
   "period": null,
+  "difficulty": null,
 } satisfies GauntletLeaderboardDto
 
 console.log(example)

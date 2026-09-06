@@ -71,6 +71,23 @@ function fromPrismaBasic(
   };
 }
 
+/**
+ * What the global board is allowed to see. A playlist run is somebody's own
+ * library, so it is not comparable with anyone else's and never ranks -
+ * it stays in that player's history and personal best.
+ */
+function rankable(
+  difficulty: GauntletDifficulty,
+  startDate: Date | null,
+): Prisma.GauntletRunWhereInput {
+  return {
+    status: GauntletRunStatus.ENDED,
+    source: GauntletSource.CURATED,
+    difficulty,
+    ...(startDate && { completedAt: { gte: startDate } }),
+  };
+}
+
 @Injectable()
 export class GauntletRunRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -180,13 +197,11 @@ export class GauntletRunRepository {
     startDate: Date | null,
     limit: number,
     offset: number,
+    difficulty: GauntletDifficulty,
   ): Promise<LeaderboardEntryRaw[]> {
     const grouped = await this.prisma.gauntletRun.groupBy({
       by: ['userId'],
-      where: {
-        status: GauntletRunStatus.ENDED,
-        ...(startDate && { completedAt: { gte: startDate } }),
-      },
+      where: rankable(difficulty, startDate),
       _max: { score: true },
       orderBy: { _max: { score: 'desc' } },
       take: limit,
@@ -230,13 +245,11 @@ export class GauntletRunRepository {
   async countUsersWithHigherScore(
     score: number,
     startDate: Date | null,
+    difficulty: GauntletDifficulty,
   ): Promise<number> {
     const rows = await this.prisma.gauntletRun.groupBy({
       by: ['userId'],
-      where: {
-        status: GauntletRunStatus.ENDED,
-        ...(startDate && { completedAt: { gte: startDate } }),
-      },
+      where: rankable(difficulty, startDate),
       _max: { score: true },
       having: { score: { _max: { gt: score } } },
     });
@@ -246,13 +259,10 @@ export class GauntletRunRepository {
   async findUserBestInPeriod(
     userId: string,
     startDate: Date | null,
+    difficulty: GauntletDifficulty,
   ): Promise<number | null> {
     const result = await this.prisma.gauntletRun.aggregate({
-      where: {
-        userId,
-        status: GauntletRunStatus.ENDED,
-        ...(startDate && { completedAt: { gte: startDate } }),
-      },
+      where: { userId, ...rankable(difficulty, startDate) },
       _max: { score: true },
     });
     return result._max.score;

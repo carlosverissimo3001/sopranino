@@ -2051,6 +2051,22 @@
               "default": 0,
               "type": "number"
             }
+          },
+          {
+            "name": "difficulty",
+            "required": false,
+            "in": "query",
+            "description": "Which board to read. A 7s run and a 1s run are not the same feat, so each difficulty ranks on its own.",
+            "schema": {
+              "default": "MEDIUM",
+              "enum": [
+                "EASY",
+                "MEDIUM",
+                "HARD",
+                "EXPERT"
+              ],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -4307,11 +4323,22 @@
               "weekly",
               "alltime"
             ]
+          },
+          "difficulty": {
+            "type": "string",
+            "description": "The difficulty this leaderboard ranks",
+            "enum": [
+              "EASY",
+              "MEDIUM",
+              "HARD",
+              "EXPERT"
+            ]
           }
         },
         "required": [
           "entries",
-          "period"
+          "period",
+          "difficulty"
         ]
       },
       "LastfmDataVo": {
@@ -4460,6 +4487,14 @@
               "EXPERT"
             ]
           },
+          "source": {
+            "type": "string",
+            "description": "What the run drew from. Only a curated run is ranked against other players.",
+            "enum": [
+              "PLAYLIST",
+              "CURATED"
+            ]
+          },
           "tracks": {
             "description": "The tracks that were played in the run",
             "type": "array",
@@ -4477,6 +4512,7 @@
           "date",
           "score",
           "difficulty",
+          "source",
           "tracks",
           "durationSeconds"
         ]
