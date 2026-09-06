@@ -44,6 +44,7 @@ describe('GauntletRunRepository and what the board is allowed to see', () => {
       status: GauntletRunStatus.ENDED,
       source: GauntletSource.CURATED,
       difficulty: GauntletDifficulty.HARD,
+      score: { gt: 0 },
     });
   });
 
@@ -74,6 +75,22 @@ describe('GauntletRunRepository and what the board is allowed to see', () => {
       status: GauntletRunStatus.ENDED,
       source: GauntletSource.CURATED,
       difficulty: GauntletDifficulty.EASY,
+      score: { gt: 0 },
+    });
+  });
+
+  // A run that scored nothing is not a placing, and the board would otherwise
+  // crown whoever missed the first song when nobody else had played.
+  it('leaves a scoreless run off the board', async () => {
+    await repository.findLeaderboardEntries(
+      null,
+      10,
+      0,
+      GauntletDifficulty.MEDIUM,
+    );
+
+    expect(whereOf(prisma.gauntletRun.groupBy)).toMatchObject({
+      score: { gt: 0 },
     });
   });
 
@@ -91,6 +108,7 @@ describe('GauntletRunRepository and what the board is allowed to see', () => {
       status: GauntletRunStatus.ENDED,
       source: GauntletSource.CURATED,
       difficulty: GauntletDifficulty.MEDIUM,
+      score: { gt: 0 },
       completedAt: { gte: since },
     });
   });

@@ -75,6 +75,9 @@ function fromPrismaBasic(
  * What the global board is allowed to see. A playlist run is somebody's own
  * library, so it is not comparable with anyone else's and never ranks -
  * it stays in that player's history and personal best.
+ *
+ * A run that scored nothing is not a placing. Ranking it puts a crown on
+ * somebody for missing the first song.
  */
 function rankable(
   difficulty: GauntletDifficulty,
@@ -84,6 +87,7 @@ function rankable(
     status: GauntletRunStatus.ENDED,
     source: GauntletSource.CURATED,
     difficulty,
+    score: { gt: 0 },
     ...(startDate && { completedAt: { gte: startDate } }),
   };
 }

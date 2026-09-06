@@ -284,13 +284,13 @@ export function SpeedRunLeaderboard() {
         <div className="text-center py-16 space-y-3">
           <Flame className="w-8 h-8 text-fg/20 mx-auto" />
           <p className="text-fg/40 text-sm">
-            No ranked runs yet{' '}
-            {period === Period.Daily
-              ? 'today'
-              : period === Period.Weekly
-                ? 'this week'
-                : ''}
-            . Be the first!
+            {`No ranked runs yet${
+              period === Period.Daily
+                ? ' today'
+                : period === Period.Weekly
+                  ? ' this week'
+                  : ''
+            }. Be the first!`}
           </p>
           <Link
             href="/speed-run"
