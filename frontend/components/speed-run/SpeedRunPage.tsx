@@ -8,7 +8,6 @@ import { useGauntletRun } from '@/hooks/speed-run/useSpeedRun';
 import { useVolume } from '@/hooks/game/useVolume';
 import { usePersonalBest } from '@/hooks/speed-run/useSpeedRunPersonalBest';
 import { SpeedRunSetup } from './SpeedRunSetup';
-import { AccountRequiredNotice } from '@/components/features/AccountRequiredNotice';
 import { SpeedRunGameScreen } from './SpeedRunGameScreen';
 
 export function SpeedRunPage() {
@@ -16,9 +15,7 @@ export function SpeedRunPage() {
   const logoutMutation = useLogout();
   const { volume, setVolume } = useVolume();
   const run = useGauntletRun();
-  // A run is built on a Spotify playlist, so this asks for the library.
-  const hasSpotify = !!user?.hasLinkedAccount;
-  const { data: pbData } = usePersonalBest(hasSpotify);
+  const { data: pbData } = usePersonalBest();
   const personalBest = pbData?.personalBest ?? 0;
 
   return (
@@ -44,9 +41,7 @@ export function SpeedRunPage() {
 
       <div className="flex-1 px-4 sm:px-6 py-4 sm:py-8 relative z-10">
         <div className="max-w-xl mx-auto">
-          {!hasSpotify ? (
-            <AccountRequiredNotice mode="The speed-run" />
-          ) : run.phase === 'IDLE' ? (
+          {run.phase === 'IDLE' ? (
             <SpeedRunSetup
               onStart={run.startRun}
               isStarting={run.isStarting}

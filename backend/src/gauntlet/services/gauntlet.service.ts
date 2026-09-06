@@ -81,12 +81,20 @@ export class GauntletService {
       }
     }
 
-    // Resume existing active run if one exists
+    // Resume a run only when it is the one being asked for. A player who picks
+    // a different source has moved on; handing back the old run would replay a
+    // song from a playlist they have left.
     const existing = await this.gauntletRunRepository.findActiveRun(userId);
-    const existingPreview = existing?.currentTrack
-      ? await this.trackService.playableUrl(existing.currentTrack)
-      : null;
-    if (existing && existingPreview) {
+    const wanted = trackGroupId ?? playlistId ?? null;
+    const isSameSource =
+      existing?.source === source && (existing?.sourceId ?? null) === wanted;
+
+    const existingPreview =
+      existing && isSameSource && existing.currentTrack
+        ? await this.trackService.playableUrl(existing.currentTrack)
+        : null;
+
+    if (existing && isSameSource && existingPreview) {
       return {
         runId: existing.id,
         score: existing.score,
@@ -95,6 +103,15 @@ export class GauntletService {
         previewUrl: existingPreview,
         snippetDuration: GAUNTLET_SNIPPET_DURATIONS[existing.difficulty],
       };
+    }
+
+    // Close the one they walked away from, at the score it reached, so it
+    // keeps its place in their history instead of blocking the next run.
+    if (existing) {
+      await this.gauntletRunRepository.endRun(
+        existing.id,
+        GauntletEndReason.QUIT,
+      );
     }
 
     const run = await this.gauntletRunRepository.create({

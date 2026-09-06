@@ -8,6 +8,7 @@ import { Play, Pause, Flame, Trophy, RotateCcw, Home } from 'lucide-react';
 import { GuessInput } from '@/components/game/GuessInput';
 import { useSpotifyTrackSearch } from '@/hooks/spotify/useSpotifyTrackSearch';
 import { useGauntletAudio } from '@/hooks/speed-run/useSpeedRunAudio';
+import { VolumeSlider } from '@/components/game/VolumeSlider';
 import type {
   useGauntletRun,
   RecentTrack,
@@ -34,6 +35,7 @@ interface SpeedRunGameScreenProps {
 export function SpeedRunGameScreen({
   run,
   volume,
+  onVolumeChange,
   personalBest,
 }: SpeedRunGameScreenProps) {
   const search = useSpotifyTrackSearch();
@@ -91,6 +93,13 @@ export function SpeedRunGameScreen({
 
   return (
     <div className="relative flex flex-col gap-5">
+      {/* Volume is global and persisted, so a run can start silent because a
+          normal game was muted days ago. Without this the page gives no way to
+          find that out. */}
+      <div className="flex justify-end">
+        <VolumeSlider volume={volume} onVolumeChange={onVolumeChange} />
+      </div>
+
       {/* hidden audio elements */}
       <audio ref={audioRef} src={run.previewUrl ?? undefined} preload="auto" />
       <audio
