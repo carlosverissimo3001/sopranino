@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import {
   GauntletDifficulty,
+  GauntletEndReason,
   GauntletRunStatus,
   GauntletSource,
   TrackGroupType,
@@ -278,6 +279,68 @@ describe('GauntletService and the source a run draws from', () => {
       ],
     }).compile();
     service = module.get(GauntletService);
+  });
+
+  it('resumes the run when the same source is asked for again', async () => {
+    repo.findActiveRun.mockResolvedValue(run());
+    trackService.playableUrl.mockResolvedValue('https://example.test/p.mp3');
+
+    const state = await service.startRun(SESSION_ID, startDto());
+
+    expect(state.runId).toBe(RUN_ID);
+    expect(repo.create).not.toHaveBeenCalled();
+    expect(repo.endRun).not.toHaveBeenCalled();
+  });
+
+  // The reported bug: play Liked Songs, go home, pick another playlist, and
+  // the old run came back with the old song.
+  it('does not hand back a run on a source the player has left', async () => {
+    repo.findActiveRun.mockResolvedValue(
+      run({ sourceId: 'playlist-they-left' }),
+    );
+    trackService.playableUrl.mockResolvedValue('https://example.test/p.mp3');
+    repo.endRun.mockResolvedValue(run({ status: GauntletRunStatus.ENDED }));
+
+    await service.startRun(
+      SESSION_ID,
+      startDto({ playlistId: 'playlist-now' }),
+    );
+
+    expect(repo.create).toHaveBeenCalledWith(
+      expect.objectContaining({ sourceId: 'playlist-now' }),
+    );
+  });
+
+  it('closes the abandoned run rather than leaving it open forever', async () => {
+    repo.findActiveRun.mockResolvedValue(
+      run({ sourceId: 'playlist-they-left' }),
+    );
+    repo.endRun.mockResolvedValue(run({ status: GauntletRunStatus.ENDED }));
+
+    await service.startRun(
+      SESSION_ID,
+      startDto({ playlistId: 'playlist-now' }),
+    );
+
+    expect(repo.endRun).toHaveBeenCalledWith(RUN_ID, GauntletEndReason.QUIT);
+  });
+
+  it('does not resume a playlist run when the pool was asked for', async () => {
+    repo.findActiveRun.mockResolvedValue(run());
+    trackService.playableUrl.mockResolvedValue('https://example.test/p.mp3');
+    repo.endRun.mockResolvedValue(run({ status: GauntletRunStatus.ENDED }));
+
+    await service.startRun(
+      SESSION_ID,
+      startDto({ source: GauntletSource.CURATED, playlistId: undefined }),
+    );
+
+    expect(repo.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source: GauntletSource.CURATED,
+        sourceId: null,
+      }),
+    );
   });
 
   it('records what the run was started against', async () => {
