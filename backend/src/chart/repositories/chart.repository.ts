@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { TrackGroupType } from '@prisma/client';
 import { PrismaService } from '@prisma/prisma.service';
+import { TrackEntity } from '../../track/entities/track.entity';
+import { mapTrack } from '../../utils/mappers';
 
 /** What a chart entry needs when the pool has never seen the song. */
 export interface NewPoolTrack {
@@ -115,6 +117,29 @@ export class ChartRepository {
 
       return members.length;
     });
+  }
+
+  /** A chart's tracks, in the order it listed them. */
+  async members(name: string): Promise<TrackEntity[]> {
+    const rows = await this.prisma.trackGroupTrack.findMany({
+      where: { trackGroup: { type: TrackGroupType.CHART, name } },
+      orderBy: { createdAt: 'asc' },
+      include: { track: true },
+    });
+    return rows.map((row) => mapTrack(row.track));
+  }
+
+  /** Cover art per chart, keyed by the group's name. */
+  async imageUrlsByName(): Promise<Map<string, string>> {
+    const groups = await this.prisma.trackGroup.findMany({
+      where: { type: TrackGroupType.CHART },
+      select: { name: true, imageUrl: true },
+    });
+    return new Map(
+      groups
+        .filter((group) => group.imageUrl)
+        .map((group) => [group.name, group.imageUrl as string]),
+    );
   }
 
   async countMembers(name: string): Promise<number> {

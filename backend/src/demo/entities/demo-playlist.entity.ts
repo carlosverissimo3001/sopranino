@@ -4,10 +4,10 @@ export class DemoPlaylistEntity {
   @ApiProperty({ description: 'Stable key used when starting a round' })
   slug: string;
 
-  @ApiProperty({ description: 'Chart name as Spotify publishes it' })
+  @ApiProperty({ description: 'Chart name shown in the picker' })
   name: string;
 
-  @ApiProperty({ description: 'Chart cover art' })
+  @ApiProperty({ description: 'Chart cover art; empty until one is set' })
   imageUrl: string;
 
   @ApiPropertyOptional({ type: String })

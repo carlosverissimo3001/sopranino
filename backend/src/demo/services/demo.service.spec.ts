@@ -5,38 +5,27 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { DemoService } from './demo.service';
-import { DemoPlaylistService } from './demo-playlist.service';
-import { DemoTrackRepository } from '../repositories/demo-track.repository';
-import { DemoPlaylistRepository } from '../repositories/demo-playlist.repository';
+import { ChartRepository } from '../../chart/repositories/chart.repository';
+import { TrackService } from '../../track/services/track.service';
+import { TrackEntity } from '../../track/entities/track.entity';
 import { RedisService } from '@redis/redis.service';
 import { AppLoggerService } from '../../logger/logger.service';
 import { DEMO_PLAYLISTS, DEMO_SNIPPET_STEPS } from '../demo.constants';
-import { DemoTrackEntity } from '../entities/demo-track.entity';
 import { DemoRoundStatus } from '../dto/demo-round.dto';
 
-const fetched = () => ({
-  name: 'Top 50 - Portugal',
-  description: null,
-  imageUrl: 'https://charts-images/pt.jpg',
-  tracks: [1, 2, 3, 4, 5].map(track),
-});
-
-const track = (n: number): DemoTrackEntity => ({
-  id: `track-${n}`,
-  playlistSlug: 'pt',
-  name: `Track ${n}`,
-  artistName: `Artist ${n}`,
-  albumImageUrl: `https://img/${n}`,
-  previewUrl: `https://preview/${n}.mp3`,
-  position: n,
-  fetchedAt: new Date(),
-});
+const track = (n: number): TrackEntity =>
+  new TrackEntity({
+    id: `dz:${n}`,
+    name: `Track ${n}`,
+    artistName: `Artist ${n}`,
+    albumImageUrl: `https://img/${n}`,
+    allArtists: [`Artist ${n}`],
+  });
 
 describe('DemoService', () => {
   let service: DemoService;
-  let repository: jest.Mocked<DemoTrackRepository>;
-  let playlists: jest.Mocked<DemoPlaylistService>;
-  let playlistRepo: jest.Mocked<DemoPlaylistRepository>;
+  let charts: jest.Mocked<ChartRepository>;
+  let trackService: jest.Mocked<TrackService>;
   let store: Map<string, string>;
 
   beforeEach(async () => {
@@ -64,43 +53,31 @@ describe('DemoService', () => {
         DemoService,
         { provide: RedisService, useValue: redis },
         {
-          provide: DemoTrackRepository,
+          provide: ChartRepository,
           useValue: {
-            findByPlaylist: jest.fn(),
-            countByPlaylist: jest.fn(),
-            replacePlaylist: jest.fn(),
+            members: jest.fn().mockResolvedValue([]),
+            imageUrlsByName: jest.fn().mockResolvedValue(new Map()),
           },
         },
         {
-          provide: DemoPlaylistRepository,
+          provide: TrackService,
           useValue: {
-            findAll: jest.fn().mockResolvedValue([]),
-            upsert: jest.fn(),
+            resolvePreview: jest.fn().mockResolvedValue('https://preview.mp3'),
           },
-        },
-        {
-          provide: DemoPlaylistService,
-          useValue: { fetchPlaylist: jest.fn() },
         },
         { provide: AppLoggerService, useValue: logger },
       ],
     }).compile();
 
     service = module.get(DemoService);
-    playlistRepo = module.get(DemoPlaylistRepository);
-    repository = module.get(DemoTrackRepository);
-    playlists = module.get(DemoPlaylistService);
+    charts = module.get(ChartRepository);
+    trackService = module.get(TrackService);
   });
 
   describe('getPlaylists', () => {
-    it('returns them in the configured order, not the database order', async () => {
-      playlistRepo.findAll.mockResolvedValue(
-        [...DEMO_PLAYLISTS].reverse().map(({ slug, name }) => ({
-          slug,
-          name,
-          imageUrl: '',
-          description: null,
-        })),
+    it('keeps the configured slugs and order, whatever the charts are called', async () => {
+      charts.imageUrlsByName.mockResolvedValue(
+        new Map([['Portugal', 'https://covers/pt.png']]),
       );
 
       const result = await service.getPlaylists();
@@ -109,6 +86,16 @@ describe('DemoService', () => {
         DEMO_PLAYLISTS.map((p) => p.slug),
       );
       expect(result[0].slug).toBe('pt');
+      expect(result[0].imageUrl).toBe('https://covers/pt.png');
+    });
+
+    // The portfolio renders the picker from this, so a chart with no cover set
+    // has to stay in the list rather than drop out of it.
+    it('lists a chart that has no cover yet', async () => {
+      const result = await service.getPlaylists();
+
+      expect(result).toHaveLength(DEMO_PLAYLISTS.length);
+      expect(result.every((p) => p.imageUrl === '')).toBe(true);
     });
   });
 
@@ -119,15 +106,23 @@ describe('DemoService', () => {
       );
     });
 
-    it('reports unavailable when the pool is not populated', async () => {
-      repository.findByPlaylist.mockResolvedValue([track(1), track(2)]);
+    it('reads the chart the slug maps to', async () => {
+      charts.members.mockResolvedValue([1, 2, 3, 4, 5].map(track));
+
+      await service.createRound('us');
+
+      expect(charts.members).toHaveBeenCalledWith('USA');
+    });
+
+    it('reports unavailable when the chart is not populated', async () => {
+      charts.members.mockResolvedValue([track(1), track(2)]);
       await expect(service.createRound('pt')).rejects.toThrow(
         ServiceUnavailableException,
       );
     });
 
     it('returns four options and never leaks the answer', async () => {
-      repository.findByPlaylist.mockResolvedValue([1, 2, 3, 4, 5].map(track));
+      charts.members.mockResolvedValue([1, 2, 3, 4, 5].map(track));
 
       const round = await service.createRound('pt');
 
@@ -137,31 +132,76 @@ describe('DemoService', () => {
       expect(round.snippetDuration).toBe(DEMO_SNIPPET_STEPS[0]);
       // The payload carries the answer's audio, which it must, but nothing
       // that says which of the four options it belongs to.
-      expect(round.previewUrl).toMatch(/https:\/\/preview\//);
+      expect(round.previewUrl).toBe('https://preview.mp3');
       expect(round).not.toHaveProperty('answer');
       expect(round.options.every((o) => !('previewUrl' in o))).toBe(true);
+    });
+
+    // Charts store no audio, so a preview is minted per round and can come back
+    // empty. That costs a redraw rather than a silent round.
+    it('draws again when a track has no playable audio', async () => {
+      charts.members.mockResolvedValue([1, 2, 3, 4, 5].map(track));
+      trackService.resolvePreview
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce('https://preview.mp3');
+
+      const round = await service.createRound('pt');
+
+      expect(round.previewUrl).toBe('https://preview.mp3');
+      expect(trackService.resolvePreview).toHaveBeenCalledTimes(2);
+    });
+
+    it('draws again when resolving a preview throws', async () => {
+      charts.members.mockResolvedValue([1, 2, 3, 4, 5].map(track));
+      trackService.resolvePreview
+        .mockRejectedValueOnce(new Error('deezer down'))
+        .mockResolvedValueOnce('https://preview.mp3');
+
+      await expect(service.createRound('pt')).resolves.toBeDefined();
+    });
+
+    it('reports unavailable when nothing in the chart has audio', async () => {
+      charts.members.mockResolvedValue([1, 2, 3, 4, 5].map(track));
+      trackService.resolvePreview.mockResolvedValue(null);
+
+      await expect(service.createRound('pt')).rejects.toThrow(
+        ServiceUnavailableException,
+      );
+    });
+
+    it('never offers the answer as its own decoy', async () => {
+      charts.members.mockResolvedValue([1, 2, 3, 4, 5].map(track));
+
+      const round = await service.createRound('pt');
+      const state = JSON.parse(
+        store.get(`demo:round:${round.roundId}`) as string,
+      ) as { answer: { id: string } };
+
+      expect(
+        round.options.filter((o) => o.id === state.answer.id),
+      ).toHaveLength(1);
     });
   });
 
   describe('guess', () => {
     const startRound = async () => {
-      repository.findByPlaylist.mockResolvedValue([1, 2, 3, 4, 5].map(track));
+      charts.members.mockResolvedValue([1, 2, 3, 4, 5].map(track));
       const round = await service.createRound('pt');
       const state = JSON.parse(
         store.get(`demo:round:${round.roundId}`) as string,
-      ) as { answer: DemoTrackEntity };
+      ) as { answer: { id: string } };
       return { round, answerId: state.answer.id };
     };
 
     it('rejects a track that is not one of the options', async () => {
       const { round } = await startRound();
-      await expect(service.guess(round.roundId, 'track-999')).rejects.toThrow(
+      await expect(service.guess(round.roundId, 'dz:999')).rejects.toThrow(
         BadRequestException,
       );
     });
 
     it('rejects an unknown round', async () => {
-      await expect(service.guess('missing', 'track-1')).rejects.toThrow(
+      await expect(service.guess('missing', 'dz:1')).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -210,52 +250,6 @@ describe('DemoService', () => {
       const again = await service.guess(round.roundId, answerId);
 
       expect(again.status).toBe(DemoRoundStatus.WON);
-    });
-  });
-
-  describe('refreshAll', () => {
-    it('leaves the previous set alone for a playlist that fails, and retries', async () => {
-      const [failing, ...rest] = DEMO_PLAYLISTS;
-      playlists.fetchPlaylist.mockImplementation((playlistId: string) =>
-        playlistId === failing.playlistId
-          ? Promise.reject(new Error('spotify changed'))
-          : Promise.resolve(fetched()),
-      );
-      repository.replacePlaylist.mockResolvedValue(5);
-
-      // Any failure throws, so the queue's backoff retries the run.
-      await expect(service.refreshAll()).rejects.toThrow(failing.slug);
-
-      // The one that failed must not be touched, or a bad fetch would wipe
-      // yesterday's working tracks.
-      expect(repository.replacePlaylist).not.toHaveBeenCalledWith(
-        failing.slug,
-        expect.anything(),
-      );
-
-      // Every other playlist still refreshed, rather than being abandoned.
-      for (const playlist of rest) {
-        expect(repository.replacePlaylist).toHaveBeenCalledWith(
-          playlist.slug,
-          expect.any(Array),
-        );
-      }
-    });
-
-    it('throws when every playlist fails, and writes nothing', async () => {
-      playlists.fetchPlaylist.mockRejectedValue(new Error('spotify changed'));
-
-      await expect(service.refreshAll()).rejects.toThrow('Demo refresh failed');
-      expect(repository.replacePlaylist).not.toHaveBeenCalled();
-    });
-
-    it('resolves quietly when every playlist succeeds', async () => {
-      playlists.fetchPlaylist.mockResolvedValue(fetched());
-      repository.replacePlaylist.mockResolvedValue(5);
-
-      const result = await service.refreshAll();
-
-      expect(Object.values(result)).toEqual(DEMO_PLAYLISTS.map(() => 5));
     });
   });
 });

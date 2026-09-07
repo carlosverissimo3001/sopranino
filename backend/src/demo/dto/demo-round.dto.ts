@@ -15,7 +15,7 @@ export class DemoPlaylistDto {
   name: string;
 
   @ApiProperty({
-    description: 'Chart cover art; empty before the first refresh',
+    description: 'Chart cover art; empty until one is set',
   })
   imageUrl: string;
 
@@ -82,7 +82,7 @@ export class DemoRoundDto {
 }
 
 export class GuessDemoDto {
-  @ApiProperty({ description: 'Spotify track id; must be one of the options' })
+  @ApiProperty({ description: 'Track id; must be one of the options' })
   @IsString()
   @IsNotEmpty()
   trackId: string;

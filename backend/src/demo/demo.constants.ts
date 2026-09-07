@@ -7,32 +7,23 @@
  * returned in the response body instead.
  */
 
-export type DemoTrack = {
-  id: string;
-  name: string;
-  artistName: string;
-  albumImageUrl: string;
-  previewUrl: string;
-};
-
 export type DemoPlaylist = {
-  /** Stable key used by the API and the client. */
+  /**
+   * Stable key used by the API and by carlosverissimo.com. The portfolio sends
+   * these, so they outlive whatever the rounds are drawn from.
+   */
   slug: string;
   name: string;
-  /** Spotify's editorial chart playlist. These ids are long-lived. */
-  playlistId: string;
+  /** The chart group this reads, by its TrackGroup name. */
+  chart: string;
 };
 
 export const DEMO_PLAYLISTS: DemoPlaylist[] = [
-  { slug: 'pt', name: 'Top 50 Portugal', playlistId: '37i9dQZEVXbKyJS56d1pgi' },
-  { slug: 'es', name: 'Top 50 Spain', playlistId: '37i9dQZEVXbNFJfN1Vw8d9' },
-  { slug: 'uk', name: 'Top 50 UK', playlistId: '37i9dQZEVXbLnolsZ8PSNw' },
-  { slug: 'us', name: 'Top 50 USA', playlistId: '37i9dQZEVXbLRQDuF5jeBp' },
-  {
-    slug: 'global',
-    name: 'Top 50 Global',
-    playlistId: '37i9dQZEVXbMDoHDwVN2tF',
-  },
+  { slug: 'pt', name: 'Top 50 Portugal', chart: 'Portugal' },
+  { slug: 'es', name: 'Top 50 Spain', chart: 'Spain' },
+  { slug: 'uk', name: 'Top 50 UK', chart: 'UK' },
+  { slug: 'us', name: 'Top 50 USA', chart: 'USA' },
+  { slug: 'global', name: 'Top 50 Global', chart: 'Worldwide' },
 ];
 
 export const DEMO_OPTION_COUNT = 4;
@@ -49,11 +40,14 @@ export const DEMO_OPTION_COUNT = 4;
  */
 export const DEMO_SNIPPET_STEPS = [1, 2, 4, 8];
 
-export const DEMO_ROUND_PREFIX = 'demo:round:';
+/**
+ * How many tracks a round tries before giving up on finding playable audio.
+ * Previews are minted per round, so a chart entry whose audio has gone is
+ * worth skipping rather than serving a silent round.
+ */
+export const DEMO_PREVIEW_ATTEMPTS = 5;
 
-/** The daily refresh, and the date its job id is scoped to, share this. */
-export const DEMO_REFRESH_CRON = '0 8 * * *';
-export const DEMO_REFRESH_TZ = 'Europe/Lisbon';
+export const DEMO_ROUND_PREFIX = 'demo:round:';
 
 /** Long enough to finish a round, short enough that abandoned ones evaporate. */
 export const DEMO_ROUND_TTL_SECONDS = 900;
