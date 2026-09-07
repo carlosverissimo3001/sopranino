@@ -56,44 +56,44 @@ function CuratedGroupsComponent({ defaultOpen }: CuratedGroupsProps) {
     return null;
   }
 
+  // On the title's row, where this app already puts a section's controls.
+  const tabs = kinds.length > 1 && (
+    <div className="flex items-center gap-1">
+      {kinds.map((k) => (
+        <button
+          key={k.label}
+          type="button"
+          onClick={() => setSelected(k.label)}
+          className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-colors ${
+            kind.label === k.label
+              ? 'bg-fg/10 text-fg'
+              : 'text-fg/40 hover:text-fg/70'
+          }`}
+        >
+          {k.label}
+        </button>
+      ))}
+    </div>
+  );
+
   return (
     <CollapsibleSection
       title="Curated"
       titleLabel="Curated"
+      actions={tabs || undefined}
       defaultOpen={defaultOpen}
     >
-      <div className="space-y-4">
-        {kinds.length > 1 && (
-          <div className="flex gap-1 p-1 rounded-full bg-fg/5 w-fit">
-            {kinds.map((k) => (
-              <button
-                key={k.label}
-                type="button"
-                onClick={() => setSelected(k.label)}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide transition-colors ${
-                  kind.label === k.label
-                    ? 'bg-fg/10 text-fg'
-                    : 'text-fg/40 hover:text-fg/70'
-                }`}
-              >
-                {k.label}
-              </button>
-            ))}
-          </div>
-        )}
-
-        <motion.div
-          key={kind.label}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className={GRID}
-          style={{ maxWidth: '1200px', margin: '0 auto' }}
-        >
-          {kind.query.data?.map((group) => (
-            <TrackGroupCard key={group.id} group={group} />
-          ))}
-        </motion.div>
-      </div>
+      <motion.div
+        key={kind.label}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className={GRID}
+        style={{ maxWidth: '1200px', margin: '0 auto' }}
+      >
+        {kind.query.data?.map((group) => (
+          <TrackGroupCard key={group.id} group={group} />
+        ))}
+      </motion.div>
     </CollapsibleSection>
   );
 }
