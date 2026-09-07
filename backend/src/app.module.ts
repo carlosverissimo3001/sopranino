@@ -18,6 +18,7 @@ import { UserPreferencesModule } from './user-preferences/user-preferences.modul
 import { UserAvatarModule } from './user-avatar/user-avatar.module';
 import { GauntletModule } from './gauntlet/gauntlet.module';
 import { DemoModule } from './demo/demo.module';
+import { ChartModule } from './chart/chart.module';
 import { TrackGroupModule } from './track-group/track-group.module';
 import { BullModule } from '@nestjs/bullmq';
 import { GAME_CLEANUP_QUEUE, JOB_OPTIONS_WITH_BACKOFF } from './consts';
@@ -45,6 +46,7 @@ import { GAME_CLEANUP_QUEUE, JOB_OPTIONS_WITH_BACKOFF } from './consts';
     UserAvatarModule,
     GauntletModule,
     DemoModule,
+    ChartModule,
     TrackGroupModule,
     BullModule.forRootAsync({
       inject: [ConfigService],

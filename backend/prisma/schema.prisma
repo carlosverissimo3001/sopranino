@@ -133,26 +133,19 @@ model DailyTrack {
   @@index([trackId])
   @@map("daily_tracks")
 }
-
-/// Which tracks a guest round may draw from. Deliberately thin: the track data
-/// itself lives in `tracks`, so there is one notion of a track. This table only
-/// answers "may this be picked, and how well known is it".
 model PoolTrack {
-  /// Namespaced, matching tracks.id — "dz:908604612" for a Deezer-sourced track.
   id   String @id
   /// Unique here, unlike on tracks: it is what keeps one song out of the pool
   /// twice when it charts either side of a new year.
   isrc String @unique
 
-  /// The year the song broke, not every year it charted.
   year Int
-  /// Popularity of the song across every upload of it, not of the one recording
-  /// we picked — a remaster and its clean upload differ by orders of magnitude.
   fame Int
 
-  /// Kept out of the shuffle, the daily and the decades: these belong to one
-  /// group and would be a surprise anywhere else.
-  special Boolean @default(false)
+  /// Playable only through the group that owns it. A special event's tracks
+  /// would be a surprise in the shuffle; a country chart would be a round
+  /// nobody outside that country could place.
+  groupOnly Boolean @default(false) @map("group_only")
 
   genres String[] @default([])
 
@@ -161,7 +154,7 @@ model PoolTrack {
 
   @@index([fame])
   @@index([year])
-  @@index([special])
+  @@index([groupOnly])
   @@map("pool_tracks")
 }
 
@@ -396,6 +389,7 @@ enum TrackGroupType {
   DECADE
   GENRE
   FAME
+  CHART
   SPECIAL
 }
 
