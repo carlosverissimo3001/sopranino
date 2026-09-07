@@ -15,6 +15,7 @@ export const CHARTS: ChartSource[] = [
   { slug: 'top-uk', name: 'UK', playlistId: '1111142221' },
   { slug: 'top-portugal', name: 'Portugal', playlistId: '1362519755' },
   { slug: 'top-spain', name: 'Spain', playlistId: '1116190041' },
+  { slug: 'top-brazil', name: 'Brazil', playlistId: '1111141961' },
 ];
 
 /** How much of each chart is taken. Deezer publishes a hundred. */
