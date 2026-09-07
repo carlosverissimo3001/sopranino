@@ -4,8 +4,21 @@ import Image from 'next/image';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const MAX_BLUR = 45;
-const MIN_BLUR = 2;
+/**
+ * Tuned against the rendered box, which is ~96px. Past about a quarter of that
+ * the cover is not obscured, it is gone, and a hint nobody can read is not a
+ * hint - it is a placeholder that happens to be square.
+ */
+const MAX_BLUR = 26;
+const MIN_BLUR = 0;
+
+/**
+ * Clears fastest through the middle rounds. A linear ramp spent its first half
+ * moving between two amounts of mush and only became legible at the end; this
+ * gives something to work with from the third round while keeping the opening
+ * round unreadable.
+ */
+const CURVE = 1.6;
 
 function blurForRound(currentRound: number, maxRounds: number): number {
   if (maxRounds <= 1) {
@@ -14,7 +27,8 @@ function blurForRound(currentRound: number, maxRounds: number): number {
 
   const clamped = Math.max(0, Math.min(currentRound, maxRounds - 1));
   const progress = clamped / (maxRounds - 1);
-  return Math.round(MAX_BLUR - progress * (MAX_BLUR - MIN_BLUR));
+  const remaining = Math.pow(1 - progress, CURVE);
+  return Math.round(MIN_BLUR + remaining * (MAX_BLUR - MIN_BLUR));
 }
 
 interface AlbumArtRevealProps {
@@ -44,17 +58,32 @@ export function AlbumArtReveal({
           {(!albumImageUrl || !imageLoaded) && (
             <div className="absolute inset-0 animate-pulse bg-fg/10" />
           )}
-          {/* The blurred layer is larger than the box it sits in: a blur
-              samples beyond its own edges, so an image the size of the frame
-              fades to transparent at the border and the clip turns that fade
-              into a hard square. */}
           {albumImageUrl && (
             <motion.div
-              className="absolute"
-              style={{ inset: `-${MAX_BLUR}px` }}
+              className="absolute inset-0"
               animate={{ filter: `blur(${blur}px)` }}
               transition={{ duration: 0.6, ease: 'easeOut' }}
             >
+              {/* A blur samples past its own edges, so a cover drawn at the
+                  size of the frame fades to transparent at the border and the
+                  clip turns that fade into a hard square. This oversized copy
+                  is only there to give the edges something to bleed into. */}
+              <div
+                className="absolute"
+                style={{ inset: `-${MAX_BLUR}px` }}
+                aria-hidden
+              >
+                <Image
+                  src={albumImageUrl}
+                  alt=""
+                  fill
+                  className="object-cover"
+                  sizes="224px"
+                />
+              </div>
+
+              {/* The cover itself, at the size of the frame, so the hint is the
+                  whole sleeve rather than a crop of its middle. */}
               <Image
                 src={albumImageUrl}
                 alt="Album art"
