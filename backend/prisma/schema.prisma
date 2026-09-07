@@ -158,37 +158,6 @@ model PoolTrack {
   @@map("pool_tracks")
 }
 
-model DemoPlaylist {
-  slug        String  @id
-  name        String
-  imageUrl    String  @map("image_url")
-  description String?
-
-  fetchedAt DateTime @default(now()) @map("fetched_at")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
-
-  @@map("demo_playlists")
-}
-
-model DemoTrack {
-  id            String
-  playlistSlug  String @map("playlist_slug")
-  name          String
-  artistName    String @map("artist_name")
-  albumImageUrl String @map("album_image_url")
-  previewUrl    String @map("preview_url")
-  position      Int
-
-  fetchedAt DateTime @default(now()) @map("fetched_at")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
-
-  @@id([playlistSlug, id])
-  @@index([playlistSlug])
-  @@map("demo_tracks")
-}
-
 enum GameMode {
   DAILY
   ALL
