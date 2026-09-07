@@ -66,7 +66,6 @@ describe('TrackGroupService', () => {
     expect(group).not.toHaveProperty('createdAt');
   });
 
-
   describe('the chart a player sees first', () => {
     beforeEach(() => mockRepository.listWithCounts.mockResolvedValue(CHARTS));
 

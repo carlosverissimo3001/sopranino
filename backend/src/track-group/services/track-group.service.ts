@@ -21,10 +21,7 @@ export class TrackGroupService {
     return !!user?.spotifyUserId && user.isTrusted;
   }
 
-  async list(
-    type: TrackGroupType,
-    country?: string,
-  ): Promise<TrackGroupDto[]> {
+  async list(type: TrackGroupType, country?: string): Promise<TrackGroupDto[]> {
     const groups = this.homeChartFirst(
       await this.repository.listWithCounts(type),
       type,
