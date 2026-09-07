@@ -4,7 +4,6 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
 import { SpotifyService } from './spotify.service';
 import { SpotifyAuthService } from './spotify-auth.service';
 import { SessionService } from './session.service';
@@ -20,12 +19,11 @@ import { EmailVerificationService } from './email-verification.service';
 import { AuthMeResponseDto } from '../dto/auth.dto';
 import { UserSessionDto } from '../dto/user-session.dto';
 import { PatchUserDto } from '../dto/patch-user.dto';
-import { AvatarSource, User } from '@prisma/client';
+import { AvatarSource } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private prismaService: PrismaService,
     private spotifyService: SpotifyService,
     private spotifyAuthService: SpotifyAuthService,
     private sessionService: SessionService,
@@ -310,7 +308,7 @@ export class AuthService {
    * @param sessionId - The session ID from the cookie
    * @returns The user
    */
-  async getUserBySessionId(sessionId: string): Promise<User> {
+  async getUserBySessionId(sessionId: string): Promise<UserEntity> {
     const session = await this.sessionService.getSession(sessionId);
     return this.getUserById(session.userId);
   }
@@ -318,10 +316,8 @@ export class AuthService {
   /**
    * Get user by database user ID (users.id)
    */
-  async getUserById(userId: string): Promise<User> {
-    const user = await this.prismaService.user.findUnique({
-      where: { id: userId },
-    });
+  async getUserById(userId: string): Promise<UserEntity> {
+    const user = await this.userRepository.findById(userId);
     if (!user) {
       throw new UnauthorizedException('User not found');
     }

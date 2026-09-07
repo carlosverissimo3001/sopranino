@@ -79,3 +79,8 @@ backend/src/pool/guest-pool.json
 # Planning artefacts: process scaffolding, not part of the app
 .superpowers/
 docs/superpowers/
+
+# One-off data operations, run by hand rather than committed. The exception is
+# generate-openapi.ts, which `pnpm build:sdk` needs.
+backend/scripts/*
+!backend/scripts/generate-openapi.ts

@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ForbiddenException, UnauthorizedException } from '@nestjs/common';
 import { AvatarSource } from '@prisma/client';
 import { AuthService } from './auth.service';
-import { PrismaService } from '@prisma/prisma.service';
 import { SpotifyService } from './spotify.service';
 import { SpotifyAuthService } from './spotify-auth.service';
 import { SessionService } from './session.service';
@@ -46,15 +45,13 @@ function makeUser(overrides: Partial<UserEntity> = {}): UserEntity {
     createdAt: new Date('2026-01-01'),
     updatedAt: new Date('2026-01-01'),
     country: 'PT',
+    streakFreezes: 0,
+    answeredQuestionIds: [],
     ...overrides,
   };
 }
 
 // ── Mocks ────────────────────────────────────────────────────────────
-
-const mockPrismaService = {
-  user: { findUnique: jest.fn() },
-};
 
 const mockSpotifyService = {
   exchangeCodeForTokens: jest.fn(),
@@ -103,7 +100,6 @@ describe('AuthService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
-        { provide: PrismaService, useValue: mockPrismaService },
         { provide: SpotifyService, useValue: mockSpotifyService },
         { provide: SpotifyAuthService, useValue: mockSpotifyAuthService },
         { provide: SessionService, useValue: mockSessionService },
@@ -484,29 +480,27 @@ describe('AuthService', () => {
 
   describe('getUserBySessionId', () => {
     it('resolves the user row the session points at', async () => {
-      const row = { id: USER_ID, displayName: 'Vinyl Chorus' };
+      const row = makeUser();
       mockSessionService.getSession.mockResolvedValue(makeSession());
-      mockPrismaService.user.findUnique.mockResolvedValue(row);
+      mockUserRepository.findById.mockResolvedValue(row);
 
       await expect(service.getUserBySessionId(SESSION_ID)).resolves.toBe(row);
-      expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
-        where: { id: USER_ID },
-      });
+      expect(mockUserRepository.findById).toHaveBeenCalledWith(USER_ID);
     });
 
     it('resolves a session that carries no Spotify link', async () => {
-      const row = { id: USER_ID, displayName: 'Vinyl Chorus' };
+      const row = makeUser();
       mockSessionService.getSession.mockResolvedValue(
         makeSession({ spotifyUserId: undefined }),
       );
-      mockPrismaService.user.findUnique.mockResolvedValue(row);
+      mockUserRepository.findById.mockResolvedValue(row);
 
       await expect(service.getUserBySessionId(SESSION_ID)).resolves.toBe(row);
     });
 
     it('rejects when the user row is gone', async () => {
       mockSessionService.getSession.mockResolvedValue(makeSession());
-      mockPrismaService.user.findUnique.mockResolvedValue(null);
+      mockUserRepository.findById.mockResolvedValue(null);
 
       await expect(service.getUserBySessionId(SESSION_ID)).rejects.toThrow(
         UnauthorizedException,

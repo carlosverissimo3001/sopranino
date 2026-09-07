@@ -7,6 +7,7 @@ import { TrackGroupDto } from '../dto/track-group.dto';
 import { ListTrackGroupsDto } from '../dto/list-track-groups.dto';
 import { AuthService } from '../../auth/services/auth.service';
 import { SESSION_COOKIE_NAME } from '../../consts';
+import { UserEntity } from '@/auth/entities/user.entity';
 
 @ApiTags('Api')
 @Controller('track-groups')
@@ -26,14 +27,15 @@ export class TrackGroupController {
     @Req() req: Request,
   ): Promise<TrackGroupDto[]> {
     const type = query.type ?? TrackGroupType.DECADE;
+    const user = await this.currentUser(req);
 
-    if (!TrackGroupService.isVisible(type, await this.currentUser(req))) {
+    if (!TrackGroupService.isVisible(type, user)) {
       // Empty rather than forbidden: whether a group exists is itself the
       // thing being kept back.
       return [];
     }
 
-    return this.trackGroupService.list(type);
+    return this.trackGroupService.list(type, user?.country);
   }
 
   @Get(':slug')
@@ -44,11 +46,12 @@ export class TrackGroupController {
     @Param('slug') slug: string,
     @Req() req: Request,
   ): Promise<TrackGroupDto> {
-    return this.trackGroupService.bySlug(slug, await this.currentUser(req));
+    const user = await this.currentUser(req);
+    return this.trackGroupService.bySlug(slug, user);
   }
 
   /** Null for a visitor with no session, rather than refusing the request. */
-  private async currentUser(req: Request) {
+  private async currentUser(req: Request): Promise<UserEntity | null> {
     const sessionId = req.cookies?.[SESSION_COOKIE_NAME] as string | undefined;
     if (!sessionId) {
       return null;
