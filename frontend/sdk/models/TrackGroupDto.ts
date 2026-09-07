@@ -65,6 +65,7 @@ export const TrackGroupDtoTypeEnum = {
     Decade: 'DECADE',
     Genre: 'GENRE',
     Fame: 'FAME',
+    Chart: 'CHART',
     Special: 'SPECIAL'
 } as const;
 export type TrackGroupDtoTypeEnum = typeof TrackGroupDtoTypeEnum[keyof typeof TrackGroupDtoTypeEnum];

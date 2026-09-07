@@ -1037,6 +1037,7 @@
                 "DECADE",
                 "GENRE",
                 "FAME",
+                "CHART",
                 "SPECIAL"
               ],
               "type": "string"
@@ -3468,6 +3469,7 @@
               "DECADE",
               "GENRE",
               "FAME",
+              "CHART",
               "SPECIAL"
             ],
             "description": "Which axis this groups by"

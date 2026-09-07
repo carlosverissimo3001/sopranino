@@ -23,10 +23,12 @@ const GRID =
 function CuratedGroupsComponent({ defaultOpen }: CuratedGroupsProps) {
   const decades = useTrackGroups(TrackGroupDtoTypeEnum.Decade);
   const genres = useTrackGroups(TrackGroupDtoTypeEnum.Genre);
+  const charts = useTrackGroups(TrackGroupDtoTypeEnum.Chart);
 
   const kinds = [
     { label: 'Decade', query: decades },
     { label: 'Genre', query: genres },
+    { label: 'Chart', query: charts },
   ].filter((kind) => kind.query.data?.length);
 
   const [selected, setSelected] = useState<string | null>(null);
@@ -34,7 +36,7 @@ function CuratedGroupsComponent({ defaultOpen }: CuratedGroupsProps) {
 
   // Nothing is rendered from a guess while this loads: a grid that fills with
   // defaults and then rearranges is worse than one that arrives late.
-  if (decades.isPending || genres.isPending) {
+  if (decades.isPending || genres.isPending || charts.isPending) {
     return (
       <CollapsibleSection
         title="Curated"
