@@ -17,7 +17,9 @@ export const CHARTS: ChartSource[] = [
   { slug: 'top-spain', name: 'Spain', playlistId: '1116190041' },
 ];
 
-/** Monday morning, before anyone is playing. */
+/** How much of each chart is taken. Deezer publishes a hundred. */
+export const CHART_SIZE = 50;
+
 export const CHART_REFRESH_CRON = '0 6 * * 1';
 export const CHART_REFRESH_TZ = 'Europe/Lisbon';
 

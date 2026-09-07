@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { AppLoggerService } from '../../logger/logger.service';
-import { CHARTS, CHART_PACE_MS, type ChartSource } from '../chart.constants';
+import {
+  CHARTS,
+  CHART_PACE_MS,
+  CHART_SIZE,
+  type ChartSource,
+} from '../chart.constants';
 import {
   ChartRepository,
   type ChartMember,
@@ -75,7 +80,7 @@ export class ChartService {
 
   private async refresh(chart: ChartSource): Promise<number> {
     const body = await this.deezer<{ data?: DeezerPlaylistTrack[] }>(
-      `${DEEZER}/playlist/${chart.playlistId}/tracks?limit=100`,
+      `${DEEZER}/playlist/${chart.playlistId}/tracks?limit=${CHART_SIZE}`,
     );
     // No ISRC means no way to tell whether the pool already holds the song,
     // and the pool is deduped by ISRC. Better dropped than entered twice.
