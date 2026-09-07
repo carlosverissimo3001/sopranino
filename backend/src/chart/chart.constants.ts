@@ -18,6 +18,19 @@ export const CHARTS: ChartSource[] = [
   { slug: 'top-brazil', name: 'Brazil', playlistId: '1111141961' },
 ];
 
+/**
+ * Spotify says where a player is as an ISO 3166-1 alpha-2 code, and the charts
+ * are named for the place rather than the code. Two of them disagree outright,
+ * so the mapping has to be written down.
+ */
+export const CHART_BY_COUNTRY: Record<string, string> = {
+  PT: 'Portugal',
+  ES: 'Spain',
+  GB: 'UK',
+  US: 'USA',
+  BR: 'Brazil',
+};
+
 /** How much of each chart is taken. Deezer publishes a hundred. */
 export const CHART_SIZE = 50;
 

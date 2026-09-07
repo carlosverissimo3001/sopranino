@@ -20,6 +20,21 @@ const EIGHTIES = {
   trackCount: 490,
 };
 
+const chart = (name: string) => ({
+  id: `chart-${name}`,
+  type: TrackGroupType.CHART,
+  name,
+  slug: `top-${name.toLowerCase()}`,
+  imageUrl: null,
+  createdAt: new Date(),
+  trackCount: 50,
+});
+
+/** The repository's own order: by name, which is where a tie falls back to. */
+const CHARTS = ['Brazil', 'Portugal', 'Spain', 'UK', 'USA', 'Worldwide'].map(
+  chart,
+);
+
 async function build() {
   const module = await Test.createTestingModule({
     providers: [
@@ -49,6 +64,77 @@ describe('TrackGroupService', () => {
     });
     // createdAt is ours, not the player's business.
     expect(group).not.toHaveProperty('createdAt');
+  });
+
+
+  describe('the chart a player sees first', () => {
+    beforeEach(() => mockRepository.listWithCounts.mockResolvedValue(CHARTS));
+
+    it("leads with the chart for the player's own country", async () => {
+      const service = await build();
+
+      const groups = await service.list(TrackGroupType.CHART, 'PT');
+
+      expect(groups.map((g) => g.name)).toEqual([
+        'Portugal',
+        'Brazil',
+        'Spain',
+        'UK',
+        'USA',
+        'Worldwide',
+      ]);
+    });
+
+    // Spotify says GB and US; the charts are called UK and USA.
+    it('maps a country code that does not match the chart name', async () => {
+      const service = await build();
+
+      await expect(
+        service.list(TrackGroupType.CHART, 'GB'),
+      ).resolves.toHaveProperty('0.name', 'UK');
+      await expect(
+        service.list(TrackGroupType.CHART, 'US'),
+      ).resolves.toHaveProperty('0.name', 'USA');
+    });
+
+    it('accepts a lowercase code', async () => {
+      const service = await build();
+
+      const groups = await service.list(TrackGroupType.CHART, 'br');
+
+      expect(groups[0].name).toBe('Brazil');
+    });
+
+    // A player in a country with no chart has no better order to be given, so
+    // they get the one everybody else sees rather than an arbitrary shuffle.
+    it('leaves the order alone for a country with no chart', async () => {
+      const service = await build();
+
+      const groups = await service.list(TrackGroupType.CHART, 'JP');
+
+      expect(groups.map((g) => g.name)).toEqual(CHARTS.map((c) => c.name));
+    });
+
+    it('leaves the order alone for a player we know no country for', async () => {
+      const service = await build();
+
+      const groups = await service.list(TrackGroupType.CHART);
+
+      expect(groups.map((g) => g.name)).toEqual(CHARTS.map((c) => c.name));
+    });
+
+    // The country only means anything for charts: there is no Portuguese 1980s.
+    it('ignores the country for decades and genres', async () => {
+      mockRepository.listWithCounts.mockResolvedValue([
+        chart('Portugal'),
+        EIGHTIES,
+      ]);
+      const service = await build();
+
+      const groups = await service.list(TrackGroupType.DECADE, 'PT');
+
+      expect(groups[0].name).toBe('Portugal');
+    });
   });
 
   it('leaves a missing cover absent rather than null', async () => {

@@ -55,4 +55,14 @@ export class UserEntity {
       "The country of the user, as set in the user's account profile. An ISO 3166-1 alpha-2 country code.",
   })
   country?: string;
+
+  @ApiProperty({ description: 'Unused streak freezes the user is holding' })
+  streakFreezes: number;
+
+  @ApiProperty({
+    description: 'Streak quiz questions already answered, so none repeats',
+    type: String,
+    isArray: true,
+  })
+  answeredQuestionIds: string[];
 }
