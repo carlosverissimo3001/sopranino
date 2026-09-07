@@ -20,7 +20,7 @@ import { mapValues } from '../runtime';
  */
 export interface GuessDemoDto {
     /**
-     * Spotify track id; must be one of the options
+     * Track id; must be one of the options
      * @type {string}
      * @memberof GuessDemoDto
      */

@@ -4607,7 +4607,7 @@
           },
           "imageUrl": {
             "type": "string",
-            "description": "Chart cover art; empty before the first refresh"
+            "description": "Chart cover art; empty until one is set"
           },
           "description": {
             "type": "string"
@@ -4700,7 +4700,7 @@
         "properties": {
           "trackId": {
             "type": "string",
-            "description": "Spotify track id; must be one of the options"
+            "description": "Track id; must be one of the options"
           }
         },
         "required": [

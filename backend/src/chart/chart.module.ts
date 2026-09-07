@@ -15,5 +15,6 @@ import { ChartConsumer } from './consumers/chart.consumer';
     }),
   ],
   providers: [ChartService, ChartRepository, ChartConsumer],
+  exports: [ChartRepository],
 })
 export class ChartModule {}

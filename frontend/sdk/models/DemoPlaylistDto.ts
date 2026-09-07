@@ -32,7 +32,7 @@ export interface DemoPlaylistDto {
      */
     name: string;
     /**
-     * Chart cover art; empty before the first refresh
+     * Chart cover art; empty until one is set
      * @type {string}
      * @memberof DemoPlaylistDto
      */
