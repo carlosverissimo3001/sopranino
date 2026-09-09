@@ -45,12 +45,15 @@ export function useMultiplayerSocket(
   useEffect(() => {
     if (!roomId) return;
 
-    // Derive WS URL from the current page origin so the cookie domain matches
-    // (e.g. 127.0.0.1 vs localhost). Fall back to env var for production.
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const apiPort = new URL(apiUrl).port;
+
+    // Only dev has a port, and there the host must match the page so the
+    // cookie applies. In prod the env var is already the origin: deriving one
+    // gave "https://host:", the frontend, which serves no /socket.io.
     const wsUrl =
-      typeof window !== 'undefined'
-        ? `${window.location.protocol}//${window.location.hostname}:${new URL(apiUrl).port}`
+      apiPort && typeof window !== 'undefined'
+        ? `${window.location.protocol}//${window.location.hostname}:${apiPort}`
         : apiUrl;
 
     const socket = io(wsUrl, {
