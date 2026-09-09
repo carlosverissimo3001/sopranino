@@ -25,7 +25,13 @@ import { CuratedGroups } from '@/components/features/track-group/CuratedGroups';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { TrackGroupDtoTypeEnum } from '@/sdk';
 
-export function HomeClient({ canSignIn }: { canSignIn: boolean }) {
+export function HomeClient({
+  canSignIn,
+  hasSession,
+}: {
+  canSignIn: boolean;
+  hasSession: boolean;
+}) {
   const playlistFilters = usePlaylistFilters();
   const { error } = useAuthError();
 
@@ -83,7 +89,10 @@ export function HomeClient({ canSignIn }: { canSignIn: boolean }) {
     return <main aria-hidden="true" className="min-h-screen bg-black" />;
   }
 
-  if (isLoadingUser) {
+  // Only wait when there is someone to wait for. Without a session cookie the
+  // answer is already known, so the landing renders on the server rather than
+  // behind a spinner that a crawler would index instead of the page.
+  if (isLoadingUser && hasSession) {
     return (
       <main className="min-h-screen flex items-center justify-center">
         <LoadingSpinner size="md" />

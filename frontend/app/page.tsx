@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { HomeClient } from './HomeClient';
+import { SESSION_COOKIE_NAME } from '@/lib/cookies';
 import {
   SITE_ACCESS_COOKIE,
   SPOTIFY_RETURN_COOKIE,
@@ -17,5 +18,10 @@ export default async function Home() {
     (await isAccessTokenValid(jar.get(SITE_ACCESS_COOKIE)?.value)) ||
     !!(await readSpotifyReturnToken(jar.get(SPOTIFY_RETURN_COOKIE)?.value));
 
-  return <HomeClient canSignIn={canSignIn} />;
+  // No session cookie means a stranger, and the server can answer that without
+  // waiting on a query the way the client must. Knowing it here is what lets
+  // the landing copy render into the HTML instead of a spinner.
+  const hasSession = jar.has(SESSION_COOKIE_NAME);
+
+  return <HomeClient canSignIn={canSignIn} hasSession={hasSession} />;
 }

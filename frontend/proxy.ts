@@ -6,7 +6,7 @@ import {
   readSpotifyReturnToken,
 } from '@/lib/site-access';
 
-const SESSION_COOKIE = 'unpaused_session';
+import { SESSION_COOKIE_NAME as SESSION_COOKIE } from '@/lib/cookies';
 const SHUFFLE_ROUTE = '/shuffle';
 
 // Presence only; the backend validates. Multiplayer join is absent on purpose:
