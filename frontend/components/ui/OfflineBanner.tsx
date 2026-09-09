@@ -5,13 +5,16 @@ import { WifiOff } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 
 export function OfflineBanner() {
-  const [isOffline, setIsOffline] = useState(() =>
-    typeof navigator !== 'undefined' ? !navigator.onLine : false,
-  );
+  // Assume online until the browser says otherwise. A `typeof navigator`
+  // guard is not enough: Node defines a partial navigator with no `onLine`,
+  // so the server read `!undefined` and rendered this banner into every page.
+  const [isOffline, setIsOffline] = useState(false);
 
   useEffect(() => {
     const goOffline = () => setIsOffline(true);
     const goOnline = () => setIsOffline(false);
+
+    setIsOffline(!navigator.onLine);
 
     window.addEventListener('offline', goOffline);
     window.addEventListener('online', goOnline);
