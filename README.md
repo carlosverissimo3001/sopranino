@@ -50,7 +50,7 @@
 
 ## What is Sopranino?
 
-Sopranino is a music guessing game. The core loop: you hear a snippet that starts at **0.1 seconds** and grows with every wrong guess or skip - up to 8 seconds across 6 rounds. Nail the track early for more points.
+Sopranino is a music guessing game. The core loop: you hear a snippet that starts at **0.1 seconds** and grows with every wrong guess or skip - up to 12 seconds across 6 rounds. Nail the track early for more points.
 
 The music comes from **Deezer**: a curated pool of ~6,000 tracks, every preview, the genre labels, and weekly country charts. **Spotify** is what links your own library - your playlists, your Liked Songs, and the search behind the guess box. You do not need either account to play.
 
@@ -74,7 +74,7 @@ Pick any playlist from your Spotify library (or your Liked Songs). No Spotify? P
 
 | Round    | 1    | 2    | 3   | 4   | 5   | 6   |
 | -------- | ---- | ---- | --- | --- | --- | --- |
-| Duration | 0.1s | 0.5s | 1s  | 2s  | 4s  | 8s  |
+| Duration | 0.1s | 1s   | 2s  | 4s  | 7s  | 12s |
 
 Wrong guesses are evaluated for **partial matches** - if you guessed the right artist, the right album, or both, the game tells you so. Round durations are driven by the backend so the client can't cheat.
 
