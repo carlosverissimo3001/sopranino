@@ -4,9 +4,9 @@ import { renderEmail } from './layout';
 export function verificationEmail(to: string, link: string): EmailMessage {
   return {
     to,
-    subject: 'Confirm your email for unpaused',
+    subject: 'Confirm your email for sopranino',
     text: [
-      'Confirm your address to finish setting up your unpaused account:',
+      'Confirm your address to finish setting up your sopranino account:',
       '',
       link,
       '',
@@ -16,7 +16,7 @@ export function verificationEmail(to: string, link: string): EmailMessage {
     html: renderEmail({
       heading: 'Confirm your email',
       paragraphs: [
-        'One click and this address is yours on unpaused, which is what lets you get back in if you ever forget your password.',
+        'One click and this address is yours on sopranino, which is what lets you get back in if you ever forget your password.',
       ],
       action: { label: 'Confirm my email', href: link },
       footnote:

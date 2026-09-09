@@ -59,14 +59,14 @@ describe('EmailService', () => {
     send.mockResolvedValue(undefined);
     const service = await buildService({
       [RESEND_API_KEY]: 'a-sending-key',
-      [EMAIL_FROM]: 'unpaused <unpaused@example.com>',
+      [EMAIL_FROM]: 'sopranino <sopranino@example.com>',
       [EMAIL_REPLY_TO]: 'carlos@example.com',
     });
 
     expect(service.canSend).toBe(true);
     expect(await service.send(MESSAGE)).toBe(true);
     expect(send).toHaveBeenCalledWith(MESSAGE, {
-      from: 'unpaused <unpaused@example.com>',
+      from: 'sopranino <sopranino@example.com>',
       replyTo: 'carlos@example.com',
     });
   });

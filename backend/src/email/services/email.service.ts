@@ -6,7 +6,7 @@ import { ConsoleEmailTransport } from '../transports/console.transport';
 import { ResendEmailTransport } from '../transports/resend.transport';
 import { EmailMessage, EmailSender, EmailTransport } from '../types';
 
-const DEFAULT_FROM = 'unpaused <onboarding@resend.dev>';
+const DEFAULT_FROM = 'sopranino <onboarding@resend.dev>';
 
 @Injectable()
 export class EmailService {

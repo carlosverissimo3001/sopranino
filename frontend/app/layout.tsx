@@ -19,37 +19,37 @@ export const metadata: Metadata = {
   // Otherwise the OG image resolves against VERCEL_URL, the per deploy host.
   metadataBase: new URL(SITE_URL),
   alternates: { canonical: '/' },
-  title: 'Unpaused - Music Guessing Game',
+  title: 'Sopranino - Music Guessing Game',
   description:
-    'Test your music knowledge with Unpaused. Guess the song from a snippet of your favorite playlists!',
+    'Test your music knowledge with Sopranino. Guess the song from a snippet of your favorite playlists!',
   keywords: [
     'music',
     'game',
     'spotify',
     'guessing game',
     'music quiz',
-    'unpaused',
+    'sopranino',
   ],
-  authors: [{ name: 'Unpaused' }],
-  creator: 'Unpaused',
-  publisher: 'Unpaused',
-  applicationName: 'Unpaused',
+  authors: [{ name: 'Sopranino' }],
+  creator: 'Sopranino',
+  publisher: 'Sopranino',
+  applicationName: 'Sopranino',
   appleWebApp: {
     capable: true,
-    title: 'Unpaused',
+    title: 'Sopranino',
     statusBarStyle: 'black-translucent',
   },
   openGraph: {
     type: 'website',
     url: '/',
-    title: 'Unpaused - Music Guessing Game',
+    title: 'Sopranino - Music Guessing Game',
     description:
       'Test your music knowledge! Guess the song from a snippet of your favorite playlists.',
-    siteName: 'Unpaused',
+    siteName: 'Sopranino',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Unpaused - Music Guessing Game',
+    title: 'Sopranino - Music Guessing Game',
     description:
       'Test your music knowledge! Guess the song from a snippet of your favorite playlists.',
   },

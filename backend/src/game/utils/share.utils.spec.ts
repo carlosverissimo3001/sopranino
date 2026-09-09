@@ -34,7 +34,7 @@ describe('guessToEmoji', () => {
 describe('buildShareText', () => {
   it('is three lines with no blanks, so a chat preview shows all of it', () => {
     expect(build()).toBe(
-      'unpaused #142 · 3/6\n🔇🔇🟩\nunpause.vercel.app/daily',
+      'sopranino #142 · 3/6\n🔇🔇🟩\nunpause.vercel.app/daily',
     );
   });
 
@@ -55,7 +55,7 @@ describe('buildShareText', () => {
           GuessResult.Wrong,
         ),
       }),
-    ).toBe('unpaused #142 · X/6\n🔇⬜🟨🔇🔇🔇\nunpause.vercel.app/daily');
+    ).toBe('sopranino #142 · X/6\n🔇⬜🟨🔇🔇🔇\nunpause.vercel.app/daily');
   });
 
   it('carries nothing that could spoil the answer', () => {

@@ -57,7 +57,7 @@ export function VerifyClient() {
       {!confirm.isPending && (
         <Link href="/">
           <Button variant="spotify" className="!rounded-full px-8">
-            Back to unpaused
+            Back to sopranino
           </Button>
         </Link>
       )}

@@ -1,6 +1,6 @@
 import { shareResult } from './share';
 
-const TEXT = 'unpaused #142 · 3/6\n🔇🔇🟩\nunpause.vercel.app/daily';
+const TEXT = 'sopranino #142 · 3/6\n🔇🔇🟩\nunpause.vercel.app/daily';
 
 const stub = (share: unknown, writeText: unknown, coarsePointer = true) => {
   Object.defineProperty(globalThis, 'navigator', {

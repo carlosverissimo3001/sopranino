@@ -37,7 +37,7 @@ function AppHeaderComponent({ user, onLogout, isLoggingOut }: AppHeaderProps) {
               <Zap className="w-5 h-5 text-black fill-black" />
             </div>
             <span className="text-base sm:text-xl font-black tracking-tighter uppercase italic">
-              Unpaused
+              Sopranino
             </span>
           </Link>
         </div>
