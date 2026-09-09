@@ -1,12 +1,13 @@
-<h1 align="center">⚡ Unpaused</h1>
+<h1 align="center">⚡ Sopranino</h1>
 
 <p align="center">
   <em>Hear 0.1 seconds of a song. Name the track. How fast can you guess?</em>
 </p>
 
 <p align="center">
-  A full-stack, real-time, Spotify-powered music guessing game.<br/>
-  Solo play, daily streaks, endless speed-run, and live multiplayer rooms.
+  A full-stack, real-time music guessing game.<br/>
+  Solo play, daily streaks, endless speed-run, and live multiplayer rooms.<br/>
+  Play it at <a href="https://sopranino.app">sopranino.app</a> - no account needed.
 </p>
 
 <p align="center">
@@ -18,6 +19,7 @@
   <img src="https://img.shields.io/badge/Redis-7-dc382d?logo=redis&logoColor=white" alt="Redis 7" />
   <img src="https://img.shields.io/badge/Socket.io-4-010101?logo=socket.io&logoColor=white" alt="Socket.io" />
   <img src="https://img.shields.io/badge/Prisma-7-2d3748?logo=prisma&logoColor=white" alt="Prisma 7" />
+  <img src="https://img.shields.io/badge/Deezer%20API-A238FF?logo=deezer&logoColor=white" alt="Deezer API" />
   <img src="https://img.shields.io/badge/Spotify%20API-1DB954?logo=spotify&logoColor=white" alt="Spotify Web API" />
 </p>
 
@@ -31,7 +33,7 @@
 
 ## Table of contents
 
-- [What is Unpaused?](#what-is-unpaused)
+- [What is Sopranino?](#what-is-sopranino)
 - [Game modes](#game-modes)
 - [Tech stack](#tech-stack)
 - [Architecture](#architecture)
@@ -46,11 +48,13 @@
 
 ---
 
-## What is Unpaused?
+## What is Sopranino?
 
-Unpaused is a music guessing game built on top of the Spotify Web API. The core loop: you hear a snippet that starts at **0.1 seconds** and grows with every wrong guess or skip - up to 8 seconds across 6 rounds. Nail the track early for more points.
+Sopranino is a music guessing game. The core loop: you hear a snippet that starts at **0.1 seconds** and grows with every wrong guess or skip - up to 8 seconds across 6 rounds. Nail the track early for more points.
 
-It started as a random idea me and a friend had while playing Songless and Bandle and ended up as an application with three distinct game modes, a real-time multiplayer layer, a daily streak system and much more...
+The music comes from **Deezer**: a curated pool of ~6,000 tracks, every preview, the genre labels, and weekly country charts. **Spotify** is what links your own library - your playlists, your Liked Songs, and the search behind the guess box. You do not need either account to play.
+
+It started as a random idea me and a friend had while playing Songless and Bandle and ended up as an application with four distinct game modes, a real-time multiplayer layer, a daily streak system and much more...
 
 ### What makes it interesting, technically
 
@@ -66,7 +70,7 @@ It started as a random idea me and a friend had while playing Songless and Bandl
 
 ### 🎵 Playlist mode
 
-Pick any playlist from your Spotify library (or your Liked Songs). The game picks a random track and plays progressively longer snippets across 6 rounds.
+Pick any playlist from your Spotify library (or your Liked Songs). No Spotify? Play a **curated set** instead - by decade, by genre, or one of the weekly country charts - all drawn from the Deezer pool. The game picks a random track and plays progressively longer snippets across 6 rounds.
 
 | Round    | 1    | 2    | 3   | 4   | 5   | 6   |
 | -------- | ---- | ---- | --- | --- | --- | --- |
@@ -115,11 +119,13 @@ Create a room, share the invite code, and race your friends live. The host picks
 | ORM                   | **Prisma 7**                                | Type-safe queries, migrations, studio for local inspection    |
 | Database              | **PostgreSQL 16**                           | Relational model for users, games, rooms, stats               |
 | Cache / session store | **Redis 7** (ioredis)                       | Sessions, PKCE state, rate-limit buckets, access-token cache  |
-| Queues                | **BullMQ 5**                                | Delayed & cron jobs (abandoned-game sweeper)                  |
+| Queues                | **BullMQ 5**                                | Cron & delayed jobs: abandoned-game sweep, daily track, weekly chart refresh |
 | Real-time             | **`@nestjs/websockets` + Socket.io 4**      | Gateway pattern, room broadcasts, session-validated handshake |
 | Validation            | **class-validator** + **class-transformer** | DTO validation via pipes                                      |
 | Rate limiting         | **`@nestjs/throttler`** + Redis storage     | Session-scoped, not just IP-based                             |
 | API docs              | **`@nestjs/swagger` + OpenAPI Generator**   | Single source of truth for frontend SDK                       |
+| Music data            | **Deezer API**                              | Track pool, previews, genre labels, weekly country charts     |
+| Email                 | **Resend**                                  | Verification and password-reset mail, DKIM/SPF/DMARC signed   |
 | Media                 | **Cloudinary**                              | Avatar uploads                                                |
 | Auth                  | **Spotify OAuth (PKCE)**                    | No client secret, refresh token encrypted at rest             |
 | Testing               | **Jest 29** + `@nestjs/testing`             | Service & controller unit tests                               |
@@ -246,8 +252,8 @@ On a 45-track sample spanning the 1960s to the 2020s, iTunes and Deezer each res
 ### 1. Clone & install
 
 ```bash
-git clone https://github.com/carlosverissimo3001/unpaused.git
-cd unpaused
+git clone https://github.com/carlosverissimo3001/sopranino.git
+cd sopranino
 pnpm install
 ```
 
@@ -268,10 +274,10 @@ This brings up Postgres 16 on `:5432` and Redis 7 on `:6379`, both with healthch
 
 ### 4. Configure env vars
 
-Start from the template, then fill in your Spotify client ID and generate the two secrets:
+Start from the template, then fill in your Spotify client ID and generate the encryption key:
 
 ```bash
-cp backend/env.template backend/.env
+cp backend/.env.example backend/.env
 ```
 
 **`backend/.env`**
@@ -281,14 +287,19 @@ DATABASE_URL="postgresql://unpaused:unpaused_dev@localhost:5432/unpaused?schema=
 REDIS_URL="redis://localhost:6379"
 SPOTIFY_CLIENT_ID="your_client_id"
 SPOTIFY_REDIRECT_URI="http://localhost:3001/auth/callback"
-SPOTIFY_CLIENT_SECRET="your_client_secret"   # app-only auth for guest play
-SESSION_SECRET="generate-a-random-32-char-string"
 SESSION_MAX_AGE_SECONDS="604800"
 TOKEN_ENCRYPTION_KEY="64-character-hex-string"   # openssl rand -hex 32
 FRONTEND_URL="http://localhost:3000"
 # Optional
 LAST_FM_API_KEY="..."
 CLOUDINARY_URL="cloudinary://..."
+RESEND_API_KEY="re_..."                          # unset, and mail goes to the log
+EMAIL_FROM="sopranino <hello@mail.example.com>"
+EMAIL_REPLY_TO="..."                             # an inbox someone actually reads
+PORTFOLIO_URL="..."                              # extra CORS origin for the demo
+# Production only: lets one cookie cover the site and the API subdomain.
+# Leave unset locally, where localhost and 127.0.0.1 share no parent domain.
+COOKIE_DOMAIN=""
 ```
 
 **`frontend/.env.local`**
@@ -323,7 +334,7 @@ pnpm dev
 ## Project structure
 
 ```
-unpaused/
+sopranino/
 ├── backend/
 │   ├── prisma/
 │   │   └── schema.prisma         # Users, GameSessions, Tracks, Stats, MultiplayerRooms, GauntletRuns, UserPreferences…
@@ -412,8 +423,8 @@ unpaused/
 
 ## Deployment
 
-- **Frontend** → Vercel. Cookies are same-domain for the API via a reverse-proxy setup, so the browser never needs to send cross-origin credentials.
-- **Backend** → Railway (Dockerized NestJS). Postgres and Redis are provisioned add-ons; `TOKEN_ENCRYPTION_KEY` is an environment secret generated via `openssl rand -hex 32`.
+- **Frontend** → Vercel at `sopranino.app`. HTTP calls go to `/api/*` and are rewritten to the backend, so they stay same-origin. The websocket cannot use that path - it serves `/socket.io` - so it dials `api.sopranino.app`, and `COOKIE_DOMAIN` scopes the session cookie to cover both.
+- **Backend** → Railway (Dockerized NestJS), served at `api.sopranino.app`. Postgres and Redis are provisioned add-ons; `TOKEN_ENCRYPTION_KEY` is an environment secret generated via `openssl rand -hex 32`.
 - **Production migrations** run via `pnpm --filter backend prisma:migrate-prod` (see `scripts/` in `backend/`), kicked off on deploy.
 
 ---
@@ -533,6 +544,6 @@ Some things that are scoped but not built (or only partially built):
 
 This repository is published for portfolio purposes. The code is shared "as is" without warranty; please don't deploy a copy as a commercial service.
 
-Spotify, the Spotify logo, and related marks are trademarks of Spotify AB. This project is not affiliated with or endorsed by Spotify.
+Music data is provided by Deezer. Spotify, the Spotify logo, and related marks are trademarks of Spotify AB; Deezer and its marks are trademarks of Deezer S.A. This project is affiliated with neither.
 
 ---
