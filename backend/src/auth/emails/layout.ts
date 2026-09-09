@@ -55,7 +55,7 @@ export function renderEmail({
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#ffffff;border:1px solid ${HAIRLINE};border-radius:14px;font-family:${FONT}">
         <tr>
           <td style="padding:28px 32px 0">
-            <p style="margin:0 0 24px;font-size:13px;font-weight:800;letter-spacing:0.18em;text-transform:uppercase;color:${GREEN}">unpaused</p>
+            <p style="margin:0 0 24px;font-size:13px;font-weight:800;letter-spacing:0.18em;text-transform:uppercase;color:${GREEN}">sopranino</p>
             <h1 style="margin:0 0 16px;font-size:21px;line-height:1.3;font-weight:800;color:${INK}">${heading}</h1>
             ${
               greeting

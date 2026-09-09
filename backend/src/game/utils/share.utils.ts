@@ -40,7 +40,7 @@ export function buildShareText(params: {
   const attempts = isWin ? String(guesses.length) : 'X';
 
   return [
-    `unpaused #${gameNumber} · ${attempts}/${MAX_ROUNDS}`,
+    `sopranino #${gameNumber} · ${attempts}/${MAX_ROUNDS}`,
     grid,
     `${shareHost(appUrl)}/daily`,
   ].join('\n');

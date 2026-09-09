@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 
 // Image metadata
-export const alt = 'Unpaused - Music Guessing Game';
+export const alt = 'Sopranino - Music Guessing Game';
 export const size = {
   width: 1200,
   height: 630,
@@ -79,7 +79,7 @@ export default async function OpenGraphImage() {
           marginBottom: '20px',
         }}
       >
-        Unpaused
+        Sopranino
       </div>
 
       <div

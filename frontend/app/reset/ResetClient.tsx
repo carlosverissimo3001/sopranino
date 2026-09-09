@@ -89,7 +89,7 @@ export function ResetClient() {
       {!confirm.isPending && (
         <Link href="/">
           <Button variant="outline" className="!rounded-full px-8">
-            Back to unpaused
+            Back to sopranino
           </Button>
         </Link>
       )}

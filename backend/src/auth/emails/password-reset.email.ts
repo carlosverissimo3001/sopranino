@@ -15,11 +15,11 @@ export function passwordResetEmail(
 ): EmailMessage {
   return {
     to,
-    subject: `Set a new password for ${displayName} on unpaused`,
+    subject: `Set a new password for ${displayName} on sopranino`,
     text: [
       `Hi ${displayName},`,
       '',
-      'Here is your link to set a new password on unpaused:',
+      'Here is your link to set a new password on sopranino:',
       '',
       link,
       '',
@@ -31,7 +31,7 @@ export function passwordResetEmail(
       heading: 'Set a new password',
       greeting: `Hi ${displayName},`,
       paragraphs: [
-        `Here is your link to set a new password on unpaused: <a href="${link}" style="color:#1db954">${link}</a>`,
+        `Here is your link to set a new password on sopranino: <a href="${link}" style="color:#1db954">${link}</a>`,
         'Your stats, streak and history are all still there, waiting on the same account.',
       ],
       action: { label: 'Open the link', href: link },

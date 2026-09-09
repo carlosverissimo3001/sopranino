@@ -13,7 +13,7 @@ async function generate() {
   const app = await NestFactory.create(AppModule, { logger: false });
 
   const config = new DocumentBuilder()
-    .setTitle('Unpaused Spotify API')
+    .setTitle('Sopranino API')
     .setVersion('1.0')
     .addCookieAuth('unpaused_session')
     .build();
