@@ -1,13 +1,11 @@
 import { ImageResponse } from 'next/og';
 
-// Image metadata
 export const size = {
-  width: 32,
-  height: 32,
+  width: 96,
+  height: 96,
 };
 export const contentType = 'image/png';
 
-// Icon component
 export default function Icon() {
   return new ImageResponse(
     <div
@@ -21,10 +19,9 @@ export default function Icon() {
         borderRadius: '20%',
       }}
     >
-      {/* Zap/Lightning icon - simplified SVG path */}
       <svg
-        width="20"
-        height="20"
+        width="60"
+        height="60"
         viewBox="0 0 24 24"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
