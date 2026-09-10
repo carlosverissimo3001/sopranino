@@ -1,6 +1,6 @@
 'use client';
 
-import { Disc3, Library, Loader2 } from 'lucide-react';
+import { Disc3, Library } from 'lucide-react';
 import { useSetTrackSource } from '@/hooks/multiplayer/useSetTrackSource';
 import { RoomDtoTrackSourceEnum } from '@/sdk';
 import type { RoomDto } from '@/sdk';
@@ -83,7 +83,7 @@ export function TrackSourcePicker({
               onClick={() =>
                 setTrackSource.mutate({ roomId: room.id, trackSource: value })
               }
-              className={`relative flex flex-col gap-1 rounded-xl border px-4 py-3 text-left transition-all disabled:cursor-not-allowed disabled:opacity-40 ${
+              className={`flex flex-col gap-1 rounded-xl border px-4 py-3 text-left transition-all disabled:cursor-not-allowed disabled:opacity-40 ${
                 active
                   ? 'border-green-500/30 bg-green-500/10'
                   : 'border-fg/10 bg-fg/[0.03] hover:bg-fg/[0.06]'
@@ -100,9 +100,6 @@ export function TrackSourcePicker({
                 >
                   {label}
                 </span>
-                {inFlight === value ? (
-                  <Loader2 className="absolute right-2 top-3 h-3 w-3 animate-spin text-fg/40" />
-                ) : null}
               </span>
               <span className="text-[11px] leading-snug text-fg/40">
                 {unavailable ? 'Link Spotify to use this' : detail}

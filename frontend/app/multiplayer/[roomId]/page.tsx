@@ -379,14 +379,9 @@ export default function RoomLobbyPage() {
                     : 'bg-fg/5 border border-fg/10 text-fg/70 hover:bg-fg/10'
                 }`}
               >
-                {/* Out of the flow, so the label stays centred whether or not
-                    there is an icon, and does not shift when one arrives. */}
+                {/* Out of the flow, so the label stays centred either way. */}
                 <span className="absolute left-4 flex h-4 w-4 items-center justify-center">
-                  {toggleReady.isPending ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : showAsReady ? (
-                    <Check className="w-4 h-4" />
-                  ) : null}
+                  {showAsReady && <Check className="w-4 h-4" />}
                 </span>
                 {showAsReady ? 'Ready' : 'Mark as Ready'}
               </button>
@@ -414,11 +409,15 @@ export default function RoomLobbyPage() {
 
             {isHost && (
               <>
-                {!canStart && (
-                  <p className="text-xs text-fg/30 text-center">
-                    {(room?.players.length ?? 0) < 2
+                <p className="min-h-4 text-center text-xs text-fg/30">
+                  {!canStart &&
+                    ((room?.players.length ?? 0) < 2
                       ? 'Need at least 2 players to start'
-                      : 'All players must be ready'}
+                      : 'All players must be ready')}
+                </p>
+                {toggleReady.isError && (
+                  <p className="text-sm text-red-400 text-center">
+                    {toggleReady.error.message}
                   </p>
                 )}
                 {startRoom.isError && (
