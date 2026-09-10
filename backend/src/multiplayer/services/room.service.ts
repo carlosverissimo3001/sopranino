@@ -7,13 +7,17 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { RoomStatus, TrackSource } from '@prisma/client';
+import { LOBBY_MAX_ROOMS } from '../../consts';
 import { AuthService } from '../../auth/services/auth.service';
 import {
   RoomRepository,
   RoomWithPlayers,
 } from '../repositories/room.repository';
 import { RoomDto } from '../dto/room.dto';
-import { CreateRoomDto } from '../dto/create-room.dto';
+import { OpenRoomDto } from '../dto/open-rooms.dto';
+import { RoomPresenceService } from './room-presence.service';
+import { CreateRoomControllerDto } from '../dto/create-room-controller.dto';
+import { generateName } from '../../auth/utils/handle-generator';
 import { TrackPoolService } from './track-pool.service';
 import { RoomsGateway } from '../gateways/rooms.gateway';
 
@@ -27,19 +31,56 @@ export class RoomService {
     private readonly authService: AuthService,
     private readonly roomRepository: RoomRepository,
     private readonly trackPoolService: TrackPoolService,
+    private readonly presence: RoomPresenceService,
     @Inject(forwardRef(() => RoomsGateway))
     private readonly roomsGateway: RoomsGateway,
   ) {}
 
-  async createRoom(sessionId: string, dto: CreateRoomDto): Promise<RoomDto> {
+  /**
+   * The lobby. Public, because somebody deciding whether to play should not
+   * have to sign in to see whether anyone is waiting.
+   *
+   * Status alone is not enough: a room is WAITING from the moment it is made,
+   * so anyone who opened the create screen and wandered off would sit in the
+   * list for ever. Presence is what says a room still has somebody in it.
+   */
+  async listOpenRooms(): Promise<OpenRoomDto[]> {
+    const rooms =
+      await this.roomRepository.findFindableWaiting(LOBBY_MAX_ROOMS);
+
+    const withPresence = await Promise.all(
+      rooms.map(async (room) => ({
+        room,
+        online: (await this.presence.onlineUserIds(room.id)).length,
+      })),
+    );
+
+    return withPresence
+      .filter(({ online }) => online > 0)
+      .map(({ room, online }) => ({
+        id: room.id,
+        name: room.name,
+        playerCount: online,
+        roundCount: room.roundCount,
+        trackSource: room.trackSource,
+      }));
+  }
+
+  async createRoom(
+    sessionId: string,
+    dto: CreateRoomControllerDto,
+  ): Promise<RoomDto> {
     const { id: userId } = await this.authService.getUserBySessionId(sessionId);
     const inviteCode = await this.generateUniqueInviteCode();
 
-    const room = await this.roomRepository.createRoom(
-      userId,
+    const room = await this.roomRepository.createRoom({
+      hostId: userId,
       inviteCode,
-      dto.roundCount,
-    );
+      roundCount: dto.roundCount,
+      name: generateName(),
+      findable: dto.findable ?? true,
+    });
+    this.roomsGateway.lobbyChanged();
 
     return RoomDto.fromEntity(room);
   }

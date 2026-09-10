@@ -24,6 +24,8 @@ import { MultiplayerGameService } from '../services/multiplayer-game.service';
 import { RoomService } from '../services/room.service';
 import { RoomDto } from '../dto/room.dto';
 import {
+  LOBBY_BROADCAST_DEBOUNCE_MS,
+  LOBBY_ROOM,
   ROOM_HOST_GONE_GRACE_MS,
   ROOM_PLAYER_GONE_GRACE_MS,
   ROOM_SWEEP_INTERVAL_MS,
@@ -52,6 +54,9 @@ export class RoomsGateway
   private readonly logger = new Logger(RoomsGateway.name);
 
   private sweepTimer?: ReturnType<typeof setInterval>;
+
+  /** Pending coalesced lobby broadcast, if a change has been announced. */
+  private lobbyTimer?: ReturnType<typeof setTimeout>;
 
   /**
    * roomId -> the online set this instance last broadcast, so a heartbeat only
@@ -82,6 +87,9 @@ export class RoomsGateway
   }
 
   onModuleDestroy(): void {
+    if (this.lobbyTimer) {
+      clearTimeout(this.lobbyTimer);
+    }
     if (this.sweepTimer) {
       clearInterval(this.sweepTimer);
     }
@@ -303,6 +311,7 @@ export class RoomsGateway
       }
 
       this.server.to(roomId).emit('presenceUpdate', { roomId, onlineUserIds });
+      this.lobbyChanged();
 
       // Someone left: whoever is still here may now be the last to finish.
       if (shrank) {
@@ -328,7 +337,54 @@ export class RoomsGateway
     }
   }
 
+  /**
+   * Something a browser would notice has changed. The list is rebuilt and sent
+   * once per tick rather than per change: a room filling fires join, ready,
+   * ready and start within a second, and each would otherwise be a broadcast
+   * and a re-render for everyone watching.
+   */
+  lobbyChanged(): void {
+    if (this.lobbyTimer) {
+      return;
+    }
+    this.lobbyTimer = setTimeout(() => {
+      this.lobbyTimer = undefined;
+      void this.broadcastLobby();
+    }, LOBBY_BROADCAST_DEBOUNCE_MS);
+    this.lobbyTimer.unref?.();
+  }
+
+  private async broadcastLobby(): Promise<void> {
+    try {
+      const rooms = await this.roomService.listOpenRooms();
+      this.server.to(LOBBY_ROOM).emit('lobbyUpdated', { rooms });
+    } catch (err) {
+      this.logger.error(
+        'broadcastLobby failed',
+        err instanceof Error ? err.stack : String(err),
+      );
+    }
+  }
+
+  /**
+   * The whole list, not a delta. A handful of rooms makes reconciliation cost
+   * more than it saves; worth revisiting past roughly fifty.
+   */
+  @SubscribeMessage('joinLobby')
+  async handleJoinLobby(@ConnectedSocket() client: Socket): Promise<void> {
+    await client.join(LOBBY_ROOM);
+    client.emit('lobbyUpdated', {
+      rooms: await this.roomService.listOpenRooms(),
+    });
+  }
+
+  @SubscribeMessage('leaveLobby')
+  async handleLeaveLobby(@ConnectedSocket() client: Socket): Promise<void> {
+    await client.leave(LOBBY_ROOM);
+  }
+
   emitRoomUpdate(roomId: string, room: RoomDto): void {
+    this.lobbyChanged();
     try {
       this.server.to(roomId).emit('roomUpdated', room);
     } catch (err) {

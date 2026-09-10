@@ -44,6 +44,7 @@ All URIs are relative to *http://localhost*
 | [**multiplayerControllerJoinRoom**](ApiApi.md#multiplayercontrollerjoinroom) | **POST** /multiplayer/rooms/{code}/join | Join a room by invite code |
 | [**multiplayerControllerKickPlayer**](ApiApi.md#multiplayercontrollerkickplayer) | **POST** /multiplayer/rooms/{id}/kick | Remove a player from the room (host only) |
 | [**multiplayerControllerLeaveRoom**](ApiApi.md#multiplayercontrollerleaveroom) | **POST** /multiplayer/rooms/{id}/leave | Leave a room (host leaving expires it) |
+| [**multiplayerControllerListOpenRooms**](ApiApi.md#multiplayercontrollerlistopenrooms) | **GET** /multiplayer/rooms/open | Rooms waiting for players that anyone may join |
 | [**multiplayerControllerSetTrackSource**](ApiApi.md#multiplayercontrollersettracksource) | **POST** /multiplayer/rooms/{id}/track-source | Choose where the room draws its songs from |
 | [**multiplayerControllerStartGame**](ApiApi.md#multiplayercontrollerstartgame) | **POST** /multiplayer/rooms/{id}/start | Start the game (host only) |
 | [**multiplayerControllerSubmitGuess**](ApiApi.md#multiplayercontrollersubmitguess) | **POST** /multiplayer/rooms/{id}/guess | Submit a guess for the current round |
@@ -1959,11 +1960,7 @@ import type { GauntletControllerGetLeaderboardRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: cookie
-    apiKey: "YOUR API KEY",
-  });
-  const api = new ApiApi(config);
+  const api = new ApiApi();
 
   const body = {
     // 'daily' | 'weekly' | 'alltime' | Time period for the leaderboard (optional)
@@ -2004,7 +2001,7 @@ example().catch(console.error);
 
 ### Authorization
 
-[cookie](../README.md#cookie)
+No authorization required
 
 ### HTTP request headers
 
@@ -2294,7 +2291,7 @@ example().catch(console.error);
 
 ## multiplayerControllerCreateRoom
 
-> RoomDto multiplayerControllerCreateRoom(createRoomDto)
+> RoomDto multiplayerControllerCreateRoom(createRoomControllerDto)
 
 Create a new multiplayer room
 
@@ -2316,8 +2313,8 @@ async function example() {
   const api = new ApiApi(config);
 
   const body = {
-    // CreateRoomDto
-    createRoomDto: ...,
+    // CreateRoomControllerDto
+    createRoomControllerDto: ...,
   } satisfies MultiplayerControllerCreateRoomRequest;
 
   try {
@@ -2337,7 +2334,7 @@ example().catch(console.error);
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **createRoomDto** | [CreateRoomDto](CreateRoomDto.md) |  | |
+| **createRoomControllerDto** | [CreateRoomControllerDto](CreateRoomControllerDto.md) |  | |
 
 ### Return type
 
@@ -2776,6 +2773,63 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **204** |  |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## multiplayerControllerListOpenRooms
+
+> OpenRoomsDto multiplayerControllerListOpenRooms()
+
+Rooms waiting for players that anyone may join
+
+### Example
+
+```ts
+import {
+  Configuration,
+  ApiApi,
+} from '';
+import type { MultiplayerControllerListOpenRoomsRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const api = new ApiApi();
+
+  try {
+    const data = await api.multiplayerControllerListOpenRooms();
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+[**OpenRoomsDto**](OpenRoomsDto.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** |  |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 

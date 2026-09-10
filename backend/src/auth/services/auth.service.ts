@@ -14,7 +14,7 @@ import { UserRepository } from '../repositories/user.repository';
 import { UserEntity } from '../entities/user.entity';
 import { hasCredential } from '../utils/credentials';
 import { hashPassword, verifyPassword } from '../utils/password';
-import { generateHandle } from '../utils/handle-generator';
+import { generateName } from '../utils/handle-generator';
 import { EmailVerificationService } from './email-verification.service';
 import { AuthMeResponseDto } from '../dto/auth.dto';
 import { UserSessionDto } from '../dto/user-session.dto';
@@ -162,7 +162,7 @@ export class AuthService {
       : await this.userRepository.createWithPassword(
           email,
           passwordHash,
-          generateHandle(),
+          generateName(),
         );
 
     // Swallows its own failures. The account exists either way, and a provider

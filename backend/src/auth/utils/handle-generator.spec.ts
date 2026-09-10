@@ -1,5 +1,5 @@
 import {
-  generateHandle,
+  generateName,
   isGeneratedHandle,
   ADJECTIVES,
   NOUNS,
@@ -7,9 +7,9 @@ import {
 
 // ── Tests ────────────────────────────────────────────────────────────
 
-describe('generateHandle', () => {
+describe('generateName', () => {
   it('returns two words drawn from the word lists', () => {
-    const [adjective, noun, ...rest] = generateHandle().split(' ');
+    const [adjective, noun, ...rest] = generateName().split(' ');
 
     expect(rest).toHaveLength(0);
     expect(ADJECTIVES).toContain(adjective);
@@ -17,7 +17,7 @@ describe('generateHandle', () => {
   });
 
   it('does not always return the same handle', () => {
-    const handles = new Set(Array.from({ length: 50 }, () => generateHandle()));
+    const handles = new Set(Array.from({ length: 50 }, () => generateName()));
 
     expect(handles.size).toBeGreaterThan(1);
   });
@@ -25,7 +25,7 @@ describe('generateHandle', () => {
 
 describe('isGeneratedHandle', () => {
   it('recognises a name we made up', () => {
-    expect(isGeneratedHandle(generateHandle())).toBe(true);
+    expect(isGeneratedHandle(generateName())).toBe(true);
   });
 
   it('leaves a chosen name alone', () => {

@@ -7,6 +7,7 @@ import {
   TrackSource,
   User,
 } from '@prisma/client';
+import { CreateRoomDto } from '../dto/create-room.dto';
 
 const PLAYERS_INCLUDE = {
   players: {
@@ -29,20 +30,23 @@ export type RoomWithPlayers = MultiplayerRoom & {
 export class RoomRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createRoom(
-    hostId: string,
-    inviteCode: string,
-    roundCount: number,
-  ): Promise<RoomWithPlayers> {
+  async createRoom(room: CreateRoomDto): Promise<RoomWithPlayers> {
     return this.prisma.multiplayerRoom.create({
       data: {
-        inviteCode,
-        hostId,
-        roundCount,
+        ...room,
         players: {
-          create: { userId: hostId },
+          create: { userId: room.hostId },
         },
       },
+      include: PLAYERS_INCLUDE,
+    });
+  }
+
+  async findFindableWaiting(limit: number): Promise<RoomWithPlayers[]> {
+    return this.prisma.multiplayerRoom.findMany({
+      where: { findable: true, status: RoomStatus.WAITING },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
       include: PLAYERS_INCLUDE,
     });
   }

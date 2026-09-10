@@ -27,34 +27,44 @@ import { GuessDto } from '../../game/dto/guess/guess.dto';
 import { GuessResultDto } from '../../game/dto/guess/guess-result.dto';
 import { RoomService } from '../services/room.service';
 import { MultiplayerGameService } from '../services/multiplayer-game.service';
-import { CreateRoomDto } from '../dto/create-room.dto';
+import { CreateRoomControllerDto } from '../dto/create-room-controller.dto';
 import { SetTrackSourceDto } from '../dto/set-track-source.dto';
 import { KickPlayerDto } from '../dto/kick-player.dto';
 import { RoomDto } from '../dto/room.dto';
+import { OpenRoomsDto } from '../dto/open-rooms.dto';
 import { MultiplayerRoundStateDto } from '../dto/multiplayer-round-state.dto';
 import { ScoreboardDto } from '../dto/scoreboard.dto';
 
 @ApiTags('Api')
 @Controller('multiplayer')
-@UseGuards(SessionGuard)
 export class MultiplayerController {
   constructor(
     private readonly roomService: RoomService,
     private readonly gameService: MultiplayerGameService,
   ) {}
 
+  // Public, and declared before rooms/:id so "open" is not read as an id.
+  @Get('rooms/open')
+  @ApiOperation({ summary: 'Rooms waiting for players that anyone may join' })
+  @ApiResponse({ status: 200, type: OpenRoomsDto })
+  async listOpenRooms(): Promise<OpenRoomsDto> {
+    return { rooms: await this.roomService.listOpenRooms() };
+  }
+
   @Post('rooms')
+  @UseGuards(SessionGuard)
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Create a new multiplayer room' })
   @ApiResponse({ status: 201, type: RoomDto })
   async createRoom(
     @SessionId() sessionId: string,
-    @Body() dto: CreateRoomDto,
+    @Body() dto: CreateRoomControllerDto,
   ): Promise<RoomDto> {
     return this.roomService.createRoom(sessionId, dto);
   }
 
   @Get('rooms/:id')
+  @UseGuards(SessionGuard)
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Get room state with players' })
   @ApiResponse({ status: 200, type: RoomDto })
@@ -67,6 +77,7 @@ export class MultiplayerController {
   }
 
   @Post('rooms/:code/join')
+  @UseGuards(SessionGuard)
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Join a room by invite code' })
   @ApiResponse({ status: 200, type: RoomDto })
@@ -78,6 +89,7 @@ export class MultiplayerController {
   }
 
   @Post('rooms/:id/track-source')
+  @UseGuards(SessionGuard)
   @HttpCode(HttpStatus.OK)
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Choose where the room draws its songs from' })
@@ -91,6 +103,7 @@ export class MultiplayerController {
   }
 
   @Post('rooms/:id/kick')
+  @UseGuards(SessionGuard)
   @HttpCode(HttpStatus.OK)
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Remove a player from the room (host only)' })
@@ -105,6 +118,7 @@ export class MultiplayerController {
   }
 
   @Post('rooms/:id/ready')
+  @UseGuards(SessionGuard)
   @HttpCode(HttpStatus.OK)
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Toggle ready status for current player' })
@@ -117,6 +131,7 @@ export class MultiplayerController {
   }
 
   @Post('rooms/:id/start')
+  @UseGuards(SessionGuard)
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Start the game (host only)' })
   @ApiResponse({ status: 200, type: RoomDto })
@@ -128,6 +143,7 @@ export class MultiplayerController {
   }
 
   @Post('rooms/:id/leave')
+  @UseGuards(SessionGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Leave a room (host leaving expires it)' })
@@ -140,6 +156,7 @@ export class MultiplayerController {
   }
 
   @Get('rooms/:id/round')
+  @UseGuards(SessionGuard)
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Get current round state for the player' })
   @ApiResponse({ status: 200, type: MultiplayerRoundStateDto })
@@ -151,6 +168,7 @@ export class MultiplayerController {
   }
 
   @Post('rooms/:id/guess')
+  @UseGuards(SessionGuard)
   @UseGuards(SessionThrottlerGuard)
   @Throttle({
     [THROTTLE_GUESS]: { limit: THROTTLE_GUESS_LIMIT, ttl: THROTTLE_TTL },
@@ -168,6 +186,7 @@ export class MultiplayerController {
   }
 
   @Get('rooms/:id/scoreboard')
+  @UseGuards(SessionGuard)
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Get scoreboard (only completed rounds visible)' })
   @ApiResponse({ status: 200, type: ScoreboardDto })

@@ -20,7 +20,7 @@ import type {
   ChangePasswordDto,
   ConfirmEmailDto,
   ConfirmPasswordResetDto,
-  CreateRoomDto,
+  CreateRoomControllerDto,
   CreateStreakQuestionDto,
   EmailVerificationResultDto,
   GameHistoryDto,
@@ -35,6 +35,7 @@ import type {
   KickPlayerDto,
   LoginDto,
   MultiplayerRoundStateDto,
+  OpenRoomsDto,
   PasswordResetResultDto,
   PatchUserDto,
   PersonalBestDto,
@@ -75,8 +76,8 @@ import {
     ConfirmEmailDtoToJSON,
     ConfirmPasswordResetDtoFromJSON,
     ConfirmPasswordResetDtoToJSON,
-    CreateRoomDtoFromJSON,
-    CreateRoomDtoToJSON,
+    CreateRoomControllerDtoFromJSON,
+    CreateRoomControllerDtoToJSON,
     CreateStreakQuestionDtoFromJSON,
     CreateStreakQuestionDtoToJSON,
     EmailVerificationResultDtoFromJSON,
@@ -105,6 +106,8 @@ import {
     LoginDtoToJSON,
     MultiplayerRoundStateDtoFromJSON,
     MultiplayerRoundStateDtoToJSON,
+    OpenRoomsDtoFromJSON,
+    OpenRoomsDtoToJSON,
     PasswordResetResultDtoFromJSON,
     PasswordResetResultDtoToJSON,
     PatchUserDtoFromJSON,
@@ -278,7 +281,7 @@ export interface GauntletControllerSubmitGuessRequest {
 }
 
 export interface MultiplayerControllerCreateRoomRequest {
-    createRoomDto: CreateRoomDto;
+    createRoomControllerDto: CreateRoomControllerDto;
 }
 
 export interface MultiplayerControllerGetRoomStateRequest {
@@ -1632,10 +1635,10 @@ export class ApiApi extends runtime.BaseAPI {
      * Create a new multiplayer room
      */
     async multiplayerControllerCreateRoomRaw(requestParameters: MultiplayerControllerCreateRoomRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RoomDto>> {
-        if (requestParameters['createRoomDto'] == null) {
+        if (requestParameters['createRoomControllerDto'] == null) {
             throw new runtime.RequiredError(
-                'createRoomDto',
-                'Required parameter "createRoomDto" was null or undefined when calling multiplayerControllerCreateRoom().'
+                'createRoomControllerDto',
+                'Required parameter "createRoomControllerDto" was null or undefined when calling multiplayerControllerCreateRoom().'
             );
         }
 
@@ -1653,7 +1656,7 @@ export class ApiApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-            body: CreateRoomDtoToJSON(requestParameters['createRoomDto']),
+            body: CreateRoomControllerDtoToJSON(requestParameters['createRoomControllerDto']),
         }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => RoomDtoFromJSON(jsonValue));
@@ -1896,6 +1899,35 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async multiplayerControllerLeaveRoom(requestParameters: MultiplayerControllerLeaveRoomRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
         await this.multiplayerControllerLeaveRoomRaw(requestParameters, initOverrides);
+    }
+
+    /**
+     * Rooms waiting for players that anyone may join
+     */
+    async multiplayerControllerListOpenRoomsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<OpenRoomsDto>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/multiplayer/rooms/open`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => OpenRoomsDtoFromJSON(jsonValue));
+    }
+
+    /**
+     * Rooms waiting for players that anyone may join
+     */
+    async multiplayerControllerListOpenRooms(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<OpenRoomsDto> {
+        const response = await this.multiplayerControllerListOpenRoomsRaw(initOverrides);
+        return await response.value();
     }
 
     /**
