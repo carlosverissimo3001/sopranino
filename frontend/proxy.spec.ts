@@ -25,6 +25,20 @@ describe('proxy route gating', () => {
     expect(response.headers.get('location')).toBeNull();
   });
 
+  // Same bargain as guest play: the page is open, and starting a run is what
+  // mints the session, so nothing is created by arriving.
+  test('lets a signed out visitor reach the speed run', async () => {
+    const response = await proxy(request('/speed-run'));
+    expect(response.status).toBe(200);
+    expect(response.headers.get('location')).toBeNull();
+  });
+
+  test('lets a signed out visitor read the speed run leaderboard', async () => {
+    const response = await proxy(request('/speed-run/leaderboard'));
+    expect(response.status).toBe(200);
+    expect(response.headers.get('location')).toBeNull();
+  });
+
   test('sends a signed out visitor away from a playlist game', async () => {
     const response = await proxy(request('/playlist/some-playlist-id'));
     expect(response.headers.get('location')).toBe('https://unpaused.test/');
@@ -37,7 +51,7 @@ describe('proxy route gating', () => {
     expect(response.status).toBe(200);
   });
 
-  test.each(['/daily', '/speed-run', '/history', '/preferences', '/admin'])(
+  test.each(['/daily', '/history', '/preferences', '/admin'])(
     'gates %s on a session',
     async (pathname) => {
       const response = await proxy(request(pathname));

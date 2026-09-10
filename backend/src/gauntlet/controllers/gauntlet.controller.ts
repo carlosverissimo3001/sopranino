@@ -18,6 +18,7 @@ import {
 } from '@nestjs/swagger';
 import { OptionalSessionId } from '../../utils/decorators/optionalSessionId.decorator';
 import { SessionId } from '@utils/decorators/sessionId.decorator';
+import { ProvisioningSessionGuard } from '@utils/guards/provisioning-session.guard';
 import { SessionGuard } from '@utils/guards/session-guard';
 import { SessionThrottlerGuard } from '@throttle/guards/session-throttler.guard';
 import {
@@ -44,8 +45,11 @@ import { GetLeaderboardDto } from '../dto/get-leaderboard.dto';
 export class GauntletController {
   constructor(private readonly gauntletService: GauntletService) {}
 
+  // Provisioning, not Session: a first run should not require having played
+  // something else first. The identity is minted by starting a run, never by
+  // loading the page, so a crawler cannot create users.
   @Post('start')
-  @UseGuards(SessionGuard)
+  @UseGuards(ProvisioningSessionGuard)
   @ApiOperation({ summary: 'Start a new gauntlet run' })
   @ApiCookieAuth()
   @ApiResponse({ status: 201, type: GauntletRunStateDto })
