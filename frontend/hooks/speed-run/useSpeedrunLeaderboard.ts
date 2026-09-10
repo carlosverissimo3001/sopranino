@@ -15,12 +15,10 @@ export type LeaderboardDifficulty =
 export function useGauntletLeaderboard(
   period: LeaderboardPeriod,
   difficulty: LeaderboardDifficulty,
-  enabled = true,
 ) {
   return useQuery({
     queryKey: queryKeys.gauntlet.leaderboard(period, difficulty),
     queryFn: () =>
       api.gauntletControllerGetLeaderboard({ period, difficulty, limit: 50 }),
-    enabled,
   });
 }

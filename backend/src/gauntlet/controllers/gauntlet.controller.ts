@@ -16,6 +16,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { OptionalSessionId } from '../../utils/decorators/optionalSessionId.decorator';
 import { SessionId } from '@utils/decorators/sessionId.decorator';
 import { SessionGuard } from '@utils/guards/session-guard';
 import { SessionThrottlerGuard } from '@throttle/guards/session-throttler.guard';
@@ -37,11 +38,14 @@ import { GetLeaderboardDto } from '../dto/get-leaderboard.dto';
 
 @ApiTags('Api')
 @Controller('gauntlet')
-@UseGuards(SessionGuard)
+// Guards sit on the routes rather than the class: the leaderboard is public
+// and the rest are not, which a single class-level guard cannot express. A
+// route added here gets no guard by default, so it has to name one.
 export class GauntletController {
   constructor(private readonly gauntletService: GauntletService) {}
 
   @Post('start')
+  @UseGuards(SessionGuard)
   @ApiOperation({ summary: 'Start a new gauntlet run' })
   @ApiCookieAuth()
   @ApiResponse({ status: 201, type: GauntletRunStateDto })
@@ -53,7 +57,7 @@ export class GauntletController {
   }
 
   @Post(':id/guess')
-  @UseGuards(SessionThrottlerGuard)
+  @UseGuards(SessionGuard, SessionThrottlerGuard)
   @Throttle({
     [THROTTLE_GUESS]: { limit: THROTTLE_GUESS_LIMIT, ttl: THROTTLE_TTL },
   })
@@ -71,6 +75,7 @@ export class GauntletController {
   }
 
   @Post(':id/end')
+  @UseGuards(SessionGuard)
   @ApiOperation({ summary: 'Voluntarily end a gauntlet run (quit)' })
   @ApiParam({ name: 'id', description: 'The gauntlet run ID' })
   @ApiCookieAuth()
@@ -83,6 +88,7 @@ export class GauntletController {
   }
 
   @Get('personal-best')
+  @UseGuards(SessionGuard)
   @ApiOperation({ summary: "Get user's gauntlet personal best" })
   @ApiCookieAuth()
   @ApiResponse({ status: 200, type: PersonalBestDto })
@@ -92,12 +98,13 @@ export class GauntletController {
     return this.gauntletService.getPersonalBest(sessionId);
   }
 
+  // Public: a board nobody can open is a board nobody can share. Hidden
+  // players stay hidden either way; a session only adds your own row.
   @Get('leaderboard')
   @ApiOperation({ summary: 'Get gauntlet leaderboard' })
-  @ApiCookieAuth()
   @ApiResponse({ status: 200, type: GauntletLeaderboardDto })
   async getLeaderboard(
-    @SessionId() sessionId: string,
+    @OptionalSessionId() sessionId: string | undefined,
     @Query() dto: GetLeaderboardDto,
   ): Promise<GauntletLeaderboardDto> {
     return this.gauntletService.getLeaderboard(
@@ -110,6 +117,7 @@ export class GauntletController {
   }
 
   @Get('history')
+  @UseGuards(SessionGuard)
   @ApiOperation({ summary: "Get user's gauntlet run history (paginated)" })
   @ApiCookieAuth()
   @ApiResponse({ status: 200, type: GauntletHistoryDto })
@@ -121,6 +129,7 @@ export class GauntletController {
   }
 
   @Get(':id')
+  @UseGuards(SessionGuard)
   @ApiOperation({ summary: 'Get current gauntlet run state' })
   @ApiParam({ name: 'id', description: 'The gauntlet run ID' })
   @ApiCookieAuth()

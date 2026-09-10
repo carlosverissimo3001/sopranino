@@ -8,6 +8,7 @@ import {
 
 import { SESSION_COOKIE_NAME as SESSION_COOKIE } from '@/lib/cookies';
 const SHUFFLE_ROUTE = '/shuffle';
+const SPEED_RUN_LEADERBOARD_ROUTE = '/speed-run/leaderboard';
 
 // Presence only; the backend validates. Multiplayer join is absent on purpose:
 // it routes signed out visitors through login itself.
@@ -22,6 +23,9 @@ const NEEDS_SESSION = [
 
 function needsSession(pathname: string): boolean {
   if (pathname.startsWith('/multiplayer/join')) return false;
+  // Read-only, and the one page here worth sharing with someone who has not
+  // played. Sits under /speed-run, which does need a session.
+  if (pathname === SPEED_RUN_LEADERBOARD_ROUTE) return false;
   // Playing without an account is the whole point of the shuffle.
   if (pathname === SHUFFLE_ROUTE) return false;
   if (pathname.startsWith('/multiplayer')) return true;

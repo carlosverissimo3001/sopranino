@@ -392,13 +392,15 @@ export class GauntletService {
   }
 
   async getLeaderboard(
-    sessionId: string,
+    sessionId: string | undefined,
     period: LeaderboardPeriod,
     limit: number,
     offset: number,
     difficulty: GauntletDifficulty,
   ): Promise<GauntletLeaderboardDto> {
-    const { id: userId } = await this.authService.getUserBySessionId(sessionId);
+    // Public, so there may be nobody asking. A stale cookie resolves to nobody
+    // too, rather than failing a page that does not need an identity.
+    const userId = await this.leaderboardViewer(sessionId);
 
     const startDate = this.getPeriodStartDate(period);
 
@@ -434,11 +436,13 @@ export class GauntletService {
       };
     });
 
-    const userBest = await this.gauntletRunRepository.findUserBestInPeriod(
-      userId,
-      startDate,
-      difficulty,
-    );
+    const userBest = userId
+      ? await this.gauntletRunRepository.findUserBestInPeriod(
+          userId,
+          startDate,
+          difficulty,
+        )
+      : null;
 
     let userEntry: GauntletLeaderboardDto['userEntry'];
     if (userBest !== null) {
@@ -452,6 +456,20 @@ export class GauntletService {
     }
 
     return { entries, userEntry, period, difficulty };
+  }
+
+  /** Nobody, when there is no session or the one presented has expired. */
+  private async leaderboardViewer(
+    sessionId: string | undefined,
+  ): Promise<string | undefined> {
+    if (!sessionId) {
+      return undefined;
+    }
+    try {
+      return (await this.authService.getUserBySessionId(sessionId)).id;
+    } catch {
+      return undefined;
+    }
   }
 
   private getPeriodStartDate(period: LeaderboardPeriod): Date | null {
