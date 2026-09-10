@@ -19,15 +19,15 @@ export const metadata: Metadata = {
   // Otherwise the OG image resolves against VERCEL_URL, the per deploy host.
   metadataBase: new URL(SITE_URL),
   alternates: { canonical: '/' },
-  title: 'Sopranino - Music Guessing Game',
+  title: 'Sopranino - Guess the Song from a Snippet',
   description:
-    'Test your music knowledge with Sopranino. Guess the song from a snippet of your favorite playlists!',
+    'A music guessing game. Hear a tenth of a second, name the track, six tries. Play your own Spotify playlists or a curated pool. No account needed.',
   keywords: [
-    'music',
-    'game',
-    'spotify',
-    'guessing game',
+    'guess the song',
+    'song guessing game',
+    'music guessing game',
     'music quiz',
+    'name that tune',
     'sopranino',
   ],
   authors: [{ name: 'Sopranino' }],
@@ -42,16 +42,16 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     url: '/',
-    title: 'Sopranino - Music Guessing Game',
+    title: 'Sopranino - Guess the Song from a Snippet',
     description:
-      'Test your music knowledge! Guess the song from a snippet of your favorite playlists.',
+      'Hear a tenth of a second of a song and name it. Six tries. No account needed.',
     siteName: 'Sopranino',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Sopranino - Music Guessing Game',
+    title: 'Sopranino - Guess the Song from a Snippet',
     description:
-      'Test your music knowledge! Guess the song from a snippet of your favorite playlists.',
+      'Hear a tenth of a second of a song and name it. Six tries. No account needed.',
   },
 };
 

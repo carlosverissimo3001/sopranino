@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { HomeClient } from './HomeClient';
+import { StructuredData } from '@/components/seo/StructuredData';
 import { SESSION_COOKIE_NAME } from '@/lib/cookies';
 import {
   SITE_ACCESS_COOKIE,
@@ -23,5 +24,10 @@ export default async function Home() {
   // the landing copy render into the HTML instead of a spinner.
   const hasSession = jar.has(SESSION_COOKIE_NAME);
 
-  return <HomeClient canSignIn={canSignIn} hasSession={hasSession} />;
+  return (
+    <>
+      <StructuredData />
+      <HomeClient canSignIn={canSignIn} hasSession={hasSession} />
+    </>
+  );
 }
