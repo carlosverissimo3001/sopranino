@@ -151,7 +151,7 @@ export const ROOM_NAME_MAX_LENGTH = 40;
  * lobby left open goes sooner than a game in progress, where players might be
  * mid-round with the tab in the background.
  */
-export const ROOM_WAITING_ABANDONED_AFTER_MS = 2 * 60 * 60 * 1000;
+export const ROOM_WAITING_ABANDONED_AFTER_MS = 15 * 60 * 1000;
 export const ROOM_PLAYING_ABANDONED_AFTER_MS = 6 * 60 * 60 * 1000;
 
 /** Every half hour. Rooms are cheap to leave behind and cheap to sweep. */
