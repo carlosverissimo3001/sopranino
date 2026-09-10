@@ -1,30 +1,26 @@
 import Image from 'next/image';
 import { memo } from 'react';
-import { motion } from 'framer-motion';
 import { Crown } from 'lucide-react';
 import type { ScoreboardPlayerTotalDto } from '@/sdk';
 
 const RANK_STYLES: Record<
   number,
-  { badge: string; ring: string; glow: string; bar: string }
+  { badge: string; ring: string; glow: string }
 > = {
   1: {
     badge: 'bg-yellow-400 text-black',
     ring: 'ring-yellow-400 ring-[3px]',
     glow: 'shadow-lg shadow-yellow-400/20',
-    bar: 'bg-yellow-400',
   },
   2: {
     badge: 'bg-gray-300 text-black',
     ring: 'ring-gray-300 ring-2',
     glow: '',
-    bar: 'bg-gray-300',
   },
   3: {
     badge: 'bg-amber-700 text-fg',
     ring: 'ring-amber-700 ring-2',
     glow: '',
-    bar: 'bg-amber-700',
   },
 };
 
@@ -32,31 +28,21 @@ interface StandingsItemProps {
   player: ScoreboardPlayerTotalDto;
   rank: number;
   isCurrentUser: boolean;
-  /** Highest score in the game, used for the relative bar width */
-  maxScore: number;
 }
 
 function StandingsItemBase({
   player,
   rank,
   isCurrentUser,
-  maxScore,
 }: StandingsItemProps) {
   const style = RANK_STYLES[rank];
   const isTopRank = rank === 1;
-  const barPct = maxScore > 0 ? (player.totalScore / maxScore) * 100 : 0;
 
   return (
-    <motion.div
-      layout
+    <div
       role="listitem"
-      variants={{
-        hidden: { opacity: 0, y: 14 },
-        show: { opacity: 1, y: 0 },
-      }}
-      transition={{ type: 'spring', stiffness: 260, damping: 24 }}
-      className={`relative overflow-hidden rounded-xl border border-fg/10 bg-black/35 backdrop-blur-xl ${
-        isTopRank ? 'p-4 py-5' : 'p-4'
+      className={`relative overflow-hidden rounded-xl border border-fg/10 bg-[#101010] ${
+        isTopRank ? 'px-4 py-3.5' : 'px-4 py-2.5'
       }`}
       style={{
         background: isTopRank
@@ -118,17 +104,7 @@ function StandingsItemBase({
           <p className="text-[10px] uppercase tracking-wider text-fg/35">pts</p>
         </div>
       </div>
-
-      {/* Score bar */}
-      <div className="mt-3 h-1 rounded-full bg-fg/[0.06] overflow-hidden">
-        <motion.div
-          className={`h-full rounded-full ${style?.bar ?? 'bg-[#1DB954]'}`}
-          initial={{ width: 0 }}
-          animate={{ width: `${barPct}%` }}
-          transition={{ duration: 0.6, delay: 0.3, ease: 'easeOut' }}
-        />
-      </div>
-    </motion.div>
+    </div>
   );
 }
 

@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { motion } from 'framer-motion';
 import { Home } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -156,52 +155,59 @@ export function ResultsContainer({ roomId }: ResultsContainerProps) {
     return null;
   }
 
+  const hasBreakdown = scoreboard.rounds.length > 0;
+
   return (
     <div
       className="min-h-screen min-h-[100dvh] overflow-y-auto"
       style={{ background: 'rgb(var(--bg))' }}
     >
-      <motion.div
+      <div
         className="pointer-events-none fixed inset-0 -z-10"
-        animate={{
-          opacity: [0.6, 1, 0.6],
-          background: BG_GRADIENTS[outcome],
-        }}
-        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+        style={{ background: BG_GRADIENTS[outcome] }}
       />
 
-      <div className="relative z-10 flex flex-col p-3 sm:p-6 md:p-8 lg:p-10">
-        <div className="mx-auto w-full max-w-xl">
-          <ResultsHeader
-            outcome={outcome}
-            winner={winner}
-            tiedPlayerNames={tiedPlayerNames}
-            personalScore={personalScore}
-          />
-
-          <StandingsList
-            standings={sortedStandings}
-            ranks={ranks}
-            currentUserId={currentUserId}
-          />
-
-          <RoundBreakdown rounds={scoreboard.rounds} />
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.6 }}
-            className="mb-8 flex justify-center"
+      <div className="sticky top-0 z-20 border-b border-fg/5 bg-bg/80 backdrop-blur-md">
+        <div className="mx-auto flex w-full max-w-5xl items-center px-3 py-3 sm:px-6">
+          <Link
+            href="/"
+            aria-label="Back to Home"
+            className="group flex items-center gap-2 text-sm font-bold text-fg/60 hover:text-fg transition-colors"
           >
-            <Link
-              href="/"
-              aria-label="Back to Home"
-              className="group flex items-center gap-2 rounded-full bg-[#1DB954] px-8 py-3 font-bold text-black transition-colors hover:bg-[#1ed760]"
-            >
-              <Home className="h-4 w-4" />
-              Back to Home
-            </Link>
-          </motion.div>
+            <Home className="h-4 w-4" />
+            Back to Home
+          </Link>
+        </div>
+      </div>
+
+      <div className="relative z-10 flex flex-col p-3 sm:p-6 md:p-8 lg:p-10">
+        <div className="mx-auto w-full max-w-5xl">
+          <div className="mx-auto w-full max-w-xl">
+            <ResultsHeader
+              outcome={outcome}
+              winner={winner}
+              tiedPlayerNames={tiedPlayerNames}
+              personalScore={personalScore}
+            />
+          </div>
+
+          {/* Two columns only when there is a second thing to put in one.
+              A breakdown-less room would otherwise leave half the width empty. */}
+          <div
+            className={
+              hasBreakdown
+                ? 'lg:grid lg:grid-cols-2 lg:items-start lg:gap-8'
+                : 'mx-auto w-full max-w-xl'
+            }
+          >
+            <StandingsList
+              standings={sortedStandings}
+              ranks={ranks}
+              currentUserId={currentUserId}
+            />
+
+            <RoundBreakdown rounds={scoreboard.rounds} />
+          </div>
         </div>
       </div>
     </div>

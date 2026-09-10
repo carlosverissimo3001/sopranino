@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import type { ScoreboardPlayerTotalDto } from '@/sdk';
 import { StandingsItem } from './StandingsItem';
 
@@ -8,38 +7,27 @@ interface StandingsListProps {
   currentUserId?: string;
 }
 
+/**
+ * No entrance animation. A per-child stagger is a fixed cost each, so what
+ * read as polish at four players was nearly three seconds of withheld page at
+ * twenty. Reduced motion does not save it either: framer drops the transform
+ * and keeps the delay.
+ */
 export function StandingsList({
   standings,
   ranks,
   currentUserId,
 }: StandingsListProps) {
-  const maxScore = standings[0]?.totalScore ?? 0;
-
   return (
-    <motion.div
-      role="list"
-      initial="hidden"
-      animate="show"
-      variants={{
-        hidden: {},
-        show: {
-          transition: {
-            staggerChildren: 0.09,
-            delayChildren: 0.15,
-          },
-        },
-      }}
-      className="mb-8 space-y-3"
-    >
+    <div role="list" className="mb-8 space-y-2">
       {standings.map((player, index) => (
         <StandingsItem
           key={player.userId}
           player={player}
           rank={ranks[index]}
           isCurrentUser={player.userId === currentUserId}
-          maxScore={maxScore}
         />
       ))}
-    </motion.div>
+    </div>
   );
 }

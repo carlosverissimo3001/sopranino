@@ -56,29 +56,12 @@ export function assignRanks(standings: ScoreboardPlayerTotalDto[]): number[] {
   return ranks;
 }
 
-export const BG_GRADIENTS: Record<GameOutcome, string[]> = {
-  won: [
-    `radial-gradient(ellipse 120% 85% at 50% 0%, rgba(250, 204, 21, 0.16) 0%, transparent 52%),
-     radial-gradient(ellipse 80% 120% at 80% 100%, rgba(34, 197, 94, 0.12) 0%, transparent 52%)`,
-    `radial-gradient(ellipse 130% 95% at 50% 0%, rgba(250, 204, 21, 0.22) 0%, transparent 52%),
+/** One ground per outcome. It used to hold pulse keyframes; nothing pulses now. */
+export const BG_GRADIENTS: Record<GameOutcome, string> = {
+  won: `radial-gradient(ellipse 130% 95% at 50% 0%, rgba(250, 204, 21, 0.22) 0%, transparent 52%),
      radial-gradient(ellipse 90% 130% at 80% 100%, rgba(34, 197, 94, 0.16) 0%, transparent 52%)`,
-    `radial-gradient(ellipse 120% 85% at 50% 0%, rgba(250, 204, 21, 0.16) 0%, transparent 52%),
-     radial-gradient(ellipse 80% 120% at 80% 100%, rgba(34, 197, 94, 0.12) 0%, transparent 52%)`,
-  ],
-  tied: [
-    `radial-gradient(ellipse 120% 80% at 50% 0%, rgba(250, 204, 21, 0.11) 0%, transparent 50%),
-     radial-gradient(ellipse 80% 120% at 80% 100%, rgba(29, 185, 84, 0.1) 0%, transparent 50%)`,
-    `radial-gradient(ellipse 130% 90% at 50% 0%, rgba(250, 204, 21, 0.15) 0%, transparent 50%),
+  tied: `radial-gradient(ellipse 130% 90% at 50% 0%, rgba(250, 204, 21, 0.15) 0%, transparent 50%),
      radial-gradient(ellipse 90% 130% at 80% 100%, rgba(29, 185, 84, 0.14) 0%, transparent 50%)`,
-    `radial-gradient(ellipse 120% 80% at 50% 0%, rgba(250, 204, 21, 0.11) 0%, transparent 50%),
-     radial-gradient(ellipse 80% 120% at 80% 100%, rgba(29, 185, 84, 0.1) 0%, transparent 50%)`,
-  ],
-  lost: [
-    `radial-gradient(ellipse 120% 80% at 50% 0%, rgba(255, 255, 255, 0.06) 0%, transparent 50%),
-     radial-gradient(ellipse 80% 120% at 80% 100%, rgba(113, 113, 122, 0.1) 0%, transparent 50%)`,
-    `radial-gradient(ellipse 130% 90% at 50% 0%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-     radial-gradient(ellipse 90% 130% at 80% 100%, rgba(113, 113, 122, 0.13) 0%, transparent 50%)`,
-    `radial-gradient(ellipse 120% 80% at 50% 0%, rgba(255, 255, 255, 0.06) 0%, transparent 50%),
-     radial-gradient(ellipse 80% 120% at 80% 100%, rgba(113, 113, 122, 0.1) 0%, transparent 50%)`,
-  ],
+  lost: `radial-gradient(ellipse 130% 90% at 50% 0%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+     radial-gradient(ellipse 90% 130% at 80% 100%, rgba(113, 113, 122, 0.14) 0%, transparent 50%)`,
 };
