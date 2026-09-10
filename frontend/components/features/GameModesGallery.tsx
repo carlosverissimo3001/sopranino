@@ -31,24 +31,6 @@ const modeGlow: Record<string, string> = {
   multiplayer: '#9333ea',
 };
 
-// Animation variants for the stagger effect
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1, delayChildren: 0.05 },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, scale: 0.95 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    transition: { type: 'spring' as const, damping: 20, stiffness: 300 },
-  },
-};
-
 function DailyCardContent() {
   const { data: playedTodayData, isLoading: playedTodayLoading } =
     usePlayedToday();
@@ -280,18 +262,14 @@ function GameModesGalleryComponent() {
 
   return (
     <>
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className={cn('grid gap-3 sm:gap-3 mb-8 w-full', gridClass)}
-      >
+      {/* No entrance animation: these cards are what the page is for, and a
+          stagger delays them for a reader who already knows what they say. */}
+      <div className={cn('grid gap-3 sm:gap-3 mb-8 w-full', gridClass)}>
         {modes.map((mode) => {
           const isFullWidth = modes.length === 3 && mode.id === 'daily';
           return (
             <motion.div
               key={mode.id}
-              variants={itemVariants}
               whileTap={{ scale: 0.98 }}
               style={
                 { '--mode-glow': modeGlow[mode.id] } as React.CSSProperties
@@ -319,7 +297,7 @@ function GameModesGalleryComponent() {
             </motion.div>
           );
         })}
-      </motion.div>
+      </div>
 
       <AnimatePresence>
         <JoinRoomModal

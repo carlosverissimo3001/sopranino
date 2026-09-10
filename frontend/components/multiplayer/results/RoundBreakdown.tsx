@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import { memo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronDown, Music, Check, X } from 'lucide-react';
+import { ChevronDown, Check, X } from 'lucide-react';
 import type { ScoreboardRoundDto } from '@/sdk';
 
 interface RoundBreakdownProps {
@@ -16,26 +16,21 @@ function RoundBreakdownBase({ rounds }: RoundBreakdownProps) {
   }
 
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.35 }}
-      className="mb-8"
-    >
-      <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-fg/75">
-        <Music className="h-4 w-4" />
-        Round Breakdown
-      </h2>
-
-      <div className="space-y-2">
+    <section className="mb-8">
+      <div className="grid items-start gap-2 sm:grid-cols-2">
         {rounds.map((round) => {
           const isExpanded = expandedRound === round.roundIndex;
           const contentId = `round-breakdown-${round.roundIndex}`;
+          const solvedCount = round.players.filter((p) => p.won).length;
+          const ordered = [...round.players].sort((a, b) => {
+            if (a.won !== b.won) return a.won ? -1 : 1;
+            return a.guessCount - b.guessCount;
+          });
 
           return (
             <div
               key={round.roundIndex}
-              className="overflow-hidden rounded-xl border border-fg/[0.08] bg-fg/[0.03] backdrop-blur-md transition-colors hover:bg-fg/[0.05]"
+              className="overflow-hidden rounded-xl border border-fg/[0.08] bg-fg/[0.03] transition-colors hover:bg-fg/[0.05]"
             >
               <button
                 onClick={() =>
@@ -89,45 +84,54 @@ function RoundBreakdownBase({ rounds }: RoundBreakdownProps) {
                     transition={{ duration: 0.2 }}
                     className="overflow-hidden"
                   >
-                    <div className="space-y-2 border-t border-fg/[0.06] px-3.5 pb-3.5 pt-3">
-                      {round.players.map((player) => (
-                        <div
-                          key={player.userId}
-                          className="flex items-center gap-2.5 rounded-lg bg-fg/[0.03] px-3 py-2"
-                        >
+                    <div className="border-t border-fg/[0.06] px-3.5 pb-3.5 pt-3">
+                      <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-fg/35">
+                        {solvedCount === 0
+                          ? 'Nobody got it'
+                          : `${solvedCount} of ${round.players.length} got it`}
+                      </p>
+
+                      {/* Bounded, or one expanded round in a twenty player game
+                          is four hundred pixels of identical rows. */}
+                      <div className="grid max-h-72 gap-1.5 overflow-y-auto sm:grid-cols-2">
+                        {ordered.map((player) => (
                           <div
-                            className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
-                              player.won ? 'bg-[#1DB954]/20' : 'bg-fg/[0.06]'
-                            }`}
+                            key={player.userId}
+                            className="flex items-center gap-2 rounded-lg bg-fg/[0.03] px-2.5 py-1.5"
                           >
-                            {player.won ? (
-                              <Check
-                                className="h-3 w-3 text-[#1DB954]"
-                                strokeWidth={3}
-                              />
-                            ) : (
-                              <X
-                                className="h-3 w-3 text-fg/30"
-                                strokeWidth={3}
-                              />
-                            )}
+                            <div
+                              className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full ${
+                                player.won ? 'bg-[#1DB954]/20' : 'bg-fg/[0.06]'
+                              }`}
+                            >
+                              {player.won ? (
+                                <Check
+                                  className="h-2.5 w-2.5 text-[#1DB954]"
+                                  strokeWidth={3}
+                                />
+                              ) : (
+                                <X
+                                  className="h-2.5 w-2.5 text-fg/30"
+                                  strokeWidth={3}
+                                />
+                              )}
+                            </div>
+                            <span className="min-w-0 flex-1 truncate text-xs text-fg/75">
+                              {player.displayName}
+                            </span>
+                            <span className="shrink-0 text-[10px] tabular-nums text-fg/30">
+                              {player.guessCount}
+                            </span>
+                            <span
+                              className={`shrink-0 text-[11px] font-bold tabular-nums ${
+                                player.won ? 'text-[#1DB954]' : 'text-fg/40'
+                              }`}
+                            >
+                              +{player.score}
+                            </span>
                           </div>
-                          <span className="flex-1 truncate text-sm text-fg/75">
-                            {player.displayName}
-                          </span>
-                          <span className="text-[11px] text-fg/30">
-                            {player.guessCount}{' '}
-                            {player.guessCount === 1 ? 'guess' : 'guesses'}
-                          </span>
-                          <span
-                            className={`min-w-[3rem] text-right text-xs font-bold ${
-                              player.won ? 'text-[#1DB954]' : 'text-fg/40'
-                            }`}
-                          >
-                            +{player.score}
-                          </span>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
                   </motion.div>
                 )}
@@ -136,7 +140,7 @@ function RoundBreakdownBase({ rounds }: RoundBreakdownProps) {
           );
         })}
       </div>
-    </motion.section>
+    </section>
   );
 }
 

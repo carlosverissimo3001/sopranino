@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Check, Loader2 } from 'lucide-react';
+
 import type { RoomPlayerDto } from '@/sdk';
 import { HostDisconnectedBanner } from '../HostDisconnectedBanner';
 
@@ -19,32 +20,20 @@ export function WaitingForPlayers({
 }: WaitingForPlayersProps) {
   return (
     <div
-      className="flex min-h-screen min-h-[100dvh] items-center justify-center"
+      className="flex min-h-screen min-h-[100dvh] justify-center py-10"
       style={{ background: 'rgb(var(--bg))' }}
     >
-      <motion.div
+      <div
         className="pointer-events-none fixed inset-0 -z-10"
-        animate={{
-          opacity: [0.6, 1, 0.6],
-          background: [
-            `radial-gradient(ellipse 120% 80% at 50% 0%, rgba(29, 185, 84, 0.08) 0%, transparent 50%),
-             radial-gradient(ellipse 80% 120% at 80% 100%, rgba(29, 185, 84, 0.06) 0%, transparent 50%)`,
-            `radial-gradient(ellipse 130% 90% at 50% 0%, rgba(29, 185, 84, 0.12) 0%, transparent 50%),
-             radial-gradient(ellipse 90% 130% at 80% 100%, rgba(29, 185, 84, 0.1) 0%, transparent 50%)`,
-            `radial-gradient(ellipse 120% 80% at 50% 0%, rgba(29, 185, 84, 0.08) 0%, transparent 50%),
-             radial-gradient(ellipse 80% 120% at 80% 100%, rgba(29, 185, 84, 0.06) 0%, transparent 50%)`,
-          ],
+        style={{
+          background: `radial-gradient(ellipse 120% 80% at 50% 0%, rgba(29, 185, 84, 0.1) 0%, transparent 50%),
+             radial-gradient(ellipse 80% 120% at 80% 100%, rgba(29, 185, 84, 0.08) 0%, transparent 50%)`,
         }}
-        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
       />
 
-      <div className="relative z-10 w-full max-w-md px-4">
+      <div className="relative z-10 my-auto w-full max-w-2xl px-4">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
-        >
+        <div className="text-center mb-8">
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
@@ -58,7 +47,7 @@ export function WaitingForPlayers({
           <p className="text-sm text-fg/40">
             Results will appear once everyone finishes
           </p>
-        </motion.div>
+        </div>
 
         {/* Host disconnected warning */}
         <AnimatePresence>
@@ -67,25 +56,17 @@ export function WaitingForPlayers({
 
         {/* Player progress card */}
         {players.length > 0 && totalRounds > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="rounded-2xl border border-fg/10 bg-fg/[0.03] overflow-hidden divide-y divide-fg/5"
-          >
-            {players.map((player, index) => {
+          <div className="grid gap-px overflow-hidden rounded-2xl border border-fg/10 bg-fg/5 sm:grid-cols-2">
+            {players.map((player) => {
               const lastRoundIndex = playerProgress.get(player.userId);
               const completedRounds =
                 lastRoundIndex !== undefined ? lastRoundIndex + 1 : 0;
               const isDone = completedRounds >= totalRounds;
 
               return (
-                <motion.div
+                <div
                   key={player.id}
-                  initial={{ opacity: 0, x: -12 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.2 + index * 0.06 }}
-                  className="px-4 py-3.5 flex items-center gap-3"
+                  className="flex items-center gap-3 bg-bg px-4 py-3.5"
                 >
                   {/* Avatar */}
                   <div className="relative shrink-0">
@@ -114,15 +95,7 @@ export function WaitingForPlayers({
                           strokeWidth={3}
                         />
                       ) : (
-                        <motion.div
-                          className="w-1.5 h-1.5 rounded-full bg-[#1DB954]"
-                          animate={{ opacity: [0.4, 1, 0.4] }}
-                          transition={{
-                            duration: 1.5,
-                            repeat: Infinity,
-                            ease: 'easeInOut',
-                          }}
-                        />
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#1DB954]/60" />
                       )}
                     </div>
                   </div>
@@ -143,32 +116,23 @@ export function WaitingForPlayers({
                     </div>
                     <div className="flex gap-1">
                       {Array.from({ length: totalRounds }, (_, i) => (
-                        <motion.div
+                        <div
                           key={i}
-                          className="h-1.5 flex-1 rounded-full bg-fg/10 overflow-hidden"
-                        >
-                          <motion.div
-                            className={`h-full rounded-full ${
-                              isDone ? 'bg-green-500' : 'bg-[#1DB954]'
-                            }`}
-                            initial={{ width: 0 }}
-                            animate={{
-                              width: i < completedRounds ? '100%' : '0%',
-                            }}
-                            transition={{
-                              duration: 0.4,
-                              delay: i * 0.08,
-                              ease: 'easeOut',
-                            }}
-                          />
-                        </motion.div>
+                          className={`h-1.5 flex-1 rounded-full transition-colors ${
+                            i < completedRounds
+                              ? isDone
+                                ? 'bg-green-500'
+                                : 'bg-[#1DB954]'
+                              : 'bg-fg/10'
+                          }`}
+                        />
                       ))}
                     </div>
                   </div>
-                </motion.div>
+                </div>
               );
             })}
-          </motion.div>
+          </div>
         )}
       </div>
     </div>
