@@ -1,11 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { SITE_URL } from '@/lib/site-url';
 
-/**
- * Every route robots.ts allows, and nothing that redirects a signed out
- * visitor. The speed-run leaderboard is public in spirit but sits under
- * /speed-run, which needs a session, so it would only offer Google a redirect.
- */
+/** Every route robots.ts allows, and nothing that redirects a signed out visitor. */
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();
   return [
@@ -15,6 +11,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified,
       changeFrequency: 'yearly',
       priority: 0.6,
+    },
+    {
+      url: `${SITE_URL}/speed-run/leaderboard`,
+      lastModified,
+      changeFrequency: 'daily',
+      priority: 0.5,
     },
   ];
 }

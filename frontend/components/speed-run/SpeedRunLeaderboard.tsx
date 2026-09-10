@@ -183,11 +183,9 @@ export function SpeedRunLeaderboard() {
   const [period, setPeriod] = useState<Period>(Period.Alltime);
   const [difficulty, setDifficulty] = useState<Difficulty>(Difficulty.Medium);
   const { data: user } = useMe();
-  const { data, isLoading, error } = useGauntletLeaderboard(
-    period,
-    difficulty,
-    !!user,
-  );
+  // No gate on the user: the board is public, and withholding the request for
+  // a visitor without a session left them looking at an empty leaderboard.
+  const { data, isLoading, error } = useGauntletLeaderboard(period, difficulty);
   const router = useRouter();
 
   const entries = data?.entries ?? [];

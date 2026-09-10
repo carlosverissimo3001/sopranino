@@ -86,6 +86,62 @@ describe('GauntletService.getLeaderboard', () => {
     });
   });
 
+  // Public board: most people reading it are not signed in.
+  it('serves the board to a visitor with no session', async () => {
+    mockRepo.findLeaderboardEntries.mockResolvedValue([entry({})]);
+
+    const { entries, userEntry } = await service.getLeaderboard(
+      undefined,
+      'alltime',
+      10,
+      0,
+      GauntletDifficulty.MEDIUM,
+    );
+
+    expect(entries[0]).toMatchObject({ displayName: 'Neon Riff' });
+    expect(userEntry).toBeUndefined();
+    expect(mockRepo.findUserBestInPeriod).not.toHaveBeenCalled();
+    expect(mockAuthService.getUserBySessionId).not.toHaveBeenCalled();
+  });
+
+  // A cookie outliving its session must not 401 a page that needs no identity.
+  it('serves the board when the session presented has expired', async () => {
+    mockAuthService.getUserBySessionId.mockRejectedValue(new Error('gone'));
+    mockRepo.findLeaderboardEntries.mockResolvedValue([entry({})]);
+
+    const { entries, userEntry } = await service.getLeaderboard(
+      SESSION_ID,
+      'alltime',
+      10,
+      0,
+      GauntletDifficulty.MEDIUM,
+    );
+
+    expect(entries[0]).toMatchObject({ displayName: 'Neon Riff' });
+    expect(userEntry).toBeUndefined();
+  });
+
+  // Anonymity does not depend on who is asking, or on anyone asking at all.
+  it('keeps a hidden player hidden from a visitor with no session', async () => {
+    mockRepo.findLeaderboardEntries.mockResolvedValue([
+      entry({ showStatsToOthers: false }),
+    ]);
+
+    const { entries } = await service.getLeaderboard(
+      undefined,
+      'alltime',
+      10,
+      0,
+      GauntletDifficulty.MEDIUM,
+    );
+
+    expect(entries[0]).toMatchObject({
+      displayName: 'Anonymous',
+      isHidden: true,
+    });
+    expect(entries[0].userId).not.toBe('user-other');
+  });
+
   it('strips the name, avatar and id of a hidden player', async () => {
     mockRepo.findLeaderboardEntries.mockResolvedValue([
       entry({ showStatsToOthers: false }),

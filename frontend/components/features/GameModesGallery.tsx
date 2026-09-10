@@ -257,20 +257,16 @@ function MultiplayerCardContent({
   );
 }
 
-function GameModesGalleryComponent({ isTrusted }: { isTrusted: boolean }) {
+function GameModesGalleryComponent() {
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   const modes = [
-    // One song a day, drawn from the curated pool, so a library is not needed.
-    { id: 'daily', show: true, render: () => <DailyCardContent /> },
-    { id: 'pool', show: true, render: () => <PoolCardContent /> },
-    { id: 'speedrun', show: isTrusted, render: () => <SpeedrunCardContent /> },
+    { id: 'daily', render: () => <DailyCardContent /> },
+    { id: 'pool', render: () => <PoolCardContent /> },
+    { id: 'speedrun', render: () => <SpeedrunCardContent /> },
     {
       id: 'multiplayer',
-      // A room with an unlinked player runs on the curated pool, so anyone can
-      // host or join one.
-      show: true,
       render: () => (
         <MultiplayerCardContent
           onJoin={() => setShowJoinModal(true)}
@@ -278,14 +274,9 @@ function GameModesGalleryComponent({ isTrusted }: { isTrusted: boolean }) {
         />
       ),
     },
-  ].filter((m) => m.show);
+  ];
 
-  const gridClass =
-    modes.length === 4
-      ? 'grid-cols-2 lg:grid-cols-4'
-      : modes.length === 3
-        ? 'grid-cols-2 lg:grid-cols-3'
-        : 'grid-cols-1 sm:grid-cols-2';
+  const gridClass = 'grid-cols-2 lg:grid-cols-4';
 
   return (
     <>

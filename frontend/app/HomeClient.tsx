@@ -133,7 +133,7 @@ export function HomeClient({
               transition={{ duration: 0.4 }}
               className="space-y-4 sm:space-y-6"
             >
-              <GameModesGallery isTrusted={user.isTrusted} />
+              <GameModesGallery />
 
               {/* The playlist grid is the one thing a Spotify credential
                   buys, so it is the one thing a guest's home leaves out. */}
