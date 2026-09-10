@@ -56,7 +56,7 @@ function DailyCardContent() {
           <span>Daily Event</span>
         </div>
         <div className="space-y-0.5">
-          <h2 className="font-black tracking-tighter text-fg text-2xl sm:text-3xl leading-tight">
+          <h2 className="font-black tracking-tighter text-fg text-xl sm:text-2xl leading-tight">
             The <span className="text-spotify-green">Mystery</span>
           </h2>
           {showAsPlayed && !playedTodayLoading ? (
