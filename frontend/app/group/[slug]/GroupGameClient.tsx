@@ -11,7 +11,7 @@ import { GameStatsDtoModeEnum as GameMode } from '@/sdk';
  * to the other here keeps the id out of the URL, so a link survives the pool
  * being reseeded.
  */
-export function GroupGameClient() {
+export function GroupGameClient({ heading }: { heading?: string }) {
   const slug = useParams().slug as string;
   // By slug rather than by searching a list: the list is one kind of group at
   // a time, so a special one was never in the one this page happened to ask
@@ -39,5 +39,7 @@ export function GroupGameClient() {
     );
   }
 
-  return <GamePage mode={GameMode.All} trackGroupId={group.id} />;
+  return (
+    <GamePage mode={GameMode.All} trackGroupId={group.id} heading={heading} />
+  );
 }

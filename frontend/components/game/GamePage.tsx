@@ -33,9 +33,16 @@ interface GamePageProps {
   mode: GameMode;
   playlistId?: string;
   trackGroupId?: string;
+  /** What a curated set calls itself, in place of the generic heading. */
+  heading?: string;
 }
 
-export function GamePage({ mode, playlistId, trackGroupId }: GamePageProps) {
+export function GamePage({
+  mode,
+  playlistId,
+  trackGroupId,
+  heading,
+}: GamePageProps) {
   const { volume, setVolume } = useVolume();
   const { data: preferences } = useUserPreferences();
   const showAlbumHint = preferences?.showAlbumHint ?? true;
@@ -165,6 +172,7 @@ export function GamePage({ mode, playlistId, trackGroupId }: GamePageProps) {
               mode={mode}
               currentRound={gameState.currentRound}
               maxRounds={gameState.maxRounds}
+              heading={heading}
             />
           )}
 
