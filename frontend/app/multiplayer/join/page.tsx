@@ -1,101 +1,82 @@
 'use client';
 
-import { useState, useEffect, FormEvent } from 'react';
+import { useCallback } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { ArrowLeft } from 'lucide-react';
 import { useMe } from '@/hooks/auth/useMe';
 import { useEnsureSession } from '@/hooks/auth/useEnsureSession';
-import { useJoinRoom } from '@/hooks/multiplayer/useJoinRoom';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { Button } from '@/components/ui/button';
+import { useLobby } from '@/hooks/multiplayer/useLobby';
+import { useJoinOpenRoom } from '@/hooks/multiplayer/useJoinOpenRoom';
+import { OpenRoomsList } from '@/components/multiplayer/OpenRoomsList';
 
-export default function JoinManualPage() {
-  const [code, setCode] = useState('');
+export default function BrowseRoomsPage() {
   const router = useRouter();
-  const { data: user, isLoading: isLoadingUser } = useMe();
+  const { data: user } = useMe();
   const ensureSession = useEnsureSession();
-  const joinMutation = useJoinRoom();
+  const { rooms, isLive } = useLobby();
+  const joinOpenRoom = useJoinOpenRoom();
 
-  function extractCodeFromInput(value: string): string {
-    const trimmed = value.trim();
+  /**
+   * The list is pushed, but a room can still fill between reading it and
+   * tapping it. The failure says so and leaves the list in place, which the
+   * server has already corrected by the time the message lands.
+   */
+  const handleJoin = useCallback(
+    async (roomId: string) => {
+      if (joinOpenRoom.isPending) return;
 
-    if (!trimmed) {
-      return '';
-    }
+      // The deliberate click that mints an identity for a visitor who has
+      // none. Browsing must never create a user.
+      if (!user) await ensureSession.mutateAsync();
 
-    const joinPathPattern = /(?:^|\/+)multiplayer\/join\/([^/?#\s]+)/i;
-    const pathMatch = trimmed.match(joinPathPattern);
-    const candidate = pathMatch?.[1] ?? trimmed;
-
-    return candidate
-      .replace(/[^a-zA-Z0-9]/g, '')
-      .toUpperCase()
-      .slice(0, 8);
-  }
-
-  // Success: redirect to room lobby
-  useEffect(() => {
-    if (joinMutation.data) {
-      router.replace(`/multiplayer/${joinMutation.data.id}`);
-    }
-  }, [joinMutation.data, router]);
-
-  function handleInput(value: string) {
-    setCode(extractCodeFromInput(value));
-  }
-
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    if (code.length === 0) return;
-
-    // Submitting is the deliberate click that mints an identity for a visitor
-    // who has none — a page load must never create a user.
-    if (!user) {
-      await ensureSession.mutateAsync();
-    }
-    joinMutation.mutate(code);
-  }
-
-  if (isLoadingUser || !user) {
-    return (
-      <main className="min-h-screen flex items-center justify-center ">
-        <LoadingSpinner size="md" />
-      </main>
-    );
-  }
+      joinOpenRoom.mutate(roomId, {
+        onSuccess: (data) => router.push(`/multiplayer/${data.id}`),
+      });
+    },
+    [joinOpenRoom, user, ensureSession, router],
+  );
 
   return (
-    <main className="min-h-screen flex items-center justify-center  text-fg p-4">
-      <div className="absolute inset-0 dark:bg-gradient-to-br dark:from-spotify-black dark:via-[#0d1117] dark:to-[#161b22]" />
-      <div
-        className="relative w-full max-w-sm rounded-2xl border border-fg/10 bg-fg/5 p-8 shadow-xl backdrop-blur-xl"
-        style={{ boxShadow: '0 0 40px rgba(0,0,0,0.3)' }}
-      >
-        <h1 className="text-xl font-semibold text-center mb-6">Join a Room</h1>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="text"
-            value={code}
-            onChange={(e) => handleInput(e.target.value)}
-            placeholder="Enter invite code"
-            maxLength={8}
-            className="w-full rounded-lg border border-fg/20 bg-fg/10 px-4 py-3 text-center font-mono text-lg tracking-widest text-fg uppercase placeholder:text-fg/50 placeholder:tracking-normal placeholder:font-sans placeholder:text-base focus:outline-none focus:ring-2 focus:ring-spotify-green"
-            autoFocus
-            disabled={joinMutation.isPending}
-          />
+    <main className="min-h-screen text-fg">
+      <div className="absolute inset-0 -z-10 dark:bg-gradient-to-br dark:from-spotify-black dark:via-[#0d1117] dark:to-[#161b22]" />
 
-          {joinMutation.isError && (
-            <p className="text-sm text-red-400">{joinMutation.error.message}</p>
-          )}
+      <div className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 sm:py-14">
+        <Link
+          href="/"
+          className="group inline-flex items-center gap-1.5 text-sm font-bold text-fg/40 hover:text-fg transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+          Back
+        </Link>
 
-          <Button
-            type="submit"
-            variant="spotify"
-            className="w-full"
-            disabled={code.length === 0 || joinMutation.isPending}
+        <h1 className="mt-6 text-3xl font-black tracking-tight sm:text-4xl">
+          Rooms waiting for people
+        </h1>
+        <p className="mt-2 max-w-prose text-sm text-fg/50">
+          Pick one and you are in. Everything here is open to anyone, and the
+          list updates itself as rooms fill and empty.
+        </p>
+
+        {joinOpenRoom.isError && (
+          <p
+            role="alert"
+            className="mt-6 rounded-2xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm font-bold text-red-400"
           >
-            {joinMutation.isPending ? 'Joining…' : 'Join Room'}
-          </Button>
-        </form>
+            {joinOpenRoom.error.message}
+          </p>
+        )}
+
+        <div className="mt-8">
+          <OpenRoomsList
+            rooms={rooms}
+            isLive={isLive}
+            joiningId={
+              joinOpenRoom.isPending ? joinOpenRoom.variables : undefined
+            }
+            onJoin={handleJoin}
+          />
+        </div>
       </div>
     </main>
   );

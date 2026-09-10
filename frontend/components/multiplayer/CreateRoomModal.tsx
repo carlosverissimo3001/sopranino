@@ -3,7 +3,7 @@
 import { useCreateRoom } from '@/hooks/multiplayer/useCreateRoom';
 import type { CreateRoomControllerDtoRoundCountEnum } from '@/sdk';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Loader2, Music, X, Zap } from 'lucide-react';
+import { Globe, Loader2, Lock, Music, X, Zap } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useId, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -26,6 +26,7 @@ const ROUND_OPTIONS: {
 export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
   const [roundCount, setRoundCount] =
     useState<CreateRoomControllerDtoRoundCountEnum>(5);
+  const [findable, setFindable] = useState(true);
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const createRoom = useCreateRoom();
@@ -56,13 +57,16 @@ export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
 
   const handleCreate = useCallback(() => {
     if (createRoom.isPending) return;
-    createRoom.mutate(roundCount, {
-      onSuccess: (data) => {
-        router.push(`/multiplayer/${data.id}`);
-        onClose();
+    createRoom.mutate(
+      { roundCount, findable },
+      {
+        onSuccess: (data) => {
+          router.push(`/multiplayer/${data.id}`);
+          onClose();
+        },
       },
-    });
-  }, [roundCount, createRoom, router, onClose]);
+    );
+  }, [roundCount, findable, createRoom, router, onClose]);
 
   const modalContent = (
     <AnimatePresence>
@@ -161,6 +165,64 @@ export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
                             className={`text-[10px] font-bold uppercase tracking-tighter ${isSelected ? 'text-purple-400' : 'text-fg/20'}`}
                           >
                             {option.description}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <label
+                    id="findable-label"
+                    className="flex items-center gap-2 text-sm font-bold text-fg/60 uppercase tracking-wider"
+                  >
+                    {findable ? (
+                      <Globe className="w-4 h-4" />
+                    ) : (
+                      <Lock className="w-4 h-4" />
+                    )}
+                    Who can join
+                  </label>
+
+                  <div
+                    role="radiogroup"
+                    aria-labelledby="findable-label"
+                    className="grid grid-cols-2 gap-3"
+                  >
+                    {[
+                      {
+                        value: true,
+                        label: 'Anyone',
+                        detail: 'Listed for people looking for a game',
+                      },
+                      {
+                        value: false,
+                        label: 'Invite only',
+                        detail: 'Only people you send the code to',
+                      },
+                    ].map((option) => {
+                      const isSelected = findable === option.value;
+                      return (
+                        <button
+                          key={String(option.value)}
+                          type="button"
+                          role="radio"
+                          aria-checked={isSelected}
+                          onClick={() => setFindable(option.value)}
+                          className={`flex flex-col gap-1 rounded-2xl border px-4 py-3 text-left transition-[background-color,border-color,transform] active:scale-95 ${
+                            isSelected
+                              ? 'border-purple-500/50 bg-purple-500/10 text-fg'
+                              : 'border-white/5 bg-white/5 text-fg/40 hover:border-white/10'
+                          }`}
+                        >
+                          <span className="text-sm font-black">
+                            {option.label}
+                          </span>
+                          <span
+                            className={`text-[10px] font-medium leading-tight ${isSelected ? 'text-purple-400' : 'text-fg/20'}`}
+                          >
+                            {option.detail}
                           </span>
                         </button>
                       );

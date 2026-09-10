@@ -88,6 +88,18 @@ export class MultiplayerController {
     return this.roomService.joinRoom(sessionId, code);
   }
 
+  @Post('rooms/:id/open-join')
+  @UseGuards(SessionGuard)
+  @ApiCookieAuth()
+  @ApiOperation({ summary: 'Join a findable room from the lobby' })
+  @ApiResponse({ status: 200, type: RoomDto })
+  async joinOpenRoom(
+    @SessionId() sessionId: string,
+    @Param('id') id: string,
+  ): Promise<RoomDto> {
+    return this.roomService.joinFindableRoom(sessionId, id);
+  }
+
   @Post('rooms/:id/track-source')
   @UseGuards(SessionGuard)
   @HttpCode(HttpStatus.OK)
