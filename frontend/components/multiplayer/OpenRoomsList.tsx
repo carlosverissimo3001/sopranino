@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Disc3, Library, Loader2 } from 'lucide-react';
+import { ArrowRight, Disc3, Library, Loader2, Plus } from 'lucide-react';
 import { OpenRoomDtoTrackSourceEnum, type OpenRoomDto } from '@/sdk';
 
 interface OpenRoomsListProps {
@@ -9,6 +9,8 @@ interface OpenRoomsListProps {
   isLive: boolean;
   joiningId: string | undefined;
   onJoin: (roomId: string) => void;
+  onCreate: () => void;
+  isCreating: boolean;
 }
 
 function RoomCard({
@@ -78,6 +80,8 @@ export function OpenRoomsList({
   isLive,
   joiningId,
   onJoin,
+  onCreate,
+  isCreating,
 }: OpenRoomsListProps) {
   return (
     <section aria-label="Rooms waiting for people">
@@ -96,12 +100,25 @@ export function OpenRoomsList({
           <Loader2 className="w-6 h-6 animate-spin text-fg/20" />
         </div>
       ) : rooms.length === 0 ? (
-        <p className="rounded-3xl border border-dashed border-white/10 px-6 py-14 text-center text-base text-fg/40">
-          Nobody is waiting right now.
-          <span className="mt-2 block text-sm text-fg/25">
-            Start a room of your own and it will show up here.
-          </span>
-        </p>
+        <div className="rounded-3xl border border-dashed border-white/10 px-6 py-14 text-center">
+          <p className="text-base text-fg/40">Nobody is waiting right now.</p>
+          <p className="mt-2 text-sm text-fg/25">
+            Start one and it will show up here.
+          </p>
+          <button
+            type="button"
+            onClick={onCreate}
+            disabled={isCreating}
+            className="mt-6 inline-flex items-center gap-2 rounded-2xl bg-spotify-green px-6 py-3 text-sm font-black text-black hover:bg-spotify-green/90 active:scale-[0.98] disabled:opacity-50 transition-[background-color,transform,opacity]"
+          >
+            {isCreating ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Plus className="h-4 w-4" />
+            )}
+            Create a room
+          </button>
+        </div>
       ) : (
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <AnimatePresence initial={false}>

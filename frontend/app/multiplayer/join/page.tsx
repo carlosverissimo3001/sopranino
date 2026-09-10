@@ -8,6 +8,7 @@ import { useMe } from '@/hooks/auth/useMe';
 import { useEnsureSession } from '@/hooks/auth/useEnsureSession';
 import { useLobby } from '@/hooks/multiplayer/useLobby';
 import { useJoinOpenRoom } from '@/hooks/multiplayer/useJoinOpenRoom';
+import { useCreateAndEnterRoom } from '@/hooks/multiplayer/useCreateAndEnterRoom';
 import { OpenRoomsList } from '@/components/multiplayer/OpenRoomsList';
 
 export default function BrowseRoomsPage() {
@@ -16,6 +17,7 @@ export default function BrowseRoomsPage() {
   const ensureSession = useEnsureSession();
   const { rooms, isLive } = useLobby();
   const joinOpenRoom = useJoinOpenRoom();
+  const createRoom = useCreateAndEnterRoom();
 
   /**
    * The list is pushed, but a room can still fill between reading it and
@@ -58,12 +60,12 @@ export default function BrowseRoomsPage() {
           list updates itself as rooms fill and empty.
         </p>
 
-        {joinOpenRoom.isError && (
+        {(joinOpenRoom.isError || createRoom.error) && (
           <p
             role="alert"
             className="mt-6 rounded-2xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm font-bold text-red-400"
           >
-            {joinOpenRoom.error.message}
+            {joinOpenRoom.error?.message ?? createRoom.error?.message}
           </p>
         )}
 
@@ -75,6 +77,8 @@ export default function BrowseRoomsPage() {
               joinOpenRoom.isPending ? joinOpenRoom.variables : undefined
             }
             onJoin={handleJoin}
+            onCreate={createRoom.create}
+            isCreating={createRoom.isPending}
           />
         </div>
       </div>
