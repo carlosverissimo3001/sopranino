@@ -139,9 +139,11 @@ export function SpeedRunSetup({
   // picker needs no change when it does — a new kind is one line here.
   const { data: decades } = useTrackGroups(TrackGroupDtoTypeEnum.Decade);
   const { data: genres } = useTrackGroups(TrackGroupDtoTypeEnum.Genre);
+  const { data: charts } = useTrackGroups(TrackGroupDtoTypeEnum.Chart);
   const kinds = [
     { label: 'Decades', groups: decades },
     { label: 'Genres', groups: genres },
+    { label: 'Charts', groups: charts },
   ].filter((kind) => kind.groups?.length);
   const [kindLabel, setKindLabel] = useState<string | null>(null);
   const kind = kinds.find((k) => k.label === kindLabel) ?? kinds[0];
