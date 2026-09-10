@@ -11,6 +11,9 @@ export class OpenRoomDto {
   @ApiProperty({ description: 'How many players are in it right now' })
   playerCount: number;
 
+  @ApiProperty({ description: 'Seats in the room, so the list can read 3/20' })
+  capacity: number;
+
   @ApiProperty({ description: 'Rounds the host chose' })
   roundCount: number;
 

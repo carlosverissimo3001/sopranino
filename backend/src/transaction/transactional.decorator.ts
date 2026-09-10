@@ -1,15 +1,32 @@
+import { Prisma } from '@prisma/client';
 import { transactionStorage, getBasePrismaClient } from './transaction.store';
 
 const TRANSACTIONAL_KEY = Symbol('transactional');
 
+const DEFAULT_TIMEOUT_MS = 30000;
+
+export interface TransactionalOptions {
+  isolationLevel?: Prisma.TransactionIsolationLevel;
+  timeout?: number;
+}
+
 /**
- * Method decorator that runs the method body inside a Prisma transaction.
- * No injection required: uses the global base Prisma client and ALS for context.
- * The transaction client is stored in AsyncLocalStorage; any code using the
- * transaction-aware PrismaService (proxy) automatically participates.
- * If the method throws, the transaction is rolled back.
+ * Runs the method inside a Prisma transaction. Anything it calls that reaches
+ * for PrismaService joins the same one, decorated or not, because the injected
+ * client is a proxy that reads the transaction out of AsyncLocalStorage.
+ *
+ * A decorated method called from inside another one joins rather than opening
+ * a second transaction. Opening a second would put the inner writes on their
+ * own connection, where an outer rollback cannot reach them and an outer lock
+ * can deadlock against them.
+ *
+ * Isolation belongs to the outermost boundary, since Postgres cannot change
+ * level once a transaction has started. An inner method asking for a different
+ * one throws rather than quietly running at the weaker of the two.
  */
-export function Transactional(): MethodDecorator {
+export function Transactional(
+  options: TransactionalOptions = {},
+): MethodDecorator {
   return function (
     _target: object,
     propertyKey: string | symbol,
@@ -25,14 +42,33 @@ export function Transactional(): MethodDecorator {
     }
 
     descriptor.value = async function (this: unknown, ...args: unknown[]) {
+      const ambient = transactionStorage.getStore();
+
+      if (ambient?.tx) {
+        if (
+          options.isolationLevel &&
+          options.isolationLevel !== ambient.isolationLevel
+        ) {
+          throw new Error(
+            `${String(propertyKey)} asks for ${options.isolationLevel} inside a transaction already running at ${ambient.isolationLevel ?? 'the database default'}. Isolation cannot change once a transaction has started: set it on the outermost boundary.`,
+          );
+        }
+        return originalMethod.apply(this, args);
+      }
+
       const prisma = getBasePrismaClient();
       return prisma.$transaction(
-        async (tx) => {
-          return transactionStorage.run({ tx }, () =>
-            originalMethod.apply(this, args),
-          );
+        async (tx) =>
+          transactionStorage.run(
+            { tx, isolationLevel: options.isolationLevel },
+            () => originalMethod.apply(this, args),
+          ),
+        {
+          timeout: options.timeout ?? DEFAULT_TIMEOUT_MS,
+          ...(options.isolationLevel
+            ? { isolationLevel: options.isolationLevel }
+            : {}),
         },
-        { timeout: 30000 },
       );
     };
 

@@ -29,6 +29,12 @@ export class TransactionService {
    * If the callback throws, the transaction is rolled back.
    */
   async run<T>(fn: () => Promise<T>): Promise<T> {
+    // Joins the caller's transaction rather than opening a second one on its
+    // own connection, which an outer rollback could not reach.
+    if (transactionStorage.getStore()?.tx) {
+      return fn();
+    }
+
     return this.prisma.$transaction(async (tx) => {
       return transactionStorage.run({ tx }, () => fn());
     });

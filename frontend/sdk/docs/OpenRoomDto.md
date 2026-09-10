@@ -9,6 +9,7 @@ Name | Type
 `id` | string
 `name` | string
 `playerCount` | number
+`capacity` | number
 `roundCount` | number
 `trackSource` | string
 
@@ -22,6 +23,7 @@ const example = {
   "id": null,
   "name": null,
   "playerCount": null,
+  "capacity": null,
   "roundCount": null,
   "trackSource": null,
 } satisfies OpenRoomDto

@@ -8,6 +8,7 @@ import {
   User,
 } from '@prisma/client';
 import { CreateRoomDto } from '../dto/create-room.dto';
+import { Transactional } from '@transaction/transactional.decorator';
 
 const PLAYERS_INCLUDE = {
   players: {
@@ -74,10 +75,21 @@ export class RoomRepository {
     });
   }
 
-  async addPlayer(roomId: string, userId: string): Promise<RoomPlayer> {
-    return this.prisma.roomPlayer.create({
-      data: { roomId, userId },
-    });
+  @Transactional()
+  async claimSeat(
+    roomId: string,
+    userId: string,
+    capacity: number,
+  ): Promise<RoomPlayer | null> {
+    await this.prisma
+      .$queryRaw`SELECT id FROM multiplayer_rooms WHERE id = ${roomId} FOR UPDATE`;
+
+    const taken = await this.prisma.roomPlayer.count({ where: { roomId } });
+    if (taken >= capacity) {
+      return null;
+    }
+
+    return this.prisma.roomPlayer.create({ data: { roomId, userId } });
   }
 
   async removePlayer(roomId: string, userId: string): Promise<void> {

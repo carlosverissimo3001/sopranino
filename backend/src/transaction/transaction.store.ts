@@ -1,5 +1,5 @@
 import { AsyncLocalStorage } from 'async_hooks';
-import type { PrismaClient } from '@prisma/client';
+import type { Prisma, PrismaClient } from '@prisma/client';
 
 export interface TransactionStore {
   /** Current Prisma transaction client when inside a transactional boundary */
@@ -7,6 +7,9 @@ export interface TransactionStore {
     PrismaClient,
     '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
   >;
+
+  /** What the outermost boundary opened at, so an inner one cannot contradict it. */
+  isolationLevel?: Prisma.TransactionIsolationLevel;
 }
 
 export const transactionStorage = new AsyncLocalStorage<TransactionStore>();

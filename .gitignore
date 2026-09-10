@@ -84,3 +84,7 @@ docs/superpowers/
 # generate-openapi.ts, which `pnpm build:sdk` needs.
 backend/scripts/*
 !backend/scripts/generate-openapi.ts
+
+# Agent instructions and skill manifest: local tooling, not part of the app
+CLAUDE.md
+skills-lock.json

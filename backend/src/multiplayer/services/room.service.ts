@@ -7,7 +7,7 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { RoomStatus, TrackSource } from '@prisma/client';
-import { LOBBY_MAX_ROOMS } from '../../consts';
+import { LOBBY_MAX_ROOMS, ROOM_MAX_PLAYERS } from '../../consts';
 import { AuthService } from '../../auth/services/auth.service';
 import {
   RoomRepository,
@@ -56,11 +56,15 @@ export class RoomService {
     );
 
     return withPresence
-      .filter(({ online }) => online > 0)
+      .filter(
+        ({ room, online }) =>
+          online > 0 && room.players.length < ROOM_MAX_PLAYERS,
+      )
       .map(({ room, online }) => ({
         id: room.id,
         name: room.name,
         playerCount: online,
+        capacity: ROOM_MAX_PLAYERS,
         roundCount: room.roundCount,
         trackSource: room.trackSource,
       }));
@@ -125,7 +129,16 @@ export class RoomService {
       return RoomDto.fromEntity(room);
     }
 
-    await this.roomRepository.addPlayer(room.id, userId);
+    const seat = await this.roomRepository.claimSeat(
+      room.id,
+      userId,
+      ROOM_MAX_PLAYERS,
+    );
+    if (!seat) {
+      throw new BadRequestException(
+        `This room is full (${ROOM_MAX_PLAYERS} players)`,
+      );
+    }
 
     // Re-fetch to include the new player
     const updated = await this.findRoomOrThrow(room.id);
