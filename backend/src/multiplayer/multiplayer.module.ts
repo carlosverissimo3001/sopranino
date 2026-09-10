@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { BullModule } from '@nestjs/bullmq';
+import { JOB_OPTIONS_WITH_BACKOFF, ROOM_CLEANUP_QUEUE } from '../consts';
 import { AuthModule } from '../auth/auth.module';
 import { PlaylistModule } from '../playlist/playlist.module';
 import { TrackModule } from '../track/track.module';
@@ -11,9 +13,19 @@ import { RoomRepository } from './repositories/room.repository';
 import { MultiplayerGameSessionRepository } from './repositories/multiplayer-game-session.repository';
 import { RoomsGateway } from './gateways/rooms.gateway';
 import { RoomPresenceService } from './services/room-presence.service';
+import { RoomConsumer } from './consumers/room.consumer';
 
 @Module({
-  imports: [AuthModule, PlaylistModule, TrackModule, PoolModule],
+  imports: [
+    AuthModule,
+    PlaylistModule,
+    TrackModule,
+    PoolModule,
+    BullModule.registerQueue({
+      name: ROOM_CLEANUP_QUEUE,
+      defaultJobOptions: JOB_OPTIONS_WITH_BACKOFF,
+    }),
+  ],
   controllers: [MultiplayerController],
   providers: [
     RoomService,
@@ -23,6 +35,7 @@ import { RoomPresenceService } from './services/room-presence.service';
     MultiplayerGameSessionRepository,
     RoomsGateway,
     RoomPresenceService,
+    RoomConsumer,
   ],
   exports: [RoomService, MultiplayerGameService, RoomRepository],
 })
