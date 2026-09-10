@@ -58,6 +58,12 @@ export interface RoomDto {
      */
     findable: boolean;
     /**
+     * Seats in the room, so a roster can read 12/20
+     * @type {number}
+     * @memberof RoomDto
+     */
+    capacity: number;
+    /**
      * 
      * @type {number}
      * @memberof RoomDto
@@ -132,6 +138,7 @@ export function instanceOfRoomDto(value: object): value is RoomDto {
     if (!('hostId' in value) || value['hostId'] === undefined) return false;
     if (!('name' in value) || value['name'] === undefined) return false;
     if (!('findable' in value) || value['findable'] === undefined) return false;
+    if (!('capacity' in value) || value['capacity'] === undefined) return false;
     if (!('roundCount' in value) || value['roundCount'] === undefined) return false;
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('trackSource' in value) || value['trackSource'] === undefined) return false;
@@ -155,6 +162,7 @@ export function RoomDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean): R
         'hostId': json['hostId'],
         'name': json['name'],
         'findable': json['findable'],
+        'capacity': json['capacity'],
         'roundCount': json['roundCount'],
         'status': json['status'],
         'trackSource': json['trackSource'],
@@ -181,6 +189,7 @@ export function RoomDtoToJSONTyped(value?: RoomDto | null, ignoreDiscriminator: 
         'hostId': value['hostId'],
         'name': value['name'],
         'findable': value['findable'],
+        'capacity': value['capacity'],
         'roundCount': value['roundCount'],
         'status': value['status'],
         'trackSource': value['trackSource'],

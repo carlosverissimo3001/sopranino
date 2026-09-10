@@ -30,7 +30,7 @@ export function RoomNameEditor({ room, isHost }: RoomNameEditorProps) {
 
   if (!isHost) {
     return (
-      <p className="mb-5 text-2xl sm:text-3xl font-black tracking-tight text-fg">
+      <p className="mb-4 text-2xl sm:text-3xl font-black tracking-tight text-fg">
         {room.name}
       </p>
     );
@@ -61,7 +61,7 @@ export function RoomNameEditor({ room, isHost }: RoomNameEditorProps) {
       <button
         type="button"
         onClick={() => setIsEditing(true)}
-        className="group mb-5 inline-flex items-center gap-2 text-2xl sm:text-3xl font-black tracking-tight text-fg hover:text-spotify-green transition-colors"
+        className="group mb-4 inline-flex items-center gap-2 text-2xl sm:text-3xl font-black tracking-tight text-fg hover:text-spotify-green transition-colors"
       >
         {room.name}
         <Pencil
@@ -74,7 +74,7 @@ export function RoomNameEditor({ room, isHost }: RoomNameEditorProps) {
   }
 
   return (
-    <div className="mb-5">
+    <div className="mb-4">
       <div className="flex items-center justify-center gap-2">
         <label htmlFor="room-name-input" className="sr-only">
           Room name

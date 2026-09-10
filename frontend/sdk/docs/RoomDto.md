@@ -11,6 +11,7 @@ Name | Type
 `hostId` | string
 `name` | string
 `findable` | boolean
+`capacity` | number
 `roundCount` | number
 `status` | string
 `trackSource` | string
@@ -31,6 +32,7 @@ const example = {
   "hostId": null,
   "name": null,
   "findable": null,
+  "capacity": null,
   "roundCount": null,
   "status": null,
   "trackSource": null,

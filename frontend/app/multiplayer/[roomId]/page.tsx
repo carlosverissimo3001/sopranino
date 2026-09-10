@@ -1,7 +1,7 @@
 'use client';
 
 import { HostDisconnectedBanner } from '@/components/multiplayer/HostDisconnectedBanner';
-import PlayerRow from '@/components/multiplayer/PlayerRow';
+import PlayerTile from '@/components/multiplayer/PlayerTile';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useMe } from '@/hooks/auth/useMe';
 import { useLeaveRoom } from '@/hooks/multiplayer/useLeaveRoom';
@@ -10,10 +10,8 @@ import { useRoom } from '@/hooks/multiplayer/useRoom';
 import { useStartRoom } from '@/hooks/multiplayer/useStartRoom';
 import { useToggleReady } from '@/hooks/multiplayer/useToggleReady';
 import { useKickPlayer } from '@/hooks/multiplayer/useKickPlayer';
-import { TrackSourcePicker } from '@/components/multiplayer/TrackSourcePicker';
-import { RoomVisibilityPicker } from '@/components/multiplayer/RoomVisibilityPicker';
+import { RoomSettings } from '@/components/multiplayer/RoomSettings';
 import { RoomNameEditor } from '@/components/multiplayer/RoomNameEditor';
-import { RoomRoundsPicker } from '@/components/multiplayer/RoomRoundsPicker';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   ArrowLeft,
@@ -88,6 +86,22 @@ export default function RoomLobbyPage() {
   const isHost = currentPlayer ? currentPlayer.userId === room?.hostId : false;
   const allReady = room?.players.every((p) => p.isReady) ?? false;
   const canStart = isHost && (room?.players.length ?? 0) >= 2 && allReady;
+  const readyCount = room?.players.filter((p) => p.isReady).length ?? 0;
+
+  // Everyone joins in the same transaction when a room is seeded, so join
+  // order cannot be relied on to put the host at the front.
+  // The toggle's result counts before the server confirms it, or the button
+  // says the opposite of what was just clicked until the response lands.
+  const showAsReady = toggleReady.isPending
+    ? !currentPlayer?.isReady
+    : !!currentPlayer?.isReady;
+
+  const orderedPlayers = useMemo(() => {
+    if (!room) return [];
+    return [...room.players].sort((a, b) =>
+      a.userId === room.hostId ? -1 : b.userId === room.hostId ? 1 : 0,
+    );
+  }, [room]);
   const isStarting = room?.status === 'PLAYING';
 
   const inviteUrl =
@@ -252,14 +266,14 @@ export default function RoomLobbyPage() {
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col items-center px-4 py-8 sm:py-12">
-        <div className="w-full max-w-md flex flex-col gap-8">
+      <div className="flex-1 flex flex-col items-center px-4 py-6 sm:py-8">
+        <div className="w-full max-w-md flex flex-col gap-5">
           {/* Invite code card */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="relative overflow-hidden rounded-2xl border border-fg/10 bg-fg/[0.03] p-6 sm:p-8 text-center"
+            className="relative overflow-hidden rounded-2xl border border-fg/10 bg-fg/[0.03] p-5 sm:p-6 text-center"
           >
             {/* Card glow */}
             <div className="absolute -top-20 -right-20 w-40 h-40 bg-spotify-green/10 rounded-full blur-[60px] pointer-events-none" />
@@ -295,48 +309,56 @@ export default function RoomLobbyPage() {
             {hostDisconnected && !isHost && <HostDisconnectedBanner />}
           </AnimatePresence>
 
-          {/* Players list */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="space-y-3"
-          >
+          <RoomSettings
+            room={room}
+            isHost={isHost}
+            hasLinkedAccount={!!user?.hasLinkedAccount}
+          />
+
+          {/* Players */}
+          <div className="space-y-3">
             <div className="flex items-center justify-between px-1">
-              <h3 className="text-sm font-semibold text-fg/70 flex items-center gap-2">
+              <h3 className="flex items-center gap-2 text-sm font-semibold text-fg/70">
                 <Users className="w-4 h-4" />
                 Players
               </h3>
-              <span className="text-xs font-mono text-fg/30">
-                {room.players.length}
+              {/* What twenty ready badges used to say, in one line. */}
+              <span className="font-mono text-xs text-fg/30">
+                {room.players.length}/{room.capacity}
+                {readyCount > 0 && (
+                  <span className="text-green-500/70">
+                    {' '}
+                    · {readyCount} ready
+                  </span>
+                )}
               </span>
             </div>
 
-            <div className="rounded-2xl border border-fg/10 bg-fg/[0.03] overflow-hidden divide-y divide-fg/5">
-              <AnimatePresence mode="popLayout">
-                {room.players.map((player, index) => (
-                  <PlayerRow
-                    key={player.id}
-                    player={player}
-                    isHost={player.userId === room.hostId}
-                    isCurrentUser={player.userId === user?.userId}
-                    index={index}
-                    isReady={player.isReady}
-                    isOnline={onlineUserIds.includes(player.userId)}
-                    onKick={
-                      isHost && player.userId !== room.hostId
-                        ? () =>
-                            kickPlayer.mutate({
-                              roomId: room.id,
-                              userId: player.userId,
-                            })
-                        : undefined
-                    }
-                  />
-                ))}
-              </AnimatePresence>
+            {/* Wrapping rather than a fixed grid: one player centres instead
+                of sitting in the corner of an empty card, and twenty still
+                fill their rows. */}
+            <div className="flex flex-wrap justify-center gap-1 rounded-2xl border border-fg/10 bg-fg/[0.03] p-2">
+              {orderedPlayers.map((player) => (
+                <PlayerTile
+                  key={player.id}
+                  player={player}
+                  isHost={player.userId === room.hostId}
+                  isCurrentUser={player.userId === user?.userId}
+                  isReady={player.isReady}
+                  isOnline={onlineUserIds.includes(player.userId)}
+                  onKick={
+                    isHost && player.userId !== room.hostId
+                      ? () =>
+                          kickPlayer.mutate({
+                            roomId: room.id,
+                            userId: player.userId,
+                          })
+                      : undefined
+                  }
+                />
+              ))}
             </div>
-          </motion.div>
+          </div>
 
           {/* Actions */}
           <motion.div
@@ -345,41 +367,35 @@ export default function RoomLobbyPage() {
             transition={{ delay: 0.3 }}
             className="flex flex-col gap-3"
           >
-            <TrackSourcePicker
-              room={room}
-              isHost={isHost}
-              hasLinkedAccount={!!user?.hasLinkedAccount}
-            />
-
-            <RoomRoundsPicker room={room} isHost={isHost} />
-
-            <RoomVisibilityPicker room={room} isHost={isHost} />
-
             {/* Side by side: two full-width buttons stacked pushed the room
                 itself below the fold on a phone. */}
             <div className="flex items-stretch gap-3">
               <button
                 onClick={handleToggleReady}
                 disabled={toggleReady.isPending}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-3.5 text-sm font-bold transition-all ${
-                  currentPlayer?.isReady
+                className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition-colors ${
+                  showAsReady
                     ? 'bg-green-500/10 border border-green-500/20 text-green-400 hover:bg-green-500/20'
                     : 'bg-fg/5 border border-fg/10 text-fg/70 hover:bg-fg/10'
                 }`}
               >
-                {toggleReady.isPending ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : currentPlayer?.isReady ? (
-                  <Check className="w-4 h-4" />
-                ) : null}
-                {currentPlayer?.isReady ? 'Ready' : 'Mark as Ready'}
+                {/* Slot always reserved, or the label shifts when the icon
+                    arrives and the button jumps under the cursor. */}
+                <span className="flex h-4 w-4 items-center justify-center">
+                  {toggleReady.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : showAsReady ? (
+                    <Check className="w-4 h-4" />
+                  ) : null}
+                </span>
+                {showAsReady ? 'Ready' : 'Mark as Ready'}
               </button>
 
               {isHost && (
                 <button
                   onClick={handleStartGame}
                   disabled={!canStart || startRoom.isPending || isStarting}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-spotify-green px-4 py-3.5 text-sm font-bold text-black hover:bg-spotify-green/90 active:scale-[0.98] disabled:opacity-40 transition-all shadow-[0_0_30px_rgba(30,215,96,0.15)]"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-spotify-green px-4 py-3 text-sm font-bold text-black hover:bg-spotify-green/90 active:scale-[0.98] disabled:opacity-40 transition-all shadow-[0_0_30px_rgba(30,215,96,0.15)]"
                 >
                   {startRoom.isPending || isStarting ? (
                     <>
