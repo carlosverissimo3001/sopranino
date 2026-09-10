@@ -155,8 +155,6 @@ export function ResultsContainer({ roomId }: ResultsContainerProps) {
     return null;
   }
 
-  const hasBreakdown = scoreboard.rounds.length > 0;
-
   return (
     <div
       className="min-h-screen min-h-[100dvh] overflow-y-auto"
@@ -191,23 +189,16 @@ export function ResultsContainer({ roomId }: ResultsContainerProps) {
             />
           </div>
 
-          {/* Two columns only when there is a second thing to put in one.
-              A breakdown-less room would otherwise leave half the width empty. */}
-          <div
-            className={
-              hasBreakdown
-                ? 'lg:grid lg:grid-cols-2 lg:items-start lg:gap-8'
-                : 'mx-auto w-full max-w-xl'
-            }
-          >
-            <StandingsList
-              standings={sortedStandings}
-              ranks={ranks}
-              currentUserId={currentUserId}
-            />
+          {/* Each section spans the width and splits internally. Side by side
+              left a tall standings column scrolling past an empty one, because
+              a room has twenty players and only ever a handful of rounds. */}
+          <StandingsList
+            standings={sortedStandings}
+            ranks={ranks}
+            currentUserId={currentUserId}
+          />
 
-            <RoundBreakdown rounds={scoreboard.rounds} />
-          </div>
+          <RoundBreakdown rounds={scoreboard.rounds} />
         </div>
       </div>
     </div>

@@ -17,7 +17,7 @@ function RoundBreakdownBase({ rounds }: RoundBreakdownProps) {
 
   return (
     <section className="mb-8">
-      <div className="space-y-2">
+      <div className="grid gap-2 sm:grid-cols-2">
         {rounds.map((round) => {
           const isExpanded = expandedRound === round.roundIndex;
           const contentId = `round-breakdown-${round.roundIndex}`;
