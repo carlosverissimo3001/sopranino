@@ -324,6 +324,51 @@ describe('RoomService', () => {
     });
   });
 
+  describe('joinFindableRoom', () => {
+    it('seats somebody who came from the lobby', async () => {
+      mockAuthService.getUserBySessionId.mockResolvedValue({
+        id: PLAYER_USER_ID,
+      });
+      mockRoomRepository.findById.mockResolvedValue(makeRoom());
+      mockRoomRepository.findPlayerInRoom.mockResolvedValue(null);
+      mockRoomRepository.claimSeat.mockResolvedValue({ id: 'player-2' });
+
+      await expect(
+        service.joinFindableRoom(PLAYER_SESSION, ROOM_ID),
+      ).resolves.toMatchObject({ id: ROOM_ID });
+    });
+
+    // Being findable stands in for holding the code, so a room that is not
+    // findable answers as though the id were wrong rather than confirming it.
+    it('will not let the lobby route into an unlisted room', async () => {
+      mockAuthService.getUserBySessionId.mockResolvedValue({
+        id: PLAYER_USER_ID,
+      });
+      mockRoomRepository.findById.mockResolvedValue(
+        makeRoom({ findable: false }),
+      );
+
+      await expect(
+        service.joinFindableRoom(PLAYER_SESSION, ROOM_ID),
+      ).rejects.toThrow(NotFoundException);
+      expect(mockRoomRepository.claimSeat).not.toHaveBeenCalled();
+    });
+
+    // Both ways in share one helper; this is the check that they still do.
+    it('refuses a full room the same way joining by code does', async () => {
+      mockAuthService.getUserBySessionId.mockResolvedValue({
+        id: PLAYER_USER_ID,
+      });
+      mockRoomRepository.findById.mockResolvedValue(makeRoom());
+      mockRoomRepository.findPlayerInRoom.mockResolvedValue(null);
+      mockRoomRepository.claimSeat.mockResolvedValue(null);
+
+      await expect(
+        service.joinFindableRoom(PLAYER_SESSION, ROOM_ID),
+      ).rejects.toThrow(`This room is full (${ROOM_MAX_PLAYERS} players)`);
+    });
+  });
+
   describe('getRoomState', () => {
     it('shows the room to a player who is in it', async () => {
       mockAuthService.getUserBySessionId.mockResolvedValue({

@@ -106,6 +106,7 @@ export class RoomService {
     return RoomDto.fromEntity(room);
   }
 
+  /** The way in when somebody sent you a code. */
   async joinRoom(sessionId: string, inviteCode: string): Promise<RoomDto> {
     const { id: userId } = await this.authService.getUserBySessionId(sessionId);
 
@@ -116,11 +117,28 @@ export class RoomService {
       throw new NotFoundException('Room not found');
     }
 
+    return this.seatPlayer(room, userId);
+  }
+
+  async joinFindableRoom(sessionId: string, roomId: string): Promise<RoomDto> {
+    const { id: userId } = await this.authService.getUserBySessionId(sessionId);
+
+    const room = await this.roomRepository.findById(roomId);
+    if (!room?.findable) {
+      throw new NotFoundException('Room not found');
+    }
+
+    return this.seatPlayer(room, userId);
+  }
+
+  private async seatPlayer(
+    room: RoomWithPlayers,
+    userId: string,
+  ): Promise<RoomDto> {
     if (room.status !== RoomStatus.WAITING) {
       throw new BadRequestException('Room is no longer accepting players');
     }
 
-    // Idempotent: if already in room, just return current state
     const existingPlayer = await this.roomRepository.findPlayerInRoom(
       room.id,
       userId,
@@ -140,7 +158,6 @@ export class RoomService {
       );
     }
 
-    // Re-fetch to include the new player
     const updated = await this.findRoomOrThrow(room.id);
     const dto = RoomDto.fromEntity(updated);
     this.roomsGateway.emitRoomUpdate(room.id, dto);

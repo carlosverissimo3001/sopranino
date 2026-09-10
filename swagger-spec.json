@@ -1484,6 +1484,42 @@
         ]
       }
     },
+    "/multiplayer/rooms/{id}/open-join": {
+      "post": {
+        "operationId": "MultiplayerController_joinOpenRoom",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Join a findable room from the lobby",
+        "tags": [
+          "Api"
+        ]
+      }
+    },
     "/multiplayer/rooms/{id}/track-source": {
       "post": {
         "operationId": "MultiplayerController_setTrackSource",

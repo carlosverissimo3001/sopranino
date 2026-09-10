@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ArrowRight, Users, Loader2 } from 'lucide-react';
+import Link from 'next/link';
 import { useJoinRoom } from '@/hooks/multiplayer/useJoinRoom';
 
 interface JoinRoomModalProps {
@@ -77,6 +78,15 @@ function JoinRoomForm({ onClose }: { onClose: () => void }) {
           </motion.p>
         )}
       </AnimatePresence>
+
+      <Link
+        href="/multiplayer/join"
+        onClick={onClose}
+        className="group flex items-center justify-center gap-1.5 text-sm font-bold text-fg/40 hover:text-spotify-green transition-colors"
+      >
+        Browse open rooms
+        <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+      </Link>
 
       <button
         onClick={handleSubmit}

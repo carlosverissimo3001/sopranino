@@ -41,6 +41,7 @@ All URIs are relative to *http://localhost*
 | [**multiplayerControllerGetRoomState**](ApiApi.md#multiplayercontrollergetroomstate) | **GET** /multiplayer/rooms/{id} | Get room state with players |
 | [**multiplayerControllerGetRoundState**](ApiApi.md#multiplayercontrollergetroundstate) | **GET** /multiplayer/rooms/{id}/round | Get current round state for the player |
 | [**multiplayerControllerGetScoreboard**](ApiApi.md#multiplayercontrollergetscoreboard) | **GET** /multiplayer/rooms/{id}/scoreboard | Get scoreboard (only completed rounds visible) |
+| [**multiplayerControllerJoinOpenRoom**](ApiApi.md#multiplayercontrollerjoinopenroom) | **POST** /multiplayer/rooms/{id}/open-join | Join a findable room from the lobby |
 | [**multiplayerControllerJoinRoom**](ApiApi.md#multiplayercontrollerjoinroom) | **POST** /multiplayer/rooms/{code}/join | Join a room by invite code |
 | [**multiplayerControllerKickPlayer**](ApiApi.md#multiplayercontrollerkickplayer) | **POST** /multiplayer/rooms/{id}/kick | Remove a player from the room (host only) |
 | [**multiplayerControllerLeaveRoom**](ApiApi.md#multiplayercontrollerleaveroom) | **POST** /multiplayer/rooms/{id}/leave | Leave a room (host leaving expires it) |
@@ -2547,6 +2548,75 @@ example().catch(console.error);
 ### Return type
 
 [**ScoreboardDto**](ScoreboardDto.md)
+
+### Authorization
+
+[cookie](../README.md#cookie)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** |  |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## multiplayerControllerJoinOpenRoom
+
+> RoomDto multiplayerControllerJoinOpenRoom(id)
+
+Join a findable room from the lobby
+
+### Example
+
+```ts
+import {
+  Configuration,
+  ApiApi,
+} from '';
+import type { MultiplayerControllerJoinOpenRoomRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: cookie
+    apiKey: "YOUR API KEY",
+  });
+  const api = new ApiApi(config);
+
+  const body = {
+    // string
+    id: id_example,
+  } satisfies MultiplayerControllerJoinOpenRoomRequest;
+
+  try {
+    const data = await api.multiplayerControllerJoinOpenRoom(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **id** | `string` |  | [Defaults to `undefined`] |
+
+### Return type
+
+[**RoomDto**](RoomDto.md)
 
 ### Authorization
 

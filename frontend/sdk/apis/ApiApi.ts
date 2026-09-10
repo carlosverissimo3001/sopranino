@@ -296,6 +296,10 @@ export interface MultiplayerControllerGetScoreboardRequest {
     id: string;
 }
 
+export interface MultiplayerControllerJoinOpenRoomRequest {
+    id: string;
+}
+
 export interface MultiplayerControllerJoinRoomRequest {
     code: string;
 }
@@ -1778,6 +1782,43 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async multiplayerControllerGetScoreboard(requestParameters: MultiplayerControllerGetScoreboardRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ScoreboardDto> {
         const response = await this.multiplayerControllerGetScoreboardRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Join a findable room from the lobby
+     */
+    async multiplayerControllerJoinOpenRoomRaw(requestParameters: MultiplayerControllerJoinOpenRoomRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RoomDto>> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling multiplayerControllerJoinOpenRoom().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/multiplayer/rooms/{id}/open-join`;
+        urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => RoomDtoFromJSON(jsonValue));
+    }
+
+    /**
+     * Join a findable room from the lobby
+     */
+    async multiplayerControllerJoinOpenRoom(requestParameters: MultiplayerControllerJoinOpenRoomRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RoomDto> {
+        const response = await this.multiplayerControllerJoinOpenRoomRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
