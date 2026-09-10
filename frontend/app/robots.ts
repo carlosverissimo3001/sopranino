@@ -8,7 +8,17 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: '*',
-      allow: ['/$', '/about', '/speed-run/leaderboard'],
+      allow: [
+        '/$',
+        '/about',
+        '/speed-run/leaderboard',
+        // Named in the Sitemap line below, so it has to be readable as well.
+        '/sitemap.xml',
+        // Referenced from every page's metadata; blocked, the card has no art.
+        '/opengraph-image',
+        '/icon',
+        '/apple-icon',
+      ],
       disallow: '/',
     },
     sitemap: `${SITE_URL}/sitemap.xml`,
