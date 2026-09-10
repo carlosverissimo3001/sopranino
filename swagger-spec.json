@@ -3699,6 +3699,10 @@
             "type": "number",
             "description": "How many players are in it right now"
           },
+          "capacity": {
+            "type": "number",
+            "description": "Seats in the room, so the list can read 3/20"
+          },
           "roundCount": {
             "type": "number",
             "description": "Rounds the host chose"
@@ -3716,6 +3720,7 @@
           "id",
           "name",
           "playerCount",
+          "capacity",
           "roundCount",
           "trackSource"
         ]

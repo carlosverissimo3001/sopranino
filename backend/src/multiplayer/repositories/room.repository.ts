@@ -74,9 +74,25 @@ export class RoomRepository {
     });
   }
 
-  async addPlayer(roomId: string, userId: string): Promise<RoomPlayer> {
-    return this.prisma.roomPlayer.create({
-      data: { roomId, userId },
+  /**
+   * Takes a seat, or returns null when there is none left. The room row is
+   * locked first: two people tapping the last seat would both read the same
+   * count and both get in, so the count has to happen behind the lock.
+   */
+  async claimSeat(
+    roomId: string,
+    userId: string,
+    capacity: number,
+  ): Promise<RoomPlayer | null> {
+    return this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM multiplayer_rooms WHERE id = ${roomId} FOR UPDATE`;
+
+      const taken = await tx.roomPlayer.count({ where: { roomId } });
+      if (taken >= capacity) {
+        return null;
+      }
+
+      return tx.roomPlayer.create({ data: { roomId, userId } });
     });
   }
 

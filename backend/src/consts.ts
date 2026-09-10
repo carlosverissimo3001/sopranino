@@ -132,3 +132,10 @@ export const LOBBY_ROOM = 'lobby';
  * several events in a second, and watchers want one update, not four.
  */
 export const LOBBY_BROADCAST_DEBOUNCE_MS = 300;
+
+/**
+ * Seats in a room. A product decision rather than a limit anything technical
+ * imposes: the roster and scoreboard were not drawn for a crowd, and per-round
+ * socket fan-out is quadratic in the number of players.
+ */
+export const ROOM_MAX_PLAYERS = 20;

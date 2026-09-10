@@ -38,6 +38,12 @@ export interface OpenRoomDto {
      */
     playerCount: number;
     /**
+     * Seats in the room, so the list can read 3/20
+     * @type {number}
+     * @memberof OpenRoomDto
+     */
+    capacity: number;
+    /**
      * Rounds the host chose
      * @type {number}
      * @memberof OpenRoomDto
@@ -69,6 +75,7 @@ export function instanceOfOpenRoomDto(value: object): value is OpenRoomDto {
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('name' in value) || value['name'] === undefined) return false;
     if (!('playerCount' in value) || value['playerCount'] === undefined) return false;
+    if (!('capacity' in value) || value['capacity'] === undefined) return false;
     if (!('roundCount' in value) || value['roundCount'] === undefined) return false;
     if (!('trackSource' in value) || value['trackSource'] === undefined) return false;
     return true;
@@ -87,6 +94,7 @@ export function OpenRoomDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean
         'id': json['id'],
         'name': json['name'],
         'playerCount': json['playerCount'],
+        'capacity': json['capacity'],
         'roundCount': json['roundCount'],
         'trackSource': json['trackSource'],
     };
@@ -106,6 +114,7 @@ export function OpenRoomDtoToJSONTyped(value?: OpenRoomDto | null, ignoreDiscrim
         'id': value['id'],
         'name': value['name'],
         'playerCount': value['playerCount'],
+        'capacity': value['capacity'],
         'roundCount': value['roundCount'],
         'trackSource': value['trackSource'],
     };
