@@ -32,11 +32,13 @@ export const MAX_JOB_HISTORY = 500; // Max number of completed/failed jobs to ke
 export const GAME_CLEANUP_QUEUE = 'game-cleanup';
 export const CHART_REFRESH_QUEUE = 'chart-refresh';
 export const DAILY_TRACK_QUEUE = 'daily-track';
+export const ROOM_CLEANUP_QUEUE = 'room-cleanup';
 
 // Jobs
 export const CLEAN_UP_ABANDONED_GAMES_JOB = 'abandoned-games-task';
 export const REFRESH_CHARTS_JOB = 'refresh-charts';
 export const FILL_DAILY_TRACK_JOB = 'fill-daily-track';
+export const EXPIRE_ABANDONED_ROOMS_JOB = 'expire-abandoned-rooms';
 export const JOB_OPTIONS_WITH_BACKOFF: JobsOptions = {
   attempts: 3,
   backoff: {
@@ -53,6 +55,7 @@ export type JobDataMap = {
   [CLEAN_UP_ABANDONED_GAMES_JOB]: Record<string, never>;
   [REFRESH_CHARTS_JOB]: Record<string, never>;
   [FILL_DAILY_TRACK_JOB]: Record<string, never>;
+  [EXPIRE_ABANDONED_ROOMS_JOB]: Record<string, never>;
 };
 
 export type JobNames = keyof JobDataMap;
@@ -142,3 +145,14 @@ export const ROOM_MAX_PLAYERS = 20;
 
 /** A room name reaches the public lobby, so it is capped like any public string. */
 export const ROOM_NAME_MAX_LENGTH = 40;
+
+/**
+ * A room nobody is in is only abandoned once it cannot plausibly come back. A
+ * lobby left open goes sooner than a game in progress, where players might be
+ * mid-round with the tab in the background.
+ */
+export const ROOM_WAITING_ABANDONED_AFTER_MS = 2 * 60 * 60 * 1000;
+export const ROOM_PLAYING_ABANDONED_AFTER_MS = 6 * 60 * 60 * 1000;
+
+/** Every half hour. Rooms are cheap to leave behind and cheap to sweep. */
+export const ROOM_CLEANUP_CRON = '*/30 * * * *';

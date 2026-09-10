@@ -52,6 +52,33 @@ export class RoomRepository {
     });
   }
 
+  /**
+   * Rooms old enough that nobody is coming back, whatever their presence says.
+   * Age alone does not settle it, so the caller checks who is still in them.
+   */
+  async findExpiryCandidates(
+    waitingBefore: Date,
+    playingBefore: Date,
+  ): Promise<{ id: string }[]> {
+    return this.prisma.multiplayerRoom.findMany({
+      where: {
+        OR: [
+          { status: RoomStatus.WAITING, createdAt: { lt: waitingBefore } },
+          { status: RoomStatus.PLAYING, createdAt: { lt: playingBefore } },
+        ],
+      },
+      select: { id: true },
+    });
+  }
+
+  async expireRooms(ids: string[]): Promise<number> {
+    const { count } = await this.prisma.multiplayerRoom.updateMany({
+      where: { id: { in: ids } },
+      data: { status: RoomStatus.EXPIRED, completedAt: new Date() },
+    });
+    return count;
+  }
+
   async findById(id: string): Promise<RoomWithPlayers | null> {
     return this.prisma.multiplayerRoom.findUnique({
       where: { id },

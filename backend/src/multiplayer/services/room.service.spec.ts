@@ -69,6 +69,8 @@ describe('RoomService', () => {
     findPlayerInRoom: jest.fn(),
     claimSeat: jest.fn(),
     updateSettings: jest.fn(),
+    findExpiryCandidates: jest.fn(),
+    expireRooms: jest.fn(),
     removePlayer: jest.fn(),
     updateStatus: jest.fn(),
     setTrackSource: jest.fn(),
@@ -430,6 +432,50 @@ describe('RoomService', () => {
       await expect(
         service.updateSettings(HOST_SESSION, ROOM_ID, { name: 'Too Late' }),
       ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('expireAbandonedRooms', () => {
+    it('expires a room nobody is left in', async () => {
+      mockRoomRepository.findExpiryCandidates.mockResolvedValue([
+        { id: ROOM_ID },
+      ]);
+      mockPresence.onlineUserIds.mockResolvedValue([]);
+      mockRoomRepository.expireRooms.mockResolvedValue(1);
+
+      await expect(service.expireAbandonedRooms()).resolves.toBe(1);
+      expect(mockRoomRepository.expireRooms).toHaveBeenCalledWith([ROOM_ID]);
+    });
+
+    // Age is the filter, presence is the decision. A lobby somebody is sitting
+    // in is not abandoned however long it has been open.
+    it('leaves an old room somebody is still in', async () => {
+      mockRoomRepository.findExpiryCandidates.mockResolvedValue([
+        { id: ROOM_ID },
+      ]);
+      mockPresence.onlineUserIds.mockResolvedValue([HOST_USER_ID]);
+
+      await expect(service.expireAbandonedRooms()).resolves.toBe(0);
+      expect(mockRoomRepository.expireRooms).not.toHaveBeenCalled();
+    });
+
+    it('tells the lobby, since a swept room should leave the list', async () => {
+      mockRoomRepository.findExpiryCandidates.mockResolvedValue([
+        { id: ROOM_ID },
+      ]);
+      mockPresence.onlineUserIds.mockResolvedValue([]);
+      mockRoomRepository.expireRooms.mockResolvedValue(1);
+
+      await service.expireAbandonedRooms();
+
+      expect(mockRoomsGateway.lobbyChanged).toHaveBeenCalled();
+    });
+
+    it('does no work when there is nothing old enough', async () => {
+      mockRoomRepository.findExpiryCandidates.mockResolvedValue([]);
+
+      await expect(service.expireAbandonedRooms()).resolves.toBe(0);
+      expect(mockPresence.onlineUserIds).not.toHaveBeenCalled();
     });
   });
 

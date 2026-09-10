@@ -7,7 +7,12 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { RoomStatus, TrackSource } from '@prisma/client';
-import { LOBBY_MAX_ROOMS, ROOM_MAX_PLAYERS } from '../../consts';
+import {
+  LOBBY_MAX_ROOMS,
+  ROOM_MAX_PLAYERS,
+  ROOM_PLAYING_ABANDONED_AFTER_MS,
+  ROOM_WAITING_ABANDONED_AFTER_MS,
+} from '../../consts';
 import { AuthService } from '../../auth/services/auth.service';
 import {
   RoomRepository,
@@ -388,6 +393,46 @@ export class RoomService {
     if (updated) {
       this.roomsGateway.emitRoomUpdate(roomId, RoomDto.fromEntity(updated));
     }
+  }
+
+  /**
+   * Expires rooms everybody walked away from. Nothing did this before: a room
+   * only ever became EXPIRED when its host deliberately left, so one closed
+   * tab left it WAITING for good.
+   *
+   * Age is the filter, presence is the decision. A lobby somebody is still
+   * sitting in is not abandoned however long it has been open, and the lobby
+   * already judges liveness this way.
+   */
+  async expireAbandonedRooms(): Promise<number> {
+    const now = Date.now();
+    const candidates = await this.roomRepository.findExpiryCandidates(
+      new Date(now - ROOM_WAITING_ABANDONED_AFTER_MS),
+      new Date(now - ROOM_PLAYING_ABANDONED_AFTER_MS),
+    );
+
+    if (candidates.length === 0) {
+      return 0;
+    }
+
+    const withPresence = await Promise.all(
+      candidates.map(async ({ id }) => ({
+        id,
+        online: (await this.presence.onlineUserIds(id)).length,
+      })),
+    );
+
+    const abandoned = withPresence
+      .filter(({ online }) => online === 0)
+      .map(({ id }) => id);
+
+    if (abandoned.length === 0) {
+      return 0;
+    }
+
+    const count = await this.roomRepository.expireRooms(abandoned);
+    this.roomsGateway.lobbyChanged();
+    return count;
   }
 
   private async findRoomOrThrow(roomId: string): Promise<RoomWithPlayers> {
