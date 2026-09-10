@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { io } from 'socket.io-client';
 import { queryKeys } from '@/lib/queryKeys';
-import type { RoomDto } from '@/sdk';
+import type { RoomDto, ScoreboardDto, ScoreboardPlayerTotalDto } from '@/sdk';
 
 /**
  * Presence is a heartbeat window on the server, so a member who stops sending
@@ -17,6 +17,7 @@ interface UseMultiplayerSocketOptions {
     userId: string;
     displayName: string;
     roundIndex: number;
+    isFirstSolve: boolean;
   }) => void;
 }
 
@@ -84,13 +85,28 @@ export function useMultiplayerSocket(
 
     socket.on(
       'playerRoundComplete',
-      (data: { userId: string; displayName: string; roundIndex: number }) => {
+      (data: {
+        userId: string;
+        displayName: string;
+        roundIndex: number;
+        isFirstSolve: boolean;
+      }) => {
         onPlayerRoundCompleteRef.current?.(data);
+      },
+    );
 
-        // Invalidate scoreboard so live scores update after every round
-        void queryClient.invalidateQueries({
-          queryKey: queryKeys.multiplayer.scoreboard(roomIdRef.current!),
-        });
+    /**
+     * The totals arrive rather than being fetched. Refetching on every
+     * completion cost a full scoreboard read per player per event: four
+     * hundred of them in a round of twenty.
+     */
+    socket.on(
+      'standingsUpdated',
+      ({ standings }: { standings: ScoreboardPlayerTotalDto[] }) => {
+        queryClient.setQueryData<ScoreboardDto>(
+          queryKeys.multiplayer.scoreboard(roomIdRef.current!),
+          (previous) => (previous ? { ...previous, standings } : previous),
+        );
       },
     );
 

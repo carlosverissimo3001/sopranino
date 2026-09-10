@@ -106,6 +106,7 @@ describe('MultiplayerGameService', () => {
   };
 
   const mockRoomsGateway = {
+    standingsChanged: jest.fn(),
     emitRoomUpdate: jest.fn(),
     emitPlayerRoundComplete: jest.fn(),
   };
@@ -113,6 +114,7 @@ describe('MultiplayerGameService', () => {
   // Rooms only finish for players who are still in them, so every existing
   // case has to say who that is.
   const mockPresence = {
+    claimFirstSolve: jest.fn().mockResolvedValue(true),
     onlineUserIds: jest.fn(),
   };
 
