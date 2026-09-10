@@ -8,6 +8,7 @@ import {
   User,
 } from '@prisma/client';
 import { CreateRoomDto } from '../dto/create-room.dto';
+import { Transactional } from '@transaction/transactional.decorator';
 
 const PLAYERS_INCLUDE = {
   players: {
@@ -74,26 +75,21 @@ export class RoomRepository {
     });
   }
 
-  /**
-   * Takes a seat, or returns null when there is none left. The room row is
-   * locked first: two people tapping the last seat would both read the same
-   * count and both get in, so the count has to happen behind the lock.
-   */
+  @Transactional()
   async claimSeat(
     roomId: string,
     userId: string,
     capacity: number,
   ): Promise<RoomPlayer | null> {
-    return this.prisma.$transaction(async (tx) => {
-      await tx.$queryRaw`SELECT id FROM multiplayer_rooms WHERE id = ${roomId} FOR UPDATE`;
+    await this.prisma
+      .$queryRaw`SELECT id FROM multiplayer_rooms WHERE id = ${roomId} FOR UPDATE`;
 
-      const taken = await tx.roomPlayer.count({ where: { roomId } });
-      if (taken >= capacity) {
-        return null;
-      }
+    const taken = await this.prisma.roomPlayer.count({ where: { roomId } });
+    if (taken >= capacity) {
+      return null;
+    }
 
-      return tx.roomPlayer.create({ data: { roomId, userId } });
-    });
+    return this.prisma.roomPlayer.create({ data: { roomId, userId } });
   }
 
   async removePlayer(roomId: string, userId: string): Promise<void> {
