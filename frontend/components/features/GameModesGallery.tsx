@@ -47,12 +47,7 @@ function DailyCardContent() {
     >
       <div className="flex flex-col gap-1 sm:gap-2 mb-4">
         <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-spotify-green/10 border border-spotify-green/20 w-fit text-[10px] uppercase tracking-widest font-black text-spotify-green">
-          <motion.div
-            animate={{ rotate: [0, 15, -15, 0] }}
-            transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
-          >
-            <Sparkles className="w-3 h-3 fill-current" />
-          </motion.div>
+          <Sparkles className="w-3 h-3 fill-current" />
           <span>Daily Event</span>
         </div>
         <div className="space-y-0.5">
@@ -63,7 +58,7 @@ function DailyCardContent() {
             <DailyChallengeCountdown />
           ) : (
             <p className="text-fg/50 text-xs sm:text-sm tracking-tight">
-              One song. Six chances. Guess in 1s.
+              One song. Six chances. Guess in 0.1s.
             </p>
           )}
         </div>
