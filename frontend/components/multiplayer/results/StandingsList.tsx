@@ -12,8 +12,8 @@ interface StandingsListProps {
   currentUserId?: string;
 }
 
-/** Past this, a leaderboard is a phone book. */
-const VISIBLE_RANKS = 10;
+/** Podium plus a few. Past this a leaderboard is a phone book. */
+const VISIBLE_RANKS = 6;
 
 export function StandingsList({
   standings,
