@@ -1,62 +1,58 @@
 'use client';
 
-import { Disc3, Library, Loader2 } from 'lucide-react';
-import { useSetTrackSource } from '@/hooks/multiplayer/useSetTrackSource';
-import { RoomDtoTrackSourceEnum } from '@/sdk';
+import { Globe, Loader2, Lock } from 'lucide-react';
+import { useUpdateRoomSettings } from '@/hooks/multiplayer/useUpdateRoomSettings';
 import type { RoomDto } from '@/sdk';
 
-interface TrackSourcePickerProps {
+interface RoomVisibilityPickerProps {
   room: RoomDto;
   isHost: boolean;
-  /** Whether the viewer has a music library of their own to offer. */
-  hasLinkedAccount: boolean;
 }
 
 const OPTIONS = [
   {
-    value: RoomDtoTrackSourceEnum.Pool,
-    label: 'Anything',
-    detail: 'Songs everyone has a fair shot at',
-    Icon: Disc3,
+    value: true,
+    label: 'Anyone',
+    detail: 'Listed for people looking for a game',
+    Icon: Globe,
   },
   {
-    value: RoomDtoTrackSourceEnum.Libraries,
-    label: 'Our libraries',
-    detail: 'Pooled from the players with Spotify linked',
-    Icon: Library,
+    value: false,
+    label: 'Invite only',
+    detail: 'Only people you send the code to',
+    Icon: Lock,
   },
 ] as const;
 
 /**
- * The host picks where the songs come from. It is a choice rather than
- * something inferred from who is in the room, so a late join cannot silently
- * change the game everyone agreed to play.
+ * The host can take the room off the public list at any point before the game
+ * starts. Turning it off is the only recourse when strangers keep arriving,
+ * short of kicking them one at a time.
  */
-export function TrackSourcePicker({
+export function RoomVisibilityPicker({
   room,
   isHost,
-  hasLinkedAccount,
-}: TrackSourcePickerProps) {
-  const setTrackSource = useSetTrackSource();
+}: RoomVisibilityPickerProps) {
+  const updateSettings = useUpdateRoomSettings();
 
   /**
    * The value being written counts as selected before the server agrees.
    * Reading it off the room instead lights up the option being replaced, so a
    * click puts the spinner on the wrong button and the selection jumps.
    */
-  const inFlight = setTrackSource.isPending
-    ? setTrackSource.variables.trackSource
+  const inFlight = updateSettings.isPending
+    ? updateSettings.variables.settings.findable
     : undefined;
-  const selected = inFlight ?? room.trackSource;
+  const selected = inFlight ?? room.findable;
   const chosen = OPTIONS.find((option) => option.value === selected);
 
-  // Everyone sees what they are about to play; only the host can change it.
+  // Everyone can see whether strangers might turn up; only the host decides.
   if (!isHost) {
     return (
       <div className="flex items-center gap-2.5 rounded-xl border border-fg/10 bg-fg/[0.03] px-4 py-3">
         {chosen ? <chosen.Icon className="h-4 w-4 text-fg/40" /> : null}
         <span className="text-sm text-fg/60">
-          Songs: <span className="text-fg/80">{chosen?.label}</span>
+          Open to: <span className="text-fg/80">{chosen?.label}</span>
         </span>
       </div>
     );
@@ -65,23 +61,23 @@ export function TrackSourcePicker({
   return (
     <div className="flex flex-col gap-2">
       <p className="text-xs font-semibold uppercase tracking-wider text-fg/40">
-        Songs from
+        Who can join
       </p>
 
       <div className="grid grid-cols-2 gap-2">
         {OPTIONS.map(({ value, label, detail, Icon }) => {
           const active = selected === value;
-          // Nobody in the room would have a library to pool from.
-          const unavailable =
-            value === RoomDtoTrackSourceEnum.Libraries && !hasLinkedAccount;
 
           return (
             <button
-              key={value}
+              key={String(value)}
               type="button"
-              disabled={unavailable || setTrackSource.isPending}
+              disabled={updateSettings.isPending}
               onClick={() =>
-                setTrackSource.mutate({ roomId: room.id, trackSource: value })
+                updateSettings.mutate({
+                  roomId: room.id,
+                  settings: { findable: value },
+                })
               }
               className={`relative flex flex-col gap-1 rounded-xl border px-4 py-3 text-left transition-all disabled:cursor-not-allowed disabled:opacity-40 ${
                 active
@@ -105,15 +101,15 @@ export function TrackSourcePicker({
                 ) : null}
               </span>
               <span className="text-[11px] leading-snug text-fg/40">
-                {unavailable ? 'Link Spotify to use this' : detail}
+                {detail}
               </span>
             </button>
           );
         })}
       </div>
 
-      {setTrackSource.isError && (
-        <p className="text-xs text-red-400">{setTrackSource.error.message}</p>
+      {updateSettings.isError && (
+        <p className="text-xs text-red-400">{updateSettings.error.message}</p>
       )}
     </div>
   );

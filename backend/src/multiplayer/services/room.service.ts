@@ -17,6 +17,7 @@ import { RoomDto } from '../dto/room.dto';
 import { OpenRoomDto } from '../dto/open-rooms.dto';
 import { RoomPresenceService } from './room-presence.service';
 import { CreateRoomControllerDto } from '../dto/create-room-controller.dto';
+import { UpdateRoomSettingsControllerDto } from '../dto/update-room-settings-controller.dto';
 import { generateName } from '../../auth/utils/handle-generator';
 import { TrackPoolService } from './track-pool.service';
 import { RoomsGateway } from '../gateways/rooms.gateway';
@@ -188,6 +189,33 @@ export class RoomService {
       roomId,
       trackSource,
     );
+    const dto = RoomDto.fromEntity(updated);
+    this.roomsGateway.emitRoomUpdate(roomId, dto);
+    return dto;
+  }
+
+  /**
+   * What the host can still change about a room. All of it alters what the
+   * lobby should show, and emitRoomUpdate is what tells it, so turning
+   * findability off takes the room off the list while somebody is reading it.
+   */
+  async updateSettings(
+    sessionId: string,
+    roomId: string,
+    settings: UpdateRoomSettingsControllerDto,
+  ): Promise<RoomDto> {
+    const { id: userId } = await this.authService.getUserBySessionId(sessionId);
+    const room = await this.findRoomOrThrow(roomId);
+
+    if (room.hostId !== userId) {
+      throw new ForbiddenException('Only the host can change room settings');
+    }
+
+    if (room.status !== RoomStatus.WAITING) {
+      throw new BadRequestException('The game has already started');
+    }
+
+    const updated = await this.roomRepository.updateSettings(roomId, settings);
     const dto = RoomDto.fromEntity(updated);
     this.roomsGateway.emitRoomUpdate(roomId, dto);
     return dto;

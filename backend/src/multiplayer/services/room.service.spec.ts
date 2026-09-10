@@ -68,6 +68,7 @@ describe('RoomService', () => {
     findByInviteCode: jest.fn(),
     findPlayerInRoom: jest.fn(),
     claimSeat: jest.fn(),
+    updateSettings: jest.fn(),
     removePlayer: jest.fn(),
     updateStatus: jest.fn(),
     setTrackSource: jest.fn(),
@@ -366,6 +367,69 @@ describe('RoomService', () => {
       await expect(
         service.joinFindableRoom(PLAYER_SESSION, ROOM_ID),
       ).rejects.toThrow(`This room is full (${ROOM_MAX_PLAYERS} players)`);
+    });
+  });
+
+  describe('updateSettings', () => {
+    it('renames the room for the host', async () => {
+      mockAuthService.getUserBySessionId.mockResolvedValue({
+        id: HOST_USER_ID,
+      });
+      mockRoomRepository.findById.mockResolvedValue(makeRoom());
+      mockRoomRepository.updateSettings.mockResolvedValue(
+        makeRoom({ name: 'Night Shift' }),
+      );
+
+      const room = await service.updateSettings(HOST_SESSION, ROOM_ID, {
+        name: 'Night Shift',
+      });
+
+      expect(room.name).toBe('Night Shift');
+      expect(mockRoomRepository.updateSettings).toHaveBeenCalledWith(ROOM_ID, {
+        name: 'Night Shift',
+      });
+    });
+
+    // The lobby is a pushed list, so a room going private has to announce it
+    // rather than wait for the next person to open the page.
+    it('tells the lobby when findability changes', async () => {
+      mockAuthService.getUserBySessionId.mockResolvedValue({
+        id: HOST_USER_ID,
+      });
+      mockRoomRepository.findById.mockResolvedValue(makeRoom());
+      mockRoomRepository.updateSettings.mockResolvedValue(
+        makeRoom({ findable: false }),
+      );
+
+      await service.updateSettings(HOST_SESSION, ROOM_ID, { findable: false });
+
+      expect(mockRoomsGateway.emitRoomUpdate).toHaveBeenCalled();
+    });
+
+    it('refuses a player who is not the host', async () => {
+      mockAuthService.getUserBySessionId.mockResolvedValue({
+        id: PLAYER_USER_ID,
+      });
+      mockRoomRepository.findById.mockResolvedValue(makeRoom());
+
+      await expect(
+        service.updateSettings(PLAYER_SESSION, ROOM_ID, { findable: false }),
+      ).rejects.toThrow(ForbiddenException);
+      expect(mockRoomRepository.updateSettings).not.toHaveBeenCalled();
+    });
+
+    // Neither setting means anything once the room has stopped taking people.
+    it('refuses once the game has started', async () => {
+      mockAuthService.getUserBySessionId.mockResolvedValue({
+        id: HOST_USER_ID,
+      });
+      mockRoomRepository.findById.mockResolvedValue(
+        makeRoom({ status: RoomStatus.PLAYING }),
+      );
+
+      await expect(
+        service.updateSettings(HOST_SESSION, ROOM_ID, { name: 'Too Late' }),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 

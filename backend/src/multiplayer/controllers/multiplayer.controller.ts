@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -28,6 +29,7 @@ import { GuessResultDto } from '../../game/dto/guess/guess-result.dto';
 import { RoomService } from '../services/room.service';
 import { MultiplayerGameService } from '../services/multiplayer-game.service';
 import { CreateRoomControllerDto } from '../dto/create-room-controller.dto';
+import { UpdateRoomSettingsControllerDto } from '../dto/update-room-settings-controller.dto';
 import { SetTrackSourceDto } from '../dto/set-track-source.dto';
 import { KickPlayerDto } from '../dto/kick-player.dto';
 import { RoomDto } from '../dto/room.dto';
@@ -112,6 +114,19 @@ export class MultiplayerController {
     @Body() dto: SetTrackSourceDto,
   ): Promise<RoomDto> {
     return this.roomService.setTrackSource(sessionId, id, dto.trackSource);
+  }
+
+  @Patch('rooms/:id/settings')
+  @UseGuards(SessionGuard)
+  @ApiCookieAuth()
+  @ApiOperation({ summary: 'Rename a room or change whether it is listed' })
+  @ApiResponse({ status: 200, type: RoomDto })
+  async updateRoomSettings(
+    @SessionId() sessionId: string,
+    @Param('id') id: string,
+    @Body() dto: UpdateRoomSettingsControllerDto,
+  ): Promise<RoomDto> {
+    return this.roomService.updateSettings(sessionId, id, dto);
   }
 
   @Post('rooms/:id/kick')

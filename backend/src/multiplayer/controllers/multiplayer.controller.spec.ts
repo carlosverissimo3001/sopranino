@@ -24,6 +24,7 @@ describe('MultiplayerController guards', () => {
     'joinRoom',
     'joinOpenRoom',
     'setTrackSource',
+    'updateRoomSettings',
     'kickPlayer',
     'toggleReady',
     'startGame',
