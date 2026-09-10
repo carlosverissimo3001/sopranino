@@ -132,6 +132,17 @@ export class RoomRepository {
     });
   }
 
+  async updateSettings(
+    roomId: string,
+    settings: { name?: string; findable?: boolean; roundCount?: number },
+  ): Promise<RoomWithPlayers> {
+    return this.prisma.multiplayerRoom.update({
+      where: { id: roomId },
+      data: settings,
+      include: PLAYERS_INCLUDE,
+    });
+  }
+
   async toggleReady(roomId: string, userId: string): Promise<RoomWithPlayers> {
     const player = await this.prisma.roomPlayer.findUniqueOrThrow({
       where: { roomId_userId: { roomId, userId } },

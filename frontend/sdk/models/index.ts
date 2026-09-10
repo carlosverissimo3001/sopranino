@@ -71,6 +71,7 @@ export * from './TrackGroupDto';
 export * from './TrackMetadataVo';
 export * from './TrackOptionDto';
 export * from './UpdateAvatarSourceDto';
+export * from './UpdateRoomSettingsControllerDto';
 export * from './UpdateStreakQuestionDto';
 export * from './UpdateUserPreferenceDto';
 export * from './UpdateUserRoleDto';

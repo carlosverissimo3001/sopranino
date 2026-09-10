@@ -25,6 +25,12 @@ export class RoomDto {
   hostId: string;
 
   @ApiProperty()
+  name: string;
+
+  @ApiProperty({ description: 'Whether the room is listed in the lobby' })
+  findable: boolean;
+
+  @ApiProperty()
   roundCount: number;
 
   @ApiProperty({ enum: RoomStatus })
@@ -53,6 +59,8 @@ export class RoomDto {
       id: room.id,
       inviteCode: room.inviteCode,
       hostId: room.hostId,
+      name: room.name,
+      findable: room.findable,
       roundCount: room.roundCount,
       status: room.status,
       trackSource: room.trackSource,

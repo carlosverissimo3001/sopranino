@@ -139,3 +139,6 @@ export const LOBBY_BROADCAST_DEBOUNCE_MS = 300;
  * socket fan-out is quadratic in the number of players.
  */
 export const ROOM_MAX_PLAYERS = 20;
+
+/** A room name reaches the public lobby, so it is capped like any public string. */
+export const ROOM_NAME_MAX_LENGTH = 40;

@@ -11,6 +11,9 @@ import { useStartRoom } from '@/hooks/multiplayer/useStartRoom';
 import { useToggleReady } from '@/hooks/multiplayer/useToggleReady';
 import { useKickPlayer } from '@/hooks/multiplayer/useKickPlayer';
 import { TrackSourcePicker } from '@/components/multiplayer/TrackSourcePicker';
+import { RoomVisibilityPicker } from '@/components/multiplayer/RoomVisibilityPicker';
+import { RoomNameEditor } from '@/components/multiplayer/RoomNameEditor';
+import { RoomRoundsPicker } from '@/components/multiplayer/RoomRoundsPicker';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   ArrowLeft,
@@ -261,10 +264,12 @@ export default function RoomLobbyPage() {
             {/* Card glow */}
             <div className="absolute -top-20 -right-20 w-40 h-40 bg-spotify-green/10 rounded-full blur-[60px] pointer-events-none" />
 
-            <p className="text-xs uppercase tracking-[0.2em] text-fg/40 font-semibold mb-3">
+            <RoomNameEditor room={room} isHost={isHost} />
+
+            <p className="text-[10px] uppercase tracking-[0.2em] text-fg/30 font-semibold mb-1.5">
               Invite Code
             </p>
-            <p className="text-4xl sm:text-5xl font-mono font-black text-spotify-green tracking-[0.3em] mb-6 select-all">
+            <p className="text-2xl sm:text-3xl font-mono font-black text-spotify-green tracking-[0.2em] mb-5 select-all">
               {room.inviteCode}
             </p>
 
@@ -282,14 +287,6 @@ export default function RoomLobbyPage() {
                 )}
                 {copied ? 'Copied!' : 'Copy Link'}
               </motion.button>
-            </div>
-
-            {/* Room info pills */}
-            <div className="flex items-center justify-center gap-2 mt-5">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-fg/5 border border-fg/10 text-xs text-fg/50">
-                <Music className="w-3 h-3" />
-                {room.roundCount} rounds
-              </span>
             </div>
           </motion.div>
 
@@ -353,6 +350,10 @@ export default function RoomLobbyPage() {
               isHost={isHost}
               hasLinkedAccount={!!user?.hasLinkedAccount}
             />
+
+            <RoomRoundsPicker room={room} isHost={isHost} />
+
+            <RoomVisibilityPicker room={room} isHost={isHost} />
 
             {/* Side by side: two full-width buttons stacked pushed the room
                 itself below the fold on a phone. */}

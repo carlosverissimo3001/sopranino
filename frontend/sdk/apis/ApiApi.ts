@@ -59,6 +59,7 @@ import type {
   TrackGroupDto,
   TrackOptionDto,
   UpdateAvatarSourceDto,
+  UpdateRoomSettingsControllerDto,
   UpdateStreakQuestionDto,
   UpdateUserPreferenceDto,
   UpdateUserRoleDto,
@@ -154,6 +155,8 @@ import {
     TrackOptionDtoToJSON,
     UpdateAvatarSourceDtoFromJSON,
     UpdateAvatarSourceDtoToJSON,
+    UpdateRoomSettingsControllerDtoFromJSON,
+    UpdateRoomSettingsControllerDtoToJSON,
     UpdateStreakQuestionDtoFromJSON,
     UpdateStreakQuestionDtoToJSON,
     UpdateUserPreferenceDtoFromJSON,
@@ -329,6 +332,11 @@ export interface MultiplayerControllerSubmitGuessRequest {
 
 export interface MultiplayerControllerToggleReadyRequest {
     id: string;
+}
+
+export interface MultiplayerControllerUpdateRoomSettingsRequest {
+    id: string;
+    updateRoomSettingsControllerDto: UpdateRoomSettingsControllerDto;
 }
 
 export interface PlaylistControllerGetMyPlaylistsRequest {
@@ -2136,6 +2144,53 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async multiplayerControllerToggleReady(requestParameters: MultiplayerControllerToggleReadyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RoomDto> {
         const response = await this.multiplayerControllerToggleReadyRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Rename a room or change whether it is listed
+     */
+    async multiplayerControllerUpdateRoomSettingsRaw(requestParameters: MultiplayerControllerUpdateRoomSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RoomDto>> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling multiplayerControllerUpdateRoomSettings().'
+            );
+        }
+
+        if (requestParameters['updateRoomSettingsControllerDto'] == null) {
+            throw new runtime.RequiredError(
+                'updateRoomSettingsControllerDto',
+                'Required parameter "updateRoomSettingsControllerDto" was null or undefined when calling multiplayerControllerUpdateRoomSettings().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/multiplayer/rooms/{id}/settings`;
+        urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'PATCH',
+            headers: headerParameters,
+            query: queryParameters,
+            body: UpdateRoomSettingsControllerDtoToJSON(requestParameters['updateRoomSettingsControllerDto']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => RoomDtoFromJSON(jsonValue));
+    }
+
+    /**
+     * Rename a room or change whether it is listed
+     */
+    async multiplayerControllerUpdateRoomSettings(requestParameters: MultiplayerControllerUpdateRoomSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RoomDto> {
+        const response = await this.multiplayerControllerUpdateRoomSettingsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

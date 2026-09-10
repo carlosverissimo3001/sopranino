@@ -50,6 +50,7 @@ All URIs are relative to *http://localhost*
 | [**multiplayerControllerStartGame**](ApiApi.md#multiplayercontrollerstartgame) | **POST** /multiplayer/rooms/{id}/start | Start the game (host only) |
 | [**multiplayerControllerSubmitGuess**](ApiApi.md#multiplayercontrollersubmitguess) | **POST** /multiplayer/rooms/{id}/guess | Submit a guess for the current round |
 | [**multiplayerControllerToggleReady**](ApiApi.md#multiplayercontrollertoggleready) | **POST** /multiplayer/rooms/{id}/ready | Toggle ready status for current player |
+| [**multiplayerControllerUpdateRoomSettings**](ApiApi.md#multiplayercontrollerupdateroomsettings) | **PATCH** /multiplayer/rooms/{id}/settings | Rename a room or change whether it is listed |
 | [**playlistControllerGetMyPlaylists**](ApiApi.md#playlistcontrollergetmyplaylists) | **GET** /playlists/me | Get current user\&#39;s playlists |
 | [**playlistControllerGetPlaylistById**](ApiApi.md#playlistcontrollergetplaylistbyid) | **GET** /playlists/{id} | Get playlist by ID |
 | [**searchControllerSearchTracks**](ApiApi.md#searchcontrollersearchtracks) | **GET** /search/tracks | Search tracks (for game guess options) |
@@ -3176,6 +3177,78 @@ example().catch(console.error);
 ### HTTP request headers
 
 - **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** |  |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## multiplayerControllerUpdateRoomSettings
+
+> RoomDto multiplayerControllerUpdateRoomSettings(id, updateRoomSettingsControllerDto)
+
+Rename a room or change whether it is listed
+
+### Example
+
+```ts
+import {
+  Configuration,
+  ApiApi,
+} from '';
+import type { MultiplayerControllerUpdateRoomSettingsRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: cookie
+    apiKey: "YOUR API KEY",
+  });
+  const api = new ApiApi(config);
+
+  const body = {
+    // string
+    id: id_example,
+    // UpdateRoomSettingsControllerDto
+    updateRoomSettingsControllerDto: ...,
+  } satisfies MultiplayerControllerUpdateRoomSettingsRequest;
+
+  try {
+    const data = await api.multiplayerControllerUpdateRoomSettings(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **id** | `string` |  | [Defaults to `undefined`] |
+| **updateRoomSettingsControllerDto** | [UpdateRoomSettingsControllerDto](UpdateRoomSettingsControllerDto.md) |  | |
+
+### Return type
+
+[**RoomDto**](RoomDto.md)
+
+### Authorization
+
+[cookie](../README.md#cookie)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
 

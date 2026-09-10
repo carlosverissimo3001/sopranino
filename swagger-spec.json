@@ -1566,6 +1566,52 @@
         ]
       }
     },
+    "/multiplayer/rooms/{id}/settings": {
+      "patch": {
+        "operationId": "MultiplayerController_updateRoomSettings",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRoomSettingsControllerDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Rename a room or change whether it is listed",
+        "tags": [
+          "Api"
+        ]
+      }
+    },
     "/multiplayer/rooms/{id}/kick": {
       "post": {
         "operationId": "MultiplayerController_kickPlayer",
@@ -3844,6 +3890,13 @@
           "hostId": {
             "type": "string"
           },
+          "name": {
+            "type": "string"
+          },
+          "findable": {
+            "type": "boolean",
+            "description": "Whether the room is listed in the lobby"
+          },
           "roundCount": {
             "type": "number"
           },
@@ -3887,6 +3940,8 @@
           "id",
           "inviteCode",
           "hostId",
+          "name",
+          "findable",
           "roundCount",
           "status",
           "trackSource",
@@ -3909,6 +3964,29 @@
         "required": [
           "trackSource"
         ]
+      },
+      "UpdateRoomSettingsControllerDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "What the room is called, in the lobby and to its players",
+            "maxLength": 40
+          },
+          "findable": {
+            "type": "boolean",
+            "description": "Whether the room is listed for anyone to find. Off makes it reachable only by its invite code."
+          },
+          "roundCount": {
+            "type": "number",
+            "description": "Number of rounds for the game",
+            "enum": [
+              3,
+              5,
+              10
+            ]
+          }
+        }
       },
       "KickPlayerDto": {
         "type": "object",

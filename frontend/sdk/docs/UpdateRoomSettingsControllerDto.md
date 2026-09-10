@@ -1,44 +1,26 @@
 
-# RoomDto
+# UpdateRoomSettingsControllerDto
 
 
 ## Properties
 
 Name | Type
 ------------ | -------------
-`id` | string
-`inviteCode` | string
-`hostId` | string
 `name` | string
 `findable` | boolean
 `roundCount` | number
-`status` | string
-`trackSource` | string
-`players` | [Array&lt;RoomPlayerDto&gt;](RoomPlayerDto.md)
-`createdAt` | Date
-`startedAt` | Date
-`completedAt` | Date
 
 ## Example
 
 ```typescript
-import type { RoomDto } from ''
+import type { UpdateRoomSettingsControllerDto } from ''
 
 // TODO: Update the object below with actual values
 const example = {
-  "id": null,
-  "inviteCode": null,
-  "hostId": null,
   "name": null,
   "findable": null,
   "roundCount": null,
-  "status": null,
-  "trackSource": null,
-  "players": null,
-  "createdAt": null,
-  "startedAt": null,
-  "completedAt": null,
-} satisfies RoomDto
+} satisfies UpdateRoomSettingsControllerDto
 
 console.log(example)
 
@@ -47,7 +29,7 @@ const exampleJSON: string = JSON.stringify(example)
 console.log(exampleJSON)
 
 // Parse the JSON string back to an object
-const exampleParsed = JSON.parse(exampleJSON) as RoomDto
+const exampleParsed = JSON.parse(exampleJSON) as UpdateRoomSettingsControllerDto
 console.log(exampleParsed)
 ```
 

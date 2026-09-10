@@ -47,6 +47,18 @@ export interface RoomDto {
     hostId: string;
     /**
      * 
+     * @type {string}
+     * @memberof RoomDto
+     */
+    name: string;
+    /**
+     * Whether the room is listed in the lobby
+     * @type {boolean}
+     * @memberof RoomDto
+     */
+    findable: boolean;
+    /**
+     * 
      * @type {number}
      * @memberof RoomDto
      */
@@ -118,6 +130,8 @@ export function instanceOfRoomDto(value: object): value is RoomDto {
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('inviteCode' in value) || value['inviteCode'] === undefined) return false;
     if (!('hostId' in value) || value['hostId'] === undefined) return false;
+    if (!('name' in value) || value['name'] === undefined) return false;
+    if (!('findable' in value) || value['findable'] === undefined) return false;
     if (!('roundCount' in value) || value['roundCount'] === undefined) return false;
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('trackSource' in value) || value['trackSource'] === undefined) return false;
@@ -139,6 +153,8 @@ export function RoomDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean): R
         'id': json['id'],
         'inviteCode': json['inviteCode'],
         'hostId': json['hostId'],
+        'name': json['name'],
+        'findable': json['findable'],
         'roundCount': json['roundCount'],
         'status': json['status'],
         'trackSource': json['trackSource'],
@@ -163,6 +179,8 @@ export function RoomDtoToJSONTyped(value?: RoomDto | null, ignoreDiscriminator: 
         'id': value['id'],
         'inviteCode': value['inviteCode'],
         'hostId': value['hostId'],
+        'name': value['name'],
+        'findable': value['findable'],
         'roundCount': value['roundCount'],
         'status': value['status'],
         'trackSource': value['trackSource'],
