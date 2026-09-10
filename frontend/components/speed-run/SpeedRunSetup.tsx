@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Flame, ListMusic, Trophy, Zap, Check, ArrowLeft } from 'lucide-react';
 import { useMyPlaylists } from '@/hooks/playlists/useMyPlaylists';
+import { useMe } from '@/hooks/auth/useMe';
 import { useTrackGroups } from '@/hooks/track-groups/useTrackGroups';
 import { SNIPPET_STEPS } from '@/lib/snippet-timeline';
 import {
@@ -130,8 +131,14 @@ export function SpeedRunSetup({
   const [selectedDifficulty, setSelectedDifficulty] =
     useState<GauntletDifficulty>(GauntletDifficulty.Medium);
 
+  // Only a linked library has playlists to list, and asking without one is a
+  // request that can only fail - a 401 for a visitor with no session at all.
+  const { data: user } = useMe();
   const { data: playlistsData, isLoading: isLoadingPlaylists } = useMyPlaylists(
-    { limit: 50 },
+    {
+      limit: 50,
+      enabled: !!user?.hasLinkedAccount,
+    },
   );
   const playlists = playlistsData?.items ?? [];
   // One kind per query, since that is what the endpoint takes. A kind with no

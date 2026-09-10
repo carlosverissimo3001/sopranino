@@ -15,7 +15,9 @@ export function SpeedRunPage() {
   const logoutMutation = useLogout();
   const { volume, setVolume } = useVolume();
   const run = useGauntletRun();
-  const { data: pbData } = usePersonalBest();
+  // Nobody without an identity has a personal best, and asking for one costs
+  // a 401 on every load for a visitor who has not started a run yet.
+  const { data: pbData } = usePersonalBest(!!user);
   const personalBest = pbData?.personalBest ?? 0;
 
   return (
