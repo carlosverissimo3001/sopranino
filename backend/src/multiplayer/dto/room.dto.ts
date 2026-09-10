@@ -7,6 +7,7 @@ import {
   User,
 } from '@prisma/client';
 import { RoomPlayerDto } from './room-player.dto';
+import { ROOM_MAX_PLAYERS } from '../../consts';
 
 type RoomWithPlayers = MultiplayerRoom & {
   players: (RoomPlayer & {
@@ -29,6 +30,9 @@ export class RoomDto {
 
   @ApiProperty({ description: 'Whether the room is listed in the lobby' })
   findable: boolean;
+
+  @ApiProperty({ description: 'Seats in the room, so a roster can read 12/20' })
+  capacity: number;
 
   @ApiProperty()
   roundCount: number;
@@ -61,6 +65,7 @@ export class RoomDto {
       hostId: room.hostId,
       name: room.name,
       findable: room.findable,
+      capacity: ROOM_MAX_PLAYERS,
       roundCount: room.roundCount,
       status: room.status,
       trackSource: room.trackSource,

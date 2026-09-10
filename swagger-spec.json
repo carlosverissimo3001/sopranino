@@ -3897,6 +3897,10 @@
             "type": "boolean",
             "description": "Whether the room is listed in the lobby"
           },
+          "capacity": {
+            "type": "number",
+            "description": "Seats in the room, so a roster can read 12/20"
+          },
           "roundCount": {
             "type": "number"
           },
@@ -3942,6 +3946,7 @@
           "hostId",
           "name",
           "findable",
+          "capacity",
           "roundCount",
           "status",
           "trackSource",

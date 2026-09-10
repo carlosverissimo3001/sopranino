@@ -1,6 +1,6 @@
 'use client';
 
-import { Loader2, Music } from 'lucide-react';
+import { Music } from 'lucide-react';
 import { useUpdateRoomSettings } from '@/hooks/multiplayer/useUpdateRoomSettings';
 import type { RoomDto } from '@/sdk';
 
@@ -61,7 +61,7 @@ export function RoomRoundsPicker({ room, isHost }: RoomRoundsPickerProps) {
                   settings: { roundCount: value },
                 })
               }
-              className={`relative flex items-center justify-center gap-2 rounded-xl border px-4 py-3 transition-all disabled:cursor-not-allowed disabled:opacity-40 ${
+              className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-3 transition-all disabled:cursor-not-allowed disabled:opacity-40 ${
                 active
                   ? 'border-green-500/30 bg-green-500/10'
                   : 'border-fg/10 bg-fg/[0.03] hover:bg-fg/[0.06]'
@@ -75,9 +75,6 @@ export function RoomRoundsPicker({ room, isHost }: RoomRoundsPickerProps) {
                 {label}
               </span>
               <span className="text-[11px] text-fg/40">{detail}</span>
-              {inFlight === value ? (
-                <Loader2 className="absolute right-2 h-3 w-3 animate-spin text-fg/40" />
-              ) : null}
             </button>
           );
         })}
