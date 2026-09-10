@@ -12,6 +12,9 @@ export default function robots(): MetadataRoute.Robots {
         '/$',
         '/about',
         '/speed-run/leaderboard',
+        // One page per curated set, all of them in the sitemap. A private
+        // group is not listed and answers 404 to a crawler anyway.
+        '/group/',
         // Named in the Sitemap line below, so it has to be readable as well.
         '/sitemap.xml',
         // Referenced from every page's metadata; blocked, the card has no art.

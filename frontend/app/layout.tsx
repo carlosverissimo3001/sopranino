@@ -16,10 +16,12 @@ const quicksand = Quicksand({
 });
 
 export const metadata: Metadata = {
-  // Otherwise the OG image resolves against VERCEL_URL, the per deploy host.
   metadataBase: new URL(SITE_URL),
   alternates: { canonical: '/' },
-  title: 'Sopranino - Guess the Song from a Snippet',
+  title: {
+    default: 'Sopranino - Guess the Song from a Snippet',
+    template: '%s · Sopranino',
+  },
   description:
     'A music guessing game. Hear a tenth of a second, name the track, six tries. Play your own Spotify playlists or a curated pool. No account needed.',
   keywords: [
@@ -42,14 +44,20 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     url: '/',
-    title: 'Sopranino - Guess the Song from a Snippet',
+    title: {
+      default: 'Sopranino - Guess the Song from a Snippet',
+      template: '%s · Sopranino',
+    },
     description:
       'Hear a tenth of a second of a song and name it. Six tries. No account needed.',
     siteName: 'Sopranino',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Sopranino - Guess the Song from a Snippet',
+    title: {
+      default: 'Sopranino - Guess the Song from a Snippet',
+      template: '%s · Sopranino',
+    },
     description:
       'Hear a tenth of a second of a song and name it. Six tries. No account needed.',
   },

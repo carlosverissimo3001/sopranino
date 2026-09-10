@@ -8,9 +8,16 @@ interface GameTitleProps {
   mode: GameMode;
   currentRound: number;
   maxRounds: number;
+  /** What a curated set calls itself, in place of the generic heading. */
+  heading?: string;
 }
 
-export function GameTitle({ mode, currentRound, maxRounds }: GameTitleProps) {
+export function GameTitle({
+  mode,
+  currentRound,
+  maxRounds,
+  heading,
+}: GameTitleProps) {
   if (mode === GameMode.All) {
     return (
       <div className="text-center mb-4 md:mb-6">
@@ -21,7 +28,7 @@ export function GameTitle({ mode, currentRound, maxRounds }: GameTitleProps) {
             textShadow: '0 2px 20px rgba(0,0,0,0.3)',
           }}
         >
-          Guess the Song
+          {heading ?? 'Guess the Song'}
         </h1>
         <p className="text-[#b3b3b3] text-sm font-medium mt-1">
           Round {Math.min(currentRound + 1, maxRounds)} of {maxRounds}
