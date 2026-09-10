@@ -156,3 +156,13 @@ export const ROOM_PLAYING_ABANDONED_AFTER_MS = 6 * 60 * 60 * 1000;
 
 /** Every half hour. Rooms are cheap to leave behind and cheap to sweep. */
 export const ROOM_CLEANUP_CRON = '*/30 * * * *';
+
+/**
+ * Claimed by the first correct answer in a round, so twenty simultaneous
+ * finishes still announce one winner. Outlives any single game.
+ */
+export const ROOM_FIRST_SOLVE_PREFIX = 'room:first-solve:';
+export const ROOM_FIRST_SOLVE_TTL = 6 * 60 * 60;
+
+/** Standings are room-wide, so a burst of finishes is one broadcast. */
+export const SCOREBOARD_BROADCAST_DEBOUNCE_MS = 300;

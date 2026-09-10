@@ -8,6 +8,8 @@ import {
   ROOM_PRESENCE_PREFIX,
   ROOM_PRESENCE_STALE_MS,
   ROOM_PRESENCE_TTL,
+  ROOM_FIRST_SOLVE_PREFIX,
+  ROOM_FIRST_SOLVE_TTL,
 } from '../../consts';
 
 /**
@@ -23,6 +25,29 @@ export class RoomPresenceService {
 
   private presenceKey(roomId: string): string {
     return `${ROOM_PRESENCE_PREFIX}${roomId}`;
+  }
+
+  /**
+   * True for the first correct answer in a round and false for everyone after.
+   * NX is the claim: a read-then-write would let two players who finished in
+   * the same millisecond both believe they were first.
+   */
+  async claimFirstSolve(
+    roomId: string,
+    roundIndex: number,
+    userId: string,
+  ): Promise<boolean> {
+    const claimed = await this.redis
+      .getClient()
+      .set(
+        `${ROOM_FIRST_SOLVE_PREFIX}${roomId}:${roundIndex}`,
+        userId,
+        'EX',
+        ROOM_FIRST_SOLVE_TTL,
+        'NX',
+      );
+
+    return claimed === 'OK';
   }
 
   /** Records the member as online now; also refreshes an existing heartbeat. */

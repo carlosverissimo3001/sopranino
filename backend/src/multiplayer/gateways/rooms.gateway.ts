@@ -29,6 +29,7 @@ import {
   ROOM_HOST_GONE_GRACE_MS,
   ROOM_PLAYER_GONE_GRACE_MS,
   ROOM_SWEEP_INTERVAL_MS,
+  SCOREBOARD_BROADCAST_DEBOUNCE_MS,
   SESSION_COOKIE_NAME,
 } from '../../consts';
 
@@ -57,6 +58,12 @@ export class RoomsGateway
 
   /** Pending coalesced lobby broadcast, if a change has been announced. */
   private lobbyTimer?: ReturnType<typeof setTimeout>;
+
+  /** roomId -> pending coalesced standings broadcast. */
+  private readonly standingsTimers = new Map<
+    string,
+    ReturnType<typeof setTimeout>
+  >();
 
   /**
    * roomId -> the online set this instance last broadcast, so a heartbeat only
@@ -90,6 +97,10 @@ export class RoomsGateway
     if (this.lobbyTimer) {
       clearTimeout(this.lobbyTimer);
     }
+    for (const timer of this.standingsTimers.values()) {
+      clearTimeout(timer);
+    }
+    this.standingsTimers.clear();
     if (this.sweepTimer) {
       clearInterval(this.sweepTimer);
     }
@@ -395,9 +406,48 @@ export class RoomsGateway
     }
   }
 
+  /**
+   * Standings only. A scoreboard's rounds are scoped to what the reader has
+   * played, so the whole thing cannot go to the room without spoiling a round
+   * for whoever is still on it. Totals are already shared.
+   *
+   * Coalesced per room: twenty players finishing within a second is one
+   * broadcast, not twenty. Each used to be a refetch from every client.
+   */
+  standingsChanged(roomId: string): void {
+    if (this.standingsTimers.has(roomId)) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      this.standingsTimers.delete(roomId);
+      void this.broadcastStandings(roomId);
+    }, SCOREBOARD_BROADCAST_DEBOUNCE_MS);
+
+    timer.unref?.();
+    this.standingsTimers.set(roomId, timer);
+  }
+
+  private async broadcastStandings(roomId: string): Promise<void> {
+    try {
+      const standings = await this.gameService.getStandings(roomId);
+      this.server.to(roomId).emit('standingsUpdated', { standings });
+    } catch (err) {
+      this.logger.error(
+        `broadcastStandings failed for room ${roomId}`,
+        err instanceof Error ? err.stack : String(err),
+      );
+    }
+  }
+
   emitPlayerRoundComplete(
     roomId: string,
-    data: { userId: string; displayName: string; roundIndex: number },
+    data: {
+      userId: string;
+      displayName: string;
+      roundIndex: number;
+      isFirstSolve: boolean;
+    },
   ): void {
     try {
       this.server.to(roomId).emit('playerRoundComplete', data);

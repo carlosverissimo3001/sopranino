@@ -64,7 +64,10 @@ class FakeRedis {
 
   strings = new Map<string, string>();
 
-  set(key: string, value: string) {
+  set(key: string, value: string, ...args: unknown[]) {
+    if (args.includes('NX') && this.strings.has(key)) {
+      return Promise.resolve(null);
+    }
     this.strings.set(key, value);
     return Promise.resolve('OK');
   }
@@ -230,6 +233,44 @@ describe('RoomPresenceService', () => {
       await service.cancelHostGrace('room-1');
 
       await expect(service.claimLapsedHostGraces()).resolves.toEqual([]);
+    });
+  });
+
+  describe('claimFirstSolve', () => {
+    it('gives the round to whoever gets there first', async () => {
+      await expect(service.claimFirstSolve('room', 0, 'alice')).resolves.toBe(
+        true,
+      );
+      await expect(service.claimFirstSolve('room', 0, 'bob')).resolves.toBe(
+        false,
+      );
+    });
+
+    // The point of the claim: a read-then-write would let both through.
+    it('picks one winner out of twenty finishing at once', async () => {
+      const results = await Promise.all(
+        Array.from({ length: 20 }, (_, i) =>
+          service.claimFirstSolve('room', 3, `player-${i}`),
+        ),
+      );
+
+      expect(results.filter(Boolean)).toHaveLength(1);
+    });
+
+    it('claims each round separately', async () => {
+      await service.claimFirstSolve('room', 0, 'alice');
+
+      await expect(service.claimFirstSolve('room', 1, 'bob')).resolves.toBe(
+        true,
+      );
+    });
+
+    it('claims each room separately', async () => {
+      await service.claimFirstSolve('room-a', 0, 'alice');
+
+      await expect(service.claimFirstSolve('room-b', 0, 'bob')).resolves.toBe(
+        true,
+      );
     });
   });
 });

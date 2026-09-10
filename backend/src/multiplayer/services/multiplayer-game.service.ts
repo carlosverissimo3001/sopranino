@@ -19,7 +19,10 @@ import {
   getSnippetDuration,
 } from '../../game/utils/guess-evaluator';
 import { normalizeText } from '../../utils/text';
-import { RoomRepository } from '../repositories/room.repository';
+import {
+  RoomRepository,
+  RoomWithPlayers,
+} from '../repositories/room.repository';
 import { MultiplayerGameSessionRepository } from '../repositories/multiplayer-game-session.repository';
 import { MultiplayerRoundStateDto } from '../dto/multiplayer-round-state.dto';
 import {
@@ -35,6 +38,17 @@ import { TrackEntity } from '../../track/entities/track.entity';
 import { TrackService } from '../../track/services/track.service';
 import { catalogueTrackUrl } from '../../utils/utils';
 import { mapTrack } from '../../utils/mappers';
+
+function toStandings(room: RoomWithPlayers): ScoreboardPlayerTotalDto[] {
+  return room.players
+    .map((p) => ({
+      userId: p.userId,
+      displayName: p.user.displayName,
+      avatarUrl: p.user.avatarUrl ?? undefined,
+      totalScore: p.totalScore,
+    }))
+    .sort((a, b) => b.totalScore - a.totalScore);
+}
 
 @Injectable()
 export class MultiplayerGameService {
@@ -205,11 +219,17 @@ export class MultiplayerGameService {
         room.players.find((p) => p.userId === userId)?.user.displayName ??
         'Unknown';
       const roundIndex = room.trackIds.indexOf(activeSession.trackId);
+      const isFirstSolve =
+        status === GameStatus.WON &&
+        (await this.presence.claimFirstSolve(roomId, roundIndex, userId));
+
       this.roomsGateway.emitPlayerRoundComplete(roomId, {
         userId,
         displayName,
         roundIndex,
+        isFirstSolve,
       });
+      this.roomsGateway.standingsChanged(roomId);
 
       // Check if all players have finished all rounds → complete room
       await this.checkRoomCompletion(roomId, room.roundCount);
@@ -223,6 +243,18 @@ export class MultiplayerGameService {
       snippetDuration: getSnippetDuration(Math.min(nextRound, MAX_ROUNDS - 1)),
       maxRounds: MAX_ROUNDS,
     };
+  }
+
+  /**
+   * The half of a scoreboard that is the same for everyone. Rounds are scoped
+   * to what the reader has played; totals are not, so these can be broadcast.
+   */
+  async getStandings(roomId: string): Promise<ScoreboardPlayerTotalDto[]> {
+    const room = await this.roomRepository.findById(roomId);
+    if (!room) {
+      throw new NotFoundException('Room not found');
+    }
+    return toStandings(room);
   }
 
   async getScoreboard(
@@ -303,18 +335,9 @@ export class MultiplayerGameService {
 
     rounds.sort((a, b) => a.roundIndex - b.roundIndex);
 
-    // Build standings from room players
-    const standings: ScoreboardPlayerTotalDto[] = room.players.map((p) => ({
-      userId: p.userId,
-      displayName: p.user.displayName,
-      avatarUrl: p.user.avatarUrl ?? undefined,
-      totalScore: p.totalScore,
-    }));
-    standings.sort((a, b) => b.totalScore - a.totalScore);
-
     return {
       rounds,
-      standings,
+      standings: toStandings(room),
       roomStatus: room.status,
       isComplete: room.status === RoomStatus.COMPLETED,
     };
