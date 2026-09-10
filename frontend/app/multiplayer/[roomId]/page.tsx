@@ -373,15 +373,15 @@ export default function RoomLobbyPage() {
               <button
                 onClick={handleToggleReady}
                 disabled={toggleReady.isPending}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition-colors ${
+                className={`relative flex flex-1 items-center justify-center rounded-xl px-4 py-3 text-sm font-bold transition-colors ${
                   showAsReady
                     ? 'bg-green-500/10 border border-green-500/20 text-green-400 hover:bg-green-500/20'
                     : 'bg-fg/5 border border-fg/10 text-fg/70 hover:bg-fg/10'
                 }`}
               >
-                {/* Slot always reserved, or the label shifts when the icon
-                    arrives and the button jumps under the cursor. */}
-                <span className="flex h-4 w-4 items-center justify-center">
+                {/* Out of the flow, so the label stays centred whether or not
+                    there is an icon, and does not shift when one arrives. */}
+                <span className="absolute left-4 flex h-4 w-4 items-center justify-center">
                   {toggleReady.isPending ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : showAsReady ? (
