@@ -19,7 +19,7 @@ import {
   GauntletControllerGetLeaderboardDifficultyEnum as Difficulty,
   GauntletControllerGetLeaderboardPeriodEnum as Period,
 } from '@/sdk/apis/ApiApi';
-import { SNIPPET_STEPS } from '@/lib/snippet-timeline';
+import { DIFFICULTIES } from '@/lib/difficulty';
 import type { GauntletLeaderboardEntryDto } from '@/sdk/models/GauntletLeaderboardEntryDto';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useRouter } from 'next/navigation';
@@ -28,22 +28,6 @@ const PERIODS: { value: Period; label: string }[] = [
   { value: Period.Daily, label: 'Today' },
   { value: Period.Weekly, label: 'This Week' },
   { value: Period.Alltime, label: 'All Time' },
-];
-
-// A 7s run and a 1s run are not the same feat, so each ranks on its own board.
-const DIFFICULTIES: { value: Difficulty; label: string; duration: string }[] = [
-  { value: Difficulty.Easy, label: 'Easy', duration: `${SNIPPET_STEPS[4]}s` },
-  {
-    value: Difficulty.Medium,
-    label: 'Medium',
-    duration: `${SNIPPET_STEPS[3]}s`,
-  },
-  { value: Difficulty.Hard, label: 'Hard', duration: `${SNIPPET_STEPS[2]}s` },
-  {
-    value: Difficulty.Expert,
-    label: 'Expert',
-    duration: `${SNIPPET_STEPS[1]}s`,
-  },
 ];
 
 const PODIUM_STYLES: Record<
@@ -157,6 +141,12 @@ function LeaderboardRow({
         </p>
       </div>
 
+      {entry.trackGroupName && (
+        <span className="hidden sm:block w-24 shrink-0 truncate text-right text-[11px] text-fg/35">
+          {entry.trackGroupName}
+        </span>
+      )}
+
       <div className="flex items-center gap-1.5 shrink-0">
         <Zap
           className={`w-3.5 h-3.5 ${
@@ -214,8 +204,8 @@ export function SpeedRunLeaderboard() {
           <Trophy className="w-5 h-5 text-amber-600 dark:text-amber-400" />
         </div>
         <p className="text-fg/40 text-sm">
-          The best runs on the curated pool. Everyone here played the same
-          tracks at the same length.
+          The best runs on the curated pool, every one of them at the same
+          snippet length. The group each run drew on is named beside it.
         </p>
       </div>
 
@@ -252,9 +242,7 @@ export function SpeedRunLeaderboard() {
                 type="button"
                 onClick={() => setDifficulty(d.value)}
                 className={`px-3 py-1.5 rounded-full text-xs font-semibold tabular-nums transition-all ${
-                  isActive
-                    ? 'bg-orange-500/20 text-orange-700 dark:text-orange-300'
-                    : 'text-fg/40 hover:text-fg/70'
+                  isActive ? d.accent : 'text-fg/40 hover:text-fg/70'
                 }`}
               >
                 {d.duration}

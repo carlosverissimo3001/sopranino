@@ -24,6 +24,13 @@ export class GauntletLeaderboardEntryDto {
 
   @ApiProperty({ description: 'Best score achieved in the period' })
   score: number;
+
+  @ApiPropertyOptional({
+    description:
+      'The curated group the run was set on. Absent when it drew on the whole pool.',
+    type: String,
+  })
+  trackGroupName?: string;
 }
 
 export class GauntletUserLeaderboardEntryDto {

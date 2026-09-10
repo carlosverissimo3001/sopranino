@@ -423,6 +423,7 @@ export class GauntletService {
           displayName: 'Anonymous',
           isHidden: true,
           score: entry.score,
+          trackGroupName: entry.trackGroupName ?? undefined,
         };
       }
 
@@ -433,6 +434,7 @@ export class GauntletService {
         isHidden: false,
         avatarUrl: entry.avatarUrl ?? undefined,
         score: entry.score,
+        trackGroupName: entry.trackGroupName ?? undefined,
       };
     });
 

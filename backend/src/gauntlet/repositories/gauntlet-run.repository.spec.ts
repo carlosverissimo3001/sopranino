@@ -8,7 +8,12 @@ import { PrismaService } from '@prisma/prisma.service';
 import { GauntletRunRepository } from './gauntlet-run.repository';
 
 const prisma = {
-  gauntletRun: { groupBy: jest.fn(), aggregate: jest.fn() },
+  gauntletRun: {
+    groupBy: jest.fn(),
+    aggregate: jest.fn(),
+    findMany: jest.fn().mockResolvedValue([]),
+  },
+  trackGroup: { findMany: jest.fn().mockResolvedValue([]) },
   user: { findMany: jest.fn() },
 };
 
@@ -110,6 +115,69 @@ describe('GauntletRunRepository and what the board is allowed to see', () => {
       difficulty: GauntletDifficulty.MEDIUM,
       score: { gt: 0 },
       completedAt: { gte: since },
+    });
+  });
+
+  describe('leaderboard groups', () => {
+    it('credits the run that set the best score, not the latest run', async () => {
+      prisma.gauntletRun.groupBy.mockResolvedValue([
+        { userId: 'u1', _max: { score: 7 } },
+      ]);
+      prisma.gauntletRun.findMany.mockResolvedValue([
+        { userId: 'u1', sourceId: 'group-2020s' },
+      ]);
+      prisma.trackGroup.findMany.mockResolvedValue([
+        { id: 'group-2020s', name: '2020s' },
+      ]);
+      prisma.user.findMany.mockResolvedValue([
+        {
+          id: 'u1',
+          displayName: 'Charly',
+          avatarUrl: null,
+          customAvatarUrl: null,
+          avatarSource: 'SPOTIFY',
+          preferences: { showStatsToOthers: true },
+        },
+      ]);
+
+      const [entry] = await repository.findLeaderboardEntries(
+        null,
+        10,
+        0,
+        GauntletDifficulty.EASY,
+      );
+
+      expect(entry.trackGroupName).toBe('2020s');
+    });
+
+    // A run on the whole pool has no group, and must not invent one.
+    it('leaves the group empty for a whole-pool run', async () => {
+      prisma.gauntletRun.groupBy.mockResolvedValue([
+        { userId: 'u1', _max: { score: 4 } },
+      ]);
+      prisma.gauntletRun.findMany.mockResolvedValue([
+        { userId: 'u1', sourceId: null },
+      ]);
+      prisma.user.findMany.mockResolvedValue([
+        {
+          id: 'u1',
+          displayName: 'Charly',
+          avatarUrl: null,
+          customAvatarUrl: null,
+          avatarSource: 'SPOTIFY',
+          preferences: { showStatsToOthers: true },
+        },
+      ]);
+
+      const [entry] = await repository.findLeaderboardEntries(
+        null,
+        10,
+        0,
+        GauntletDifficulty.EASY,
+      );
+
+      expect(entry.trackGroupName).toBeNull();
+      expect(prisma.trackGroup.findMany).not.toHaveBeenCalled();
     });
   });
 });
