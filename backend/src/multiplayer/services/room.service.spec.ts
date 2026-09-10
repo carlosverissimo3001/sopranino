@@ -10,6 +10,7 @@ import { RoomRepository } from '../repositories/room.repository';
 import { AuthService } from '../../auth/services/auth.service';
 import { TrackPoolService } from './track-pool.service';
 import { RoomsGateway } from '../gateways/rooms.gateway';
+import { RoomPresenceService } from './room-presence.service';
 
 describe('RoomService', () => {
   let service: RoomService;
@@ -22,6 +23,7 @@ describe('RoomService', () => {
   const INVITE_CODE = 'ABCD1234';
 
   const mockRoomsGateway = {
+    lobbyChanged: jest.fn(),
     emitRoomUpdate: jest.fn(),
     emitPlayerRoundComplete: jest.fn(),
     emitPlayerRemoved: jest.fn(),
@@ -32,6 +34,8 @@ describe('RoomService', () => {
     inviteCode: INVITE_CODE,
     hostId: HOST_USER_ID,
     roundCount: 5,
+    name: 'Velvet Chorus',
+    findable: true,
     status: RoomStatus.WAITING,
     trackSource: TrackSource.POOL,
     trackIds: [],
@@ -68,11 +72,14 @@ describe('RoomService', () => {
     setTrackSource: jest.fn(),
     toggleReady: jest.fn(),
     inviteCodeExists: jest.fn(),
+    findFindableWaiting: jest.fn(),
   };
 
   const mockTrackPoolService = {
     selectTracksForRoom: jest.fn(),
   };
+
+  const mockPresence = { onlineUserIds: jest.fn().mockResolvedValue([]) };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -82,6 +89,7 @@ describe('RoomService', () => {
         { provide: RoomRepository, useValue: mockRoomRepository },
         { provide: TrackPoolService, useValue: mockTrackPoolService },
         { provide: RoomsGateway, useValue: mockRoomsGateway },
+        { provide: RoomPresenceService, useValue: mockPresence },
       ],
     }).compile();
 
@@ -106,10 +114,87 @@ describe('RoomService', () => {
       expect(result.hostId).toBe(HOST_USER_ID);
       expect(result.roundCount).toBe(5);
       expect(mockRoomRepository.createRoom).toHaveBeenCalledWith(
-        HOST_USER_ID,
-        expect.any(String),
-        5,
+        expect.objectContaining({
+          hostId: HOST_USER_ID,
+          roundCount: 5,
+          findable: true,
+          name: expect.any(String),
+        }),
       );
+    });
+
+    // The host opts out of being listed; they never opt in.
+    it('makes a room findable unless the host says otherwise', async () => {
+      mockRoomRepository.createRoom.mockResolvedValue(makeRoom());
+
+      await service.createRoom(HOST_SESSION, { roundCount: 5 });
+      expect(mockRoomRepository.createRoom).toHaveBeenLastCalledWith(
+        expect.objectContaining({ findable: true }),
+      );
+
+      await service.createRoom(HOST_SESSION, {
+        roundCount: 5,
+        findable: false,
+      });
+      expect(mockRoomRepository.createRoom).toHaveBeenLastCalledWith(
+        expect.objectContaining({ findable: false }),
+      );
+    });
+  });
+
+  describe('listOpenRooms', () => {
+    it('lists a room somebody is actually sitting in', async () => {
+      mockRoomRepository.findFindableWaiting.mockResolvedValue([makeRoom()]);
+      mockPresence.onlineUserIds.mockResolvedValue([HOST_USER_ID]);
+
+      const [room] = await service.listOpenRooms();
+
+      expect(room).toEqual({
+        id: ROOM_ID,
+        name: 'Velvet Chorus',
+        playerCount: 1,
+        roundCount: 5,
+        trackSource: TrackSource.POOL,
+      });
+    });
+
+    // A room is WAITING from the moment it is made, so status alone would
+    // list every abandoned create screen for ever.
+    it('drops a room everyone has left', async () => {
+      mockRoomRepository.findFindableWaiting.mockResolvedValue([makeRoom()]);
+      mockPresence.onlineUserIds.mockResolvedValue([]);
+
+      await expect(service.listOpenRooms()).resolves.toEqual([]);
+    });
+
+    // Presence is the count, not the roster: a row for somebody who has gone
+    // would inflate a room that is emptier than it looks.
+    it('counts who is present, not who has a row', async () => {
+      mockRoomRepository.findFindableWaiting.mockResolvedValue([
+        makeRoom({
+          players: [
+            { userId: HOST_USER_ID },
+            { userId: 'left-the-tab-open' },
+            { userId: 'also-gone' },
+          ],
+        }),
+      ]);
+      mockPresence.onlineUserIds.mockResolvedValue([HOST_USER_ID]);
+
+      const [room] = await service.listOpenRooms();
+
+      expect(room.playerCount).toBe(1);
+    });
+
+    // Browsing is public; the code is what joining gives you.
+    it('never exposes the invite code', async () => {
+      mockRoomRepository.findFindableWaiting.mockResolvedValue([makeRoom()]);
+      mockPresence.onlineUserIds.mockResolvedValue([HOST_USER_ID]);
+
+      const [room] = await service.listOpenRooms();
+
+      expect(JSON.stringify(room)).not.toContain(INVITE_CODE);
+      expect(room).not.toHaveProperty('hostId');
     });
   });
 

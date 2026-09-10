@@ -1,7 +1,7 @@
 'use client';
 
 import { useCreateRoom } from '@/hooks/multiplayer/useCreateRoom';
-import type { CreateRoomDtoRoundCountEnum } from '@/sdk';
+import type { CreateRoomControllerDtoRoundCountEnum } from '@/sdk';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Loader2, Music, X, Zap } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -14,7 +14,7 @@ interface CreateRoomModalProps {
 }
 
 const ROUND_OPTIONS: {
-  value: CreateRoomDtoRoundCountEnum;
+  value: CreateRoomControllerDtoRoundCountEnum;
   label: string;
   description: string;
 }[] = [
@@ -24,7 +24,8 @@ const ROUND_OPTIONS: {
 ];
 
 export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
-  const [roundCount, setRoundCount] = useState<CreateRoomDtoRoundCountEnum>(5);
+  const [roundCount, setRoundCount] =
+    useState<CreateRoomControllerDtoRoundCountEnum>(5);
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const createRoom = useCreateRoom();

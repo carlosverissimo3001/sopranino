@@ -1350,6 +1350,28 @@
         ]
       }
     },
+    "/multiplayer/rooms/open": {
+      "get": {
+        "operationId": "MultiplayerController_listOpenRooms",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenRoomsDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Rooms waiting for players that anyone may join",
+        "tags": [
+          "Api"
+        ]
+      }
+    },
     "/multiplayer/rooms": {
       "post": {
         "operationId": "MultiplayerController_createRoom",
@@ -1359,7 +1381,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateRoomDto"
+                "$ref": "#/components/schemas/CreateRoomControllerDto"
               }
             }
           }
@@ -2082,11 +2104,6 @@
             }
           }
         },
-        "security": [
-          {
-            "cookie": []
-          }
-        ],
         "summary": "Get gauntlet leaderboard",
         "tags": [
           "Api"
@@ -3667,7 +3684,57 @@
           }
         }
       },
-      "CreateRoomDto": {
+      "OpenRoomDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Room id, to join by"
+          },
+          "name": {
+            "type": "string",
+            "description": "The room`s name"
+          },
+          "playerCount": {
+            "type": "number",
+            "description": "How many players are in it right now"
+          },
+          "roundCount": {
+            "type": "number",
+            "description": "Rounds the host chose"
+          },
+          "trackSource": {
+            "type": "string",
+            "description": "Whether it draws on the curated pool or on linked libraries",
+            "enum": [
+              "POOL",
+              "LIBRARIES"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "playerCount",
+          "roundCount",
+          "trackSource"
+        ]
+      },
+      "OpenRoomsDto": {
+        "type": "object",
+        "properties": {
+          "rooms": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenRoomDto"
+            }
+          }
+        },
+        "required": [
+          "rooms"
+        ]
+      },
+      "CreateRoomControllerDto": {
         "type": "object",
         "properties": {
           "roundCount": {
@@ -3678,6 +3745,11 @@
               5,
               10
             ]
+          },
+          "findable": {
+            "type": "boolean",
+            "description": "Whether the room is listed for anyone to find. Off makes it reachable only by its invite code.",
+            "default": true
           }
         },
         "required": [

@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { Request, Response } from 'express';
 import { SessionService } from '@auth/services/session.service';
 import { UserRepository } from '@auth/repositories/user.repository';
-import { generateHandle } from '@auth/utils/handle-generator';
+import { generateName } from '@auth/utils/handle-generator';
 import { hasCredential } from '@auth/utils/credentials';
 import { getCookieOptions } from '@auth/utils/http-helpers';
 import {
@@ -78,7 +78,7 @@ export class ProvisioningSessionGuard implements CanActivate {
       await this.sessionService.deleteDeviceToken(deviceToken);
     }
 
-    const user = await this.userRepository.createAnonymous(generateHandle());
+    const user = await this.userRepository.createAnonymous(generateName());
     const sessionId = await this.sessionService.createSession({
       userId: user.id,
       displayName: user.displayName,

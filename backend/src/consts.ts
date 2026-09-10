@@ -117,3 +117,18 @@ export const ROOM_HOST_GONE_GRACE_MS = 5 * 1000;
 export const ROOM_PLAYER_GONE_KEY = 'room:player-gone';
 export const ROOM_PLAYER_GONE_GRACE_MS = 20 * 1000;
 export const ROOM_SWEEP_INTERVAL_MS = 2 * 1000;
+
+/**
+ * How many findable rooms the lobby considers. Presence is checked per room,
+ * so this bounds the Redis round trips as much as the list length.
+ */
+export const LOBBY_MAX_ROOMS = 30;
+
+/** Socket room every lobby browser sits in. */
+export const LOBBY_ROOM = 'lobby';
+
+/**
+ * How long a lobby change waits for its neighbours. A room filling fires
+ * several events in a second, and watchers want one update, not four.
+ */
+export const LOBBY_BROADCAST_DEBOUNCE_MS = 300;

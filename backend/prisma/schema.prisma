@@ -133,6 +133,7 @@ model DailyTrack {
   @@index([trackId])
   @@map("daily_tracks")
 }
+
 model PoolTrack {
   id   String @id
   /// Unique here, unlike on tracks: it is what keeps one song out of the pool
@@ -283,6 +284,8 @@ model MultiplayerRoom {
   hostId     String @map("host_id")
   host       User   @relation("hostedRooms", fields: [hostId], references: [id], onDelete: Cascade)
 
+  name        String
+  findable    Boolean     @default(true)
   roundCount  Int         @map("round_count")
   status      RoomStatus  @default(WAITING)
   trackSource TrackSource @default(POOL) @map("track_source")
@@ -298,6 +301,7 @@ model MultiplayerRoom {
   gameSessions GameSession[]
 
   @@index([hostId])
+  @@index([findable, status])
   @@map("multiplayer_rooms")
 }
 
