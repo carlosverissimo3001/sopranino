@@ -11,6 +11,7 @@ import {
   Trophy,
   Users,
   Plus,
+  Loader2,
   Gamepad2,
   Shuffle,
 } from 'lucide-react';
@@ -18,7 +19,7 @@ import { usePlayedToday } from '@/hooks/game/usePlayedToday';
 import { DailyChallengeCountdown } from './DailyChallangeCountdown';
 import { usePersonalBest } from '@/hooks/speed-run/useSpeedRunPersonalBest';
 import { JoinRoomModal } from '@/components/multiplayer/JoinRoomModal';
-import { CreateRoomModal } from '@/components/multiplayer/CreateRoomModal';
+import { useCreateAndEnterRoom } from '@/hooks/multiplayer/useCreateAndEnterRoom';
 import { cn } from '@/lib/utils';
 
 const cardPadding = 'p-4 sm:p-6';
@@ -189,9 +190,11 @@ function SpeedrunCardContent() {
 function MultiplayerCardContent({
   onJoin,
   onCreate,
+  isCreating,
 }: {
   onJoin: () => void;
   onCreate: () => void;
+  isCreating: boolean;
 }) {
   return (
     <div
@@ -229,9 +232,14 @@ function MultiplayerCardContent({
 
         <button
           onClick={onCreate}
-          className="flex-[2] flex cursor-pointer items-center justify-center gap-1.5 h-10 sm:h-12 rounded-2xl text-xs sm:text-sm font-black bg-purple-500 text-white shadow-[0_8px_20px_rgba(168,85,247,0.2)] active:scale-95"
+          disabled={isCreating}
+          className="flex-[2] flex cursor-pointer items-center justify-center gap-1.5 h-10 sm:h-12 rounded-2xl text-xs sm:text-sm font-black bg-purple-500 text-white shadow-[0_8px_20px_rgba(168,85,247,0.2)] active:scale-95 disabled:opacity-60"
         >
-          <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          {isCreating ? (
+            <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
+          ) : (
+            <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          )}
           <span>Create</span>
         </button>
       </div>
@@ -241,7 +249,7 @@ function MultiplayerCardContent({
 
 function GameModesGalleryComponent() {
   const [showJoinModal, setShowJoinModal] = useState(false);
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const createRoom = useCreateAndEnterRoom();
 
   const modes = [
     { id: 'daily', render: () => <DailyCardContent /> },
@@ -252,7 +260,8 @@ function GameModesGalleryComponent() {
       render: () => (
         <MultiplayerCardContent
           onJoin={() => setShowJoinModal(true)}
-          onCreate={() => setShowCreateModal(true)}
+          onCreate={createRoom.create}
+          isCreating={createRoom.isPending}
         />
       ),
     },
@@ -304,11 +313,6 @@ function GameModesGalleryComponent() {
           key="join-modal"
           open={showJoinModal}
           onClose={() => setShowJoinModal(false)}
-        />
-        <CreateRoomModal
-          key="create-modal"
-          open={showCreateModal}
-          onClose={() => setShowCreateModal(false)}
         />
       </AnimatePresence>
     </>
