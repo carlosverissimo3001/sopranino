@@ -55,6 +55,12 @@ export interface GauntletLeaderboardEntryDto {
      * @memberof GauntletLeaderboardEntryDto
      */
     score: number;
+    /**
+     * The curated group the run was set on. Absent when it drew on the whole pool.
+     * @type {string}
+     * @memberof GauntletLeaderboardEntryDto
+     */
+    trackGroupName?: string;
 }
 
 /**
@@ -85,6 +91,7 @@ export function GauntletLeaderboardEntryDtoFromJSONTyped(json: any, ignoreDiscri
         'isHidden': json['isHidden'],
         'avatarUrl': json['avatarUrl'] == null ? undefined : json['avatarUrl'],
         'score': json['score'],
+        'trackGroupName': json['trackGroupName'] == null ? undefined : json['trackGroupName'],
     };
 }
 
@@ -105,6 +112,7 @@ export function GauntletLeaderboardEntryDtoToJSONTyped(value?: GauntletLeaderboa
         'isHidden': value['isHidden'],
         'avatarUrl': value['avatarUrl'],
         'score': value['score'],
+        'trackGroupName': value['trackGroupName'],
     };
 }
 

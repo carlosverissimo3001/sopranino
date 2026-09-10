@@ -8,7 +8,7 @@ import { Flame, ListMusic, Trophy, Zap, Check, ArrowLeft } from 'lucide-react';
 import { useMyPlaylists } from '@/hooks/playlists/useMyPlaylists';
 import { useMe } from '@/hooks/auth/useMe';
 import { useTrackGroups } from '@/hooks/track-groups/useTrackGroups';
-import { SNIPPET_STEPS } from '@/lib/snippet-timeline';
+import { DIFFICULTIES } from '@/lib/difficulty';
 import {
   StartRunDtoDifficultyEnum as GauntletDifficulty,
   StartRunDtoSourceEnum,
@@ -17,41 +17,6 @@ import {
 import type { StartRunDto } from '@/sdk';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
-// Rungs of the same ladder the game uses, so a length here reads the way it
-// does anywhere else. Mirrors GAUNTLET_SNIPPET_DURATIONS on the backend.
-const DIFFICULTIES: {
-  value: GauntletDifficulty;
-  label: string;
-  duration: string;
-  accent: string;
-}[] = [
-  {
-    value: GauntletDifficulty.Easy,
-    label: 'Easy',
-    duration: `${SNIPPET_STEPS[4]}s`,
-    accent: 'bg-emerald-500/15 text-emerald-300',
-  },
-  {
-    value: GauntletDifficulty.Medium,
-    label: 'Medium',
-    duration: `${SNIPPET_STEPS[3]}s`,
-    accent: 'bg-blue-500/15 text-blue-300',
-  },
-  {
-    value: GauntletDifficulty.Hard,
-    label: 'Hard',
-    duration: `${SNIPPET_STEPS[2]}s`,
-    accent: 'bg-orange-500/15 text-orange-300',
-  },
-  {
-    value: GauntletDifficulty.Expert,
-    label: 'Expert',
-    duration: `${SNIPPET_STEPS[1]}s`,
-    accent: 'bg-red-500/15 text-red-300',
-  },
-];
-
-/** Three rows before it scrolls: a handful of sets should never get a bar. */
 const GRID =
   'grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-[24rem] overflow-y-auto';
 

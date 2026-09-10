@@ -4469,6 +4469,10 @@
           "score": {
             "type": "number",
             "description": "Best score achieved in the period"
+          },
+          "trackGroupName": {
+            "type": "string",
+            "description": "The curated group the run was set on. Absent when it drew on the whole pool."
           }
         },
         "required": [

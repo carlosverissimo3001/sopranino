@@ -17,6 +17,8 @@ export interface LeaderboardEntryRaw {
   avatarUrl: string | null;
   score: number;
   showStatsToOthers: boolean;
+  /** Absent when the run drew on the whole pool rather than one group. */
+  trackGroupName: string | null;
 }
 
 export interface GauntletHistorySummaryRaw {
@@ -216,6 +218,42 @@ export class GauntletRunRepository {
       return [];
     }
 
+    /**
+     * groupBy keeps the best score and forgets which run set it, so the run
+     * is fetched back by the pair. A player who tied their own best across
+     * two groups is credited to whichever they reached first.
+     */
+    const bests = await this.prisma.gauntletRun.findMany({
+      where: {
+        ...rankable(difficulty, startDate),
+        OR: grouped.map((row) => ({
+          userId: row.userId,
+          score: row._max.score ?? 0,
+        })),
+      },
+      orderBy: { completedAt: 'asc' },
+      select: { userId: true, sourceId: true },
+    });
+
+    // A curated run keeps its group in sourceId, with no relation to follow.
+    const groupIdByUser = new Map<string, string | null>();
+    for (const run of bests) {
+      if (!groupIdByUser.has(run.userId)) {
+        groupIdByUser.set(run.userId, run.sourceId);
+      }
+    }
+
+    const groupIds = [...new Set([...groupIdByUser.values()])].filter(
+      (id): id is string => id !== null,
+    );
+    const groups = groupIds.length
+      ? await this.prisma.trackGroup.findMany({
+          where: { id: { in: groupIds } },
+          select: { id: true, name: true },
+        })
+      : [];
+    const nameById = new Map(groups.map((g) => [g.id, g.name]));
+
     const userIds = grouped.map((r) => r.userId);
     const users = await this.prisma.user.findMany({
       where: { id: { in: userIds } },
@@ -242,6 +280,10 @@ export class GauntletRunRepository {
         avatarUrl: effectiveAvatar ?? null,
         score: row._max.score ?? 0,
         showStatsToOthers: user?.preferences?.showStatsToOthers ?? false,
+        trackGroupName: (() => {
+          const groupId = groupIdByUser.get(row.userId);
+          return groupId ? (nameById.get(groupId) ?? null) : null;
+        })(),
       };
     });
   }

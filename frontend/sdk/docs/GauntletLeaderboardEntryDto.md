@@ -12,6 +12,7 @@ Name | Type
 `isHidden` | boolean
 `avatarUrl` | string
 `score` | number
+`trackGroupName` | string
 
 ## Example
 
@@ -26,6 +27,7 @@ const example = {
   "isHidden": null,
   "avatarUrl": null,
   "score": null,
+  "trackGroupName": null,
 } satisfies GauntletLeaderboardEntryDto
 
 console.log(example)
