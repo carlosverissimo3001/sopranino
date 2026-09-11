@@ -10,6 +10,7 @@ import {
 } from '@prisma/client';
 import { GauntletRunEntity } from '../entities/gauntlet-run.entity';
 import { mapTrack } from '../../utils/mappers';
+import { skipTake } from '../../utils/pagination/paginate';
 
 export interface LeaderboardEntryRaw {
   userId: string;
@@ -333,7 +334,6 @@ export class GauntletRunRepository {
     difficulty?: GauntletDifficulty;
   }): Promise<{ items: GauntletRunEntity[]; total: number }> {
     const { userId, limit, page, difficulty } = params;
-    const skip = (page - 1) * limit;
 
     const where: Prisma.GauntletRunWhereInput = {
       userId,
@@ -345,8 +345,7 @@ export class GauntletRunRepository {
       this.prisma.gauntletRun.findMany({
         where,
         orderBy: { completedAt: 'desc' },
-        take: limit,
-        skip,
+        ...skipTake({ page, limit }),
       }),
       this.prisma.gauntletRun.count({ where }),
     ]);

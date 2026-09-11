@@ -1,11 +1,12 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNotNullableOptional } from '../../utils/decorators/notNullableOptional.decorator';
 import { Transform } from 'class-transformer';
-import { IsNumber, Min, Max, IsEnum, IsString, IsDate } from 'class-validator';
+import { IsEnum, IsString, IsDate } from 'class-validator';
 import { GameMode, GameStatus } from '@prisma/client';
 import { TransformToArray } from '../../utils/transformers/toArray.transform';
+import { PaginationQueryDto } from '../../utils/pagination/pagination-query.dto';
 
-export class GetHistoryDto {
+export class GetHistoryDto extends PaginationQueryDto {
   @ApiPropertyOptional({
     description: 'The game mode to filter history by (e.g. daily, all)',
     enum: GameMode,
@@ -13,29 +14,6 @@ export class GetHistoryDto {
   @IsNotNullableOptional()
   @IsEnum(GameMode)
   mode?: GameMode;
-
-  @ApiPropertyOptional({
-    description: 'Page number (1-indexed)',
-    type: Number,
-    default: 1,
-  })
-  @IsNotNullableOptional()
-  @IsNumber()
-  @Min(1)
-  @Transform(({ value }) => Number(value))
-  page?: number;
-
-  @ApiPropertyOptional({
-    description: 'Items per page',
-    type: Number,
-    default: 10,
-  })
-  @IsNotNullableOptional()
-  @IsNumber()
-  @Min(1)
-  @Max(100)
-  @Transform(({ value }) => Number(value))
-  limit?: number;
 
   @ApiPropertyOptional({
     description: 'Search by track name, artist name, or album name',

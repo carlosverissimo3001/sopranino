@@ -549,6 +549,27 @@
         "operationId": "GameController_getHistory",
         "parameters": [
           {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
             "name": "mode",
             "required": false,
             "in": "query",
@@ -561,26 +582,6 @@
                 "GAUNTLET"
               ],
               "type": "string"
-            }
-          },
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "description": "Page number (1-indexed)",
-            "schema": {
-              "default": 1,
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "description": "Items per page",
-            "schema": {
-              "default": 10,
-              "type": "number"
             }
           },
           {
@@ -2212,7 +2213,7 @@
             "in": "query",
             "schema": {
               "minimum": 1,
-              "maximum": 50,
+              "maximum": 100,
               "default": 10,
               "type": "number"
             }
@@ -3088,12 +3089,7 @@
             }
           },
           "meta": {
-            "description": "Pagination metadata",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/PaginationMetaDto"
-              }
-            ]
+            "$ref": "#/components/schemas/PaginationMetaDto"
           },
           "streakFreezeUsages": {
             "description": "Streak freeze usages within the date range (only for DAILY mode)",
@@ -4719,33 +4715,6 @@
           "durationSeconds"
         ]
       },
-      "GauntletHistoryMetaDto": {
-        "type": "object",
-        "properties": {
-          "totalItems": {
-            "type": "number"
-          },
-          "itemCount": {
-            "type": "number"
-          },
-          "itemsPerPage": {
-            "type": "number"
-          },
-          "totalPages": {
-            "type": "number"
-          },
-          "currentPage": {
-            "type": "number"
-          }
-        },
-        "required": [
-          "totalItems",
-          "itemCount",
-          "itemsPerPage",
-          "totalPages",
-          "currentPage"
-        ]
-      },
       "GauntletHistorySummaryDto": {
         "type": "object",
         "properties": {
@@ -4783,7 +4752,7 @@
             }
           },
           "meta": {
-            "$ref": "#/components/schemas/GauntletHistoryMetaDto"
+            "$ref": "#/components/schemas/PaginationMetaDto"
           },
           "summary": {
             "$ref": "#/components/schemas/GauntletHistorySummaryDto"

@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { GauntletDifficulty, GauntletSource } from '@prisma/client';
 import { TrackEntity } from '../../track/entities/track.entity';
+import { Paginated } from '../../utils/pagination/paginated.dto';
 
 export class GauntletHistoryEntryDto {
   @ApiProperty({ description: 'The gauntlet run ID' })
@@ -54,30 +55,7 @@ export class GauntletHistorySummaryDto {
   totalCorrectAnswers: number;
 }
 
-export class GauntletHistoryMetaDto {
-  @ApiProperty()
-  totalItems: number;
-
-  @ApiProperty()
-  itemCount: number;
-
-  @ApiProperty()
-  itemsPerPage: number;
-
-  @ApiProperty()
-  totalPages: number;
-
-  @ApiProperty()
-  currentPage: number;
-}
-
-export class GauntletHistoryDto {
-  @ApiProperty({ type: [GauntletHistoryEntryDto] })
-  items: GauntletHistoryEntryDto[];
-
-  @ApiProperty({ type: GauntletHistoryMetaDto })
-  meta: GauntletHistoryMetaDto;
-
+export class GauntletHistoryDto extends Paginated(GauntletHistoryEntryDto) {
   @ApiProperty({ type: GauntletHistorySummaryDto })
   summary: GauntletHistorySummaryDto;
 }

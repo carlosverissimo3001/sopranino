@@ -48,7 +48,7 @@ export interface GameHistoryDto {
      */
     items: Array<GameHistoryEntryDto>;
     /**
-     * Pagination metadata
+     * 
      * @type {PaginationMetaDto}
      * @memberof GameHistoryDto
      */

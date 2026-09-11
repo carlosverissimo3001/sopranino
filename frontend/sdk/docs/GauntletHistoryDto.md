@@ -7,7 +7,7 @@
 Name | Type
 ------------ | -------------
 `items` | [Array&lt;GauntletHistoryEntryDto&gt;](GauntletHistoryEntryDto.md)
-`meta` | [GauntletHistoryMetaDto](GauntletHistoryMetaDto.md)
+`meta` | [PaginationMetaDto](PaginationMetaDto.md)
 `summary` | [GauntletHistorySummaryDto](GauntletHistorySummaryDto.md)
 
 ## Example

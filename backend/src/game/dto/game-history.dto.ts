@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { GameMode, GameStatus } from '@prisma/client';
 import { GuessHistoryDto } from './guess/guess-history.dto';
+import { Paginated } from '../../utils/pagination/paginated.dto';
 
 export class StreakFreezeUsageDto {
   @ApiProperty({ description: 'Freeze usage ID' })
@@ -60,30 +61,7 @@ export class GameHistoryEntryDto {
   albumImageUrl?: string;
 }
 
-export class PaginationMetaDto {
-  @ApiProperty({ description: 'Total number of items across all pages' })
-  totalItems: number;
-
-  @ApiProperty({ description: 'Number of items on the current page' })
-  itemCount: number;
-
-  @ApiProperty({ description: 'Number of items per page' })
-  itemsPerPage: number;
-
-  @ApiProperty({ description: 'Total number of pages' })
-  totalPages: number;
-
-  @ApiProperty({ description: 'Current page number (1-indexed)' })
-  currentPage: number;
-}
-
-export class GameHistoryDto {
-  @ApiProperty({ type: GameHistoryEntryDto, isArray: true })
-  items: GameHistoryEntryDto[];
-
-  @ApiProperty({ description: 'Pagination metadata', type: PaginationMetaDto })
-  meta: PaginationMetaDto;
-
+export class GameHistoryDto extends Paginated(GameHistoryEntryDto) {
   @ApiPropertyOptional({
     description:
       'Streak freeze usages within the date range (only for DAILY mode)',

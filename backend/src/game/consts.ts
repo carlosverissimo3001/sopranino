@@ -10,4 +10,3 @@ export enum GuessResult {
 
 export const ROUND_DURATIONS = [0.1, 1, 2, 4, 7, 12];
 export const MAX_ROUNDS = ROUND_DURATIONS.length;
-export const GAME_HISTORY_DEFAULT_PAGE_SIZE = 10;

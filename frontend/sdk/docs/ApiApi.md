@@ -1379,7 +1379,7 @@ example().catch(console.error);
 
 ## gameControllerGetHistory
 
-> GameHistoryDto gameControllerGetHistory(mode, page, limit, search, status, from, to)
+> GameHistoryDto gameControllerGetHistory(page, limit, mode, search, status, from, to)
 
 Get user\&#39;s game session history (paginated)
 
@@ -1401,12 +1401,12 @@ async function example() {
   const api = new ApiApi(config);
 
   const body = {
+    // number (optional)
+    page: 8.14,
+    // number (optional)
+    limit: 8.14,
     // 'DAILY' | 'ALL' | 'MULTIPLAYER' | 'GAUNTLET' | The game mode to filter history by (e.g. daily, all) (optional)
     mode: mode_example,
-    // number | Page number (1-indexed) (optional)
-    page: 8.14,
-    // number | Items per page (optional)
-    limit: 8.14,
     // string | Search by track name, artist name, or album name (optional)
     search: search_example,
     // Array<'PLAYING' | 'WON' | 'LOST' | 'ABANDONED'> | Filter by game status (optional)
@@ -1434,9 +1434,9 @@ example().catch(console.error);
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
+| **page** | `number` |  | [Optional] [Defaults to `1`] |
+| **limit** | `number` |  | [Optional] [Defaults to `10`] |
 | **mode** | `DAILY`, `ALL`, `MULTIPLAYER`, `GAUNTLET` | The game mode to filter history by (e.g. daily, all) | [Optional] [Defaults to `undefined`] [Enum: DAILY, ALL, MULTIPLAYER, GAUNTLET] |
-| **page** | `number` | Page number (1-indexed) | [Optional] [Defaults to `1`] |
-| **limit** | `number` | Items per page | [Optional] [Defaults to `10`] |
 | **search** | `string` | Search by track name, artist name, or album name | [Optional] [Defaults to `undefined`] |
 | **status** | `PLAYING`, `WON`, `LOST`, `ABANDONED` | Filter by game status | [Optional] [Enum: PLAYING, WON, LOST, ABANDONED] |
 | **from** | `Date` | Filter from date (ISO 8601) | [Optional] [Defaults to `undefined`] |

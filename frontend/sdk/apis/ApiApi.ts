@@ -227,9 +227,9 @@ export interface GameControllerGetGameStateRequest {
 }
 
 export interface GameControllerGetHistoryRequest {
-    mode?: GameControllerGetHistoryModeEnum;
     page?: number;
     limit?: number;
+    mode?: GameControllerGetHistoryModeEnum;
     search?: string;
     status?: Array<GameControllerGetHistoryStatusEnum>;
     from?: Date;
@@ -1125,16 +1125,16 @@ export class ApiApi extends runtime.BaseAPI {
     async gameControllerGetHistoryRaw(requestParameters: GameControllerGetHistoryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GameHistoryDto>> {
         const queryParameters: any = {};
 
-        if (requestParameters['mode'] != null) {
-            queryParameters['mode'] = requestParameters['mode'];
-        }
-
         if (requestParameters['page'] != null) {
             queryParameters['page'] = requestParameters['page'];
         }
 
         if (requestParameters['limit'] != null) {
             queryParameters['limit'] = requestParameters['limit'];
+        }
+
+        if (requestParameters['mode'] != null) {
+            queryParameters['mode'] = requestParameters['mode'];
         }
 
         if (requestParameters['search'] != null) {
