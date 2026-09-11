@@ -7,8 +7,8 @@ import { InputJsonValue } from '@prisma/client/runtime/client';
 import { GuessHistoryDto } from '../dto/guess/guess-history.dto';
 import { GameSessionEntity } from '../entities/game-session.entity';
 import { FindGameSessionsDto } from '../dto/session/find-game-sessions.dto';
-import { GAME_HISTORY_DEFAULT_PAGE_SIZE } from '../consts';
 import { mapGameSession, PrismaGameSessionResult } from '../../utils/mappers';
+import { skipTake } from '../../utils/pagination/paginate';
 
 @Injectable()
 export class GameSessionRepository {
@@ -158,8 +158,8 @@ export class GameSessionRepository {
       userId,
       mode,
       onlyCompleted,
-      limit = GAME_HISTORY_DEFAULT_PAGE_SIZE,
-      page = 1,
+      limit,
+      page,
       search,
       status,
       from,
@@ -196,14 +196,11 @@ export class GameSessionRepository {
       };
     }
 
-    const skip = (page - 1) * limit;
-
     const [items, total] = await Promise.all([
       this.prisma.gameSession.findMany({
         where,
         orderBy: { completedAt: 'desc' },
-        take: limit,
-        skip,
+        ...skipTake({ page, limit }),
       }),
       this.prisma.gameSession.count({ where }),
     ]);

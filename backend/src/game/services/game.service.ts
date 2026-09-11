@@ -34,6 +34,7 @@ import {
 import { GameStateDto } from '../dto/game-state.dto';
 import { StartGameDto } from '../dto/game/start-game.dto';
 import { GetHistoryDto } from '../dto/get-history.dto';
+import { paginate } from '../../utils/pagination/paginate';
 import { GuessHistoryDto } from '../dto/guess/guess-history.dto';
 import { GuessResultDto } from '../dto/guess/guess-result.dto';
 import { GuessDto } from '../dto/guess/guess.dto';
@@ -503,15 +504,11 @@ export class GameService {
     dto: GetHistoryDto,
   ): Promise<GameHistoryDto> {
     const { id: userId } = await this.authService.getUserBySessionId(sessionId);
-    const limit = dto.limit ?? 10;
-    const page = dto.page ?? 1;
 
     const { items, total } =
       await this.gameSessionRepository.findUserGameSessions({
         userId,
         ...dto,
-        limit,
-        page,
         // In the history tab, we don't care about incomplete games
         onlyCompleted: true,
       });
@@ -558,17 +555,8 @@ export class GameService {
       }));
     }
 
-    const totalPages = Math.ceil(total / limit);
-
     return {
-      items: entries,
-      meta: {
-        totalItems: total,
-        itemCount: entries.length,
-        itemsPerPage: limit,
-        totalPages,
-        currentPage: page,
-      },
+      ...paginate(entries, total, dto),
       streakFreezeUsages,
     };
   }

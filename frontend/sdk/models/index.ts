@@ -21,7 +21,6 @@ export * from './GameStatsDto';
 export * from './GauntletGuessResultDto';
 export * from './GauntletHistoryDto';
 export * from './GauntletHistoryEntryDto';
-export * from './GauntletHistoryMetaDto';
 export * from './GauntletHistorySummaryDto';
 export * from './GauntletLeaderboardDto';
 export * from './GauntletLeaderboardEntryDto';

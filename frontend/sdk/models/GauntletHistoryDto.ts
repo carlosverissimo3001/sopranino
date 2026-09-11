@@ -20,13 +20,6 @@ import {
     GauntletHistorySummaryDtoToJSON,
     GauntletHistorySummaryDtoToJSONTyped,
 } from './GauntletHistorySummaryDto';
-import type { GauntletHistoryMetaDto } from './GauntletHistoryMetaDto';
-import {
-    GauntletHistoryMetaDtoFromJSON,
-    GauntletHistoryMetaDtoFromJSONTyped,
-    GauntletHistoryMetaDtoToJSON,
-    GauntletHistoryMetaDtoToJSONTyped,
-} from './GauntletHistoryMetaDto';
 import type { GauntletHistoryEntryDto } from './GauntletHistoryEntryDto';
 import {
     GauntletHistoryEntryDtoFromJSON,
@@ -34,6 +27,13 @@ import {
     GauntletHistoryEntryDtoToJSON,
     GauntletHistoryEntryDtoToJSONTyped,
 } from './GauntletHistoryEntryDto';
+import type { PaginationMetaDto } from './PaginationMetaDto';
+import {
+    PaginationMetaDtoFromJSON,
+    PaginationMetaDtoFromJSONTyped,
+    PaginationMetaDtoToJSON,
+    PaginationMetaDtoToJSONTyped,
+} from './PaginationMetaDto';
 
 /**
  * 
@@ -49,10 +49,10 @@ export interface GauntletHistoryDto {
     items: Array<GauntletHistoryEntryDto>;
     /**
      * 
-     * @type {GauntletHistoryMetaDto}
+     * @type {PaginationMetaDto}
      * @memberof GauntletHistoryDto
      */
-    meta: GauntletHistoryMetaDto;
+    meta: PaginationMetaDto;
     /**
      * 
      * @type {GauntletHistorySummaryDto}
@@ -82,7 +82,7 @@ export function GauntletHistoryDtoFromJSONTyped(json: any, ignoreDiscriminator: 
     return {
         
         'items': ((json['items'] as Array<any>).map(GauntletHistoryEntryDtoFromJSON)),
-        'meta': GauntletHistoryMetaDtoFromJSON(json['meta']),
+        'meta': PaginationMetaDtoFromJSON(json['meta']),
         'summary': GauntletHistorySummaryDtoFromJSON(json['summary']),
     };
 }
@@ -99,7 +99,7 @@ export function GauntletHistoryDtoToJSONTyped(value?: GauntletHistoryDto | null,
     return {
         
         'items': ((value['items'] as Array<any>).map(GauntletHistoryEntryDtoToJSON)),
-        'meta': GauntletHistoryMetaDtoToJSON(value['meta']),
+        'meta': PaginationMetaDtoToJSON(value['meta']),
         'summary': GauntletHistorySummaryDtoToJSON(value['summary']),
     };
 }

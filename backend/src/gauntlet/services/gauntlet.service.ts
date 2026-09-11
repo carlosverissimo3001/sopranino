@@ -39,6 +39,7 @@ import {
   GauntletHistorySummaryDto,
 } from '../dto/gauntlet-history.dto';
 import { GetGauntletHistoryDto } from '../dto/get-gauntlet-history.dto';
+import { paginate } from '../../utils/pagination/paginate';
 import { LeaderboardPeriod } from '../dto/get-leaderboard.dto';
 import { LIKED_SONGS_ID_SUFFIX } from '../../consts';
 import { differenceInSeconds, formatDate } from 'date-fns';
@@ -329,14 +330,11 @@ export class GauntletService {
   ): Promise<GauntletHistoryDto> {
     const { id: userId } = await this.authService.getUserBySessionId(sessionId);
 
-    const page = dto.page ?? 1;
-    const limit = dto.limit ?? 10;
-
     const [{ items, total }, summary] = await Promise.all([
       this.gauntletRunRepository.findUserHistory({
         userId,
-        page,
-        limit,
+        page: dto.page,
+        limit: dto.limit,
         difficulty: dto.difficulty,
       }),
       this.gauntletRunRepository.findUserHistorySummary({
@@ -376,17 +374,8 @@ export class GauntletService {
       totalCorrectAnswers: summary.totalCorrectAnswers,
     };
 
-    const totalPages = Math.ceil(total / limit);
-
     return {
-      items: entries,
-      meta: {
-        totalItems: total,
-        itemCount: entries.length,
-        itemsPerPage: limit,
-        totalPages,
-        currentPage: page,
-      },
+      ...paginate(entries, total, dto),
       summary: historySummary,
     };
   }
