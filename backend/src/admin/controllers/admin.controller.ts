@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Delete,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -25,6 +26,8 @@ import { SessionId } from '@utils/decorators/sessionId.decorator';
 import { AdminUserService } from '../services/admin-user.service';
 import { AdminUserDto } from '../dto/admin-user.dto';
 import { UpdateUserRoleDto } from '../dto/update-user-role.dto';
+import { AdminUsersPageDto } from '../dto/admin-users-page.dto';
+import { GetAdminUsersDto } from '../dto/get-admin-users.dto';
 
 @ApiTags('Api')
 @Controller('admin')
@@ -77,10 +80,10 @@ export class AdminController {
 
   @Get('users')
   @ApiCookieAuth()
-  @ApiOperation({ summary: 'List all users' })
-  @ApiResponse({ status: 200, type: [AdminUserDto] })
-  async listUsers(): Promise<AdminUserDto[]> {
-    return this.adminUserService.listUsers();
+  @ApiOperation({ summary: 'List users, paged' })
+  @ApiResponse({ status: 200, type: AdminUsersPageDto })
+  async listUsers(@Query() dto: GetAdminUsersDto): Promise<AdminUsersPageDto> {
+    return this.adminUserService.listUsers(dto);
   }
 
   @Patch('users/:id')

@@ -1,6 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AdminUserService } from './admin-user.service';
 import { PrismaService } from '@prisma/prisma.service';
+import {
+  AdminUserSortField,
+  GetAdminUsersDto,
+  SortOrder,
+} from '../dto/get-admin-users.dto';
 
 describe('AdminUserService', () => {
   let service: AdminUserService;
@@ -34,9 +39,19 @@ describe('AdminUserService', () => {
     },
   ];
 
+  const query = (overrides: Partial<GetAdminUsersDto> = {}) =>
+    ({
+      page: 1,
+      limit: 10,
+      sortBy: AdminUserSortField.CreatedAt,
+      sortOrder: SortOrder.Desc,
+      ...overrides,
+    }) as GetAdminUsersDto;
+
   const mockPrisma = {
     user: {
       findMany: jest.fn().mockResolvedValue(mockUsers),
+      count: jest.fn().mockResolvedValue(2),
       update: jest.fn(),
     },
   };
@@ -51,19 +66,16 @@ describe('AdminUserService', () => {
 
     service = module.get<AdminUserService>(AdminUserService);
     jest.clearAllMocks();
+    mockPrisma.user.findMany.mockResolvedValue(mockUsers);
+    mockPrisma.user.count.mockResolvedValue(2);
   });
 
   describe('listUsers', () => {
-    it('should return all users mapped to AdminUserDto', async () => {
-      mockPrisma.user.findMany.mockResolvedValue(mockUsers);
+    it('should return users mapped to AdminUserDto', async () => {
+      const { items } = await service.listUsers(query());
 
-      const result = await service.listUsers();
-
-      expect(mockPrisma.user.findMany).toHaveBeenCalledWith({
-        orderBy: { createdAt: 'desc' },
-      });
-      expect(result).toHaveLength(2);
-      expect(result[0]).toEqual({
+      expect(items).toHaveLength(2);
+      expect(items[0]).toEqual({
         id: 'user-1',
         spotifyUserId: 'spotify-1',
         displayName: 'Alice',
@@ -74,16 +86,90 @@ describe('AdminUserService', () => {
         updatedAt: mockUsers[0].updatedAt,
       });
       // Sensitive fields should not be present
-      expect(result[0]).not.toHaveProperty('encryptedRefreshToken');
-      expect(result[0]).not.toHaveProperty('streakFreezes');
+      expect(items[0]).not.toHaveProperty('encryptedRefreshToken');
+      expect(items[0]).not.toHaveProperty('streakFreezes');
     });
 
     it('should return avatarUrl as undefined when null', async () => {
-      mockPrisma.user.findMany.mockResolvedValue(mockUsers);
+      const { items } = await service.listUsers(query());
 
-      const result = await service.listUsers();
+      expect(items[1].avatarUrl).toBeUndefined();
+    });
 
-      expect(result[1].avatarUrl).toBeUndefined();
+    it('asks the database for one page', async () => {
+      await service.listUsers(query({ page: 3, limit: 25 }));
+
+      expect(mockPrisma.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ skip: 50, take: 25 }),
+      );
+    });
+
+    it('sorts by the requested column and direction', async () => {
+      await service.listUsers(
+        query({
+          sortBy: AdminUserSortField.DisplayName,
+          sortOrder: SortOrder.Asc,
+        }),
+      );
+
+      expect(mockPrisma.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ orderBy: { displayName: 'asc' } }),
+      );
+    });
+
+    it('searches the display name without regard to case', async () => {
+      await service.listUsers(query({ search: 'ali' }));
+
+      expect(mockPrisma.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { displayName: { contains: 'ali', mode: 'insensitive' } },
+        }),
+      );
+    });
+
+    // Otherwise the pager reports the size of the page it is on.
+    it('counts everything the search matched, not the page', async () => {
+      mockPrisma.user.count.mockResolvedValue(42);
+
+      const { meta } = await service.listUsers(query({ search: 'a' }));
+
+      expect(mockPrisma.user.count).toHaveBeenCalledWith({
+        where: { displayName: { contains: 'a', mode: 'insensitive' } },
+      });
+      expect(meta.totalItems).toBe(42);
+      expect(meta.totalPages).toBe(5);
+    });
+  });
+
+  describe('role filters', () => {
+    it('keeps only the trusted when asked', async () => {
+      await service.listUsers(query({ isTrusted: true }));
+
+      expect(mockPrisma.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { isTrusted: true } }),
+      );
+    });
+
+    it('combines a role filter with a search', async () => {
+      await service.listUsers(query({ isAdmin: true, search: 'bo' }));
+
+      expect(mockPrisma.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            displayName: { contains: 'bo', mode: 'insensitive' },
+            isAdmin: true,
+          },
+        }),
+      );
+    });
+
+    // Absent means every user, not the ones without the role.
+    it('does not filter when no role is asked for', async () => {
+      await service.listUsers(query());
+
+      expect(mockPrisma.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: {} }),
+      );
     });
   });
 

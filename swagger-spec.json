@@ -1278,17 +1278,89 @@
     "/admin/users": {
       "get": {
         "operationId": "AdminController_listUsers",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Match against the display name",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isTrusted",
+            "required": false,
+            "in": "query",
+            "description": "Keep only users with the trusted role",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "isAdmin",
+            "required": false,
+            "in": "query",
+            "description": "Keep only users with the admin role",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "createdAt",
+              "enum": [
+                "displayName",
+                "createdAt"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AdminUserDto"
-                  }
+                  "$ref": "#/components/schemas/AdminUsersPageDto"
                 }
               }
             }
@@ -1299,7 +1371,7 @@
             "cookie": []
           }
         ],
-        "summary": "List all users",
+        "summary": "List users, paged",
         "tags": [
           "Api"
         ]
@@ -3749,6 +3821,24 @@
           "isAdmin",
           "createdAt",
           "updatedAt"
+        ]
+      },
+      "AdminUsersPageDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminUserDto"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMetaDto"
+          }
+        },
+        "required": [
+          "items",
+          "meta"
         ]
       },
       "UpdateUserRoleDto": {

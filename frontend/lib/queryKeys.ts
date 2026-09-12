@@ -68,6 +68,8 @@ export const queryKeys = {
     all: ['admin'] as const,
     streakQuestions: ['admin', 'streakQuestions'] as const,
     users: ['admin', 'users'] as const,
+    // Prefix-shares with users above, so invalidating that clears every page.
+    usersList: (params: object) => ['admin', 'users', params] as const,
   },
   // Multiplayer queries
   multiplayer: {
