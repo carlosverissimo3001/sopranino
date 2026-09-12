@@ -1,17 +1,7 @@
 import { redirect } from 'next/navigation';
-import { getServerUser } from '@/lib/auth-server';
-import { AdminDashboard } from './AdminDashboard';
+import { ADMIN_SECTIONS } from './sections';
 
-export default async function AdminPage() {
-  const user = await getServerUser();
-
-  if (!user?.isAdmin) {
-    redirect('/');
-  }
-
-  return (
-    <main className="min-h-screen p-4 md:p-6">
-      <AdminDashboard />
-    </main>
-  );
+// The first section, rather than a third page to keep in step with the others.
+export default function AdminPage() {
+  redirect(ADMIN_SECTIONS[0].href);
 }
