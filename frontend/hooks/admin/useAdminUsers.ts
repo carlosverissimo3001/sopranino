@@ -1,13 +1,17 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queryKeys';
 import { api } from '@/sdk/client';
-import type { AdminUserDto } from '@/sdk';
+import type { AdminUsersPageDto } from '@/sdk';
+import type { AdminControllerListUsersRequest } from '@/sdk/apis/ApiApi';
 
-export function useAdminUsers() {
-  return useQuery<AdminUserDto[]>({
-    queryKey: queryKeys.admin.users,
-    queryFn: () => api.adminControllerListUsers(),
+export function useAdminUsers(params: AdminControllerListUsersRequest) {
+  return useQuery<AdminUsersPageDto>({
+    queryKey: queryKeys.admin.usersList(params),
+    queryFn: () => api.adminControllerListUsers(params),
+    // The previous page stays on screen while the next one loads, so paging
+    // does not collapse the list to a spinner and back.
+    placeholderData: keepPreviousData,
   });
 }

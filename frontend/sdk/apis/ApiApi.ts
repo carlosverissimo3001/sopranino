@@ -16,6 +16,7 @@
 import * as runtime from '../runtime';
 import type {
   AdminUserDto,
+  AdminUsersPageDto,
   AuthMeResponseDto,
   ChangePasswordDto,
   ConfirmEmailDto,
@@ -69,6 +70,8 @@ import type {
 import {
     AdminUserDtoFromJSON,
     AdminUserDtoToJSON,
+    AdminUsersPageDtoFromJSON,
+    AdminUsersPageDtoToJSON,
     AuthMeResponseDtoFromJSON,
     AuthMeResponseDtoToJSON,
     ChangePasswordDtoFromJSON,
@@ -175,6 +178,16 @@ export interface AdminControllerCreateStreakQuestionRequest {
 
 export interface AdminControllerDeleteStreakQuestionRequest {
     id: string;
+}
+
+export interface AdminControllerListUsersRequest {
+    page?: number;
+    limit?: number;
+    search?: string;
+    isTrusted?: boolean;
+    isAdmin?: boolean;
+    sortBy?: AdminControllerListUsersSortByEnum;
+    sortOrder?: AdminControllerListUsersSortOrderEnum;
 }
 
 export interface AdminControllerUpdateStreakQuestionRequest {
@@ -489,10 +502,38 @@ export class ApiApi extends runtime.BaseAPI {
     }
 
     /**
-     * List all users
+     * List users, paged
      */
-    async adminControllerListUsersRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<AdminUserDto>>> {
+    async adminControllerListUsersRaw(requestParameters: AdminControllerListUsersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AdminUsersPageDto>> {
         const queryParameters: any = {};
+
+        if (requestParameters['page'] != null) {
+            queryParameters['page'] = requestParameters['page'];
+        }
+
+        if (requestParameters['limit'] != null) {
+            queryParameters['limit'] = requestParameters['limit'];
+        }
+
+        if (requestParameters['search'] != null) {
+            queryParameters['search'] = requestParameters['search'];
+        }
+
+        if (requestParameters['isTrusted'] != null) {
+            queryParameters['isTrusted'] = requestParameters['isTrusted'];
+        }
+
+        if (requestParameters['isAdmin'] != null) {
+            queryParameters['isAdmin'] = requestParameters['isAdmin'];
+        }
+
+        if (requestParameters['sortBy'] != null) {
+            queryParameters['sortBy'] = requestParameters['sortBy'];
+        }
+
+        if (requestParameters['sortOrder'] != null) {
+            queryParameters['sortOrder'] = requestParameters['sortOrder'];
+        }
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -506,14 +547,14 @@ export class ApiApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(AdminUserDtoFromJSON));
+        return new runtime.JSONApiResponse(response, (jsonValue) => AdminUsersPageDtoFromJSON(jsonValue));
     }
 
     /**
-     * List all users
+     * List users, paged
      */
-    async adminControllerListUsers(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<AdminUserDto>> {
-        const response = await this.adminControllerListUsersRaw(initOverrides);
+    async adminControllerListUsers(requestParameters: AdminControllerListUsersRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminUsersPageDto> {
+        const response = await this.adminControllerListUsersRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -2682,6 +2723,22 @@ export class ApiApi extends runtime.BaseAPI {
 
 }
 
+/**
+ * @export
+ */
+export const AdminControllerListUsersSortByEnum = {
+    DisplayName: 'displayName',
+    CreatedAt: 'createdAt'
+} as const;
+export type AdminControllerListUsersSortByEnum = typeof AdminControllerListUsersSortByEnum[keyof typeof AdminControllerListUsersSortByEnum];
+/**
+ * @export
+ */
+export const AdminControllerListUsersSortOrderEnum = {
+    Asc: 'asc',
+    Desc: 'desc'
+} as const;
+export type AdminControllerListUsersSortOrderEnum = typeof AdminControllerListUsersSortOrderEnum[keyof typeof AdminControllerListUsersSortOrderEnum];
 /**
  * @export
  */

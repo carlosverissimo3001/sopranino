@@ -7,7 +7,7 @@ All URIs are relative to *http://localhost*
 | [**adminControllerCreateStreakQuestion**](ApiApi.md#admincontrollercreatestreakquestion) | **POST** /admin/streak-questions | Create a streak quiz question |
 | [**adminControllerDeleteStreakQuestion**](ApiApi.md#admincontrollerdeletestreakquestion) | **DELETE** /admin/streak-questions/{id} | Soft-delete a streak quiz question |
 | [**adminControllerListStreakQuestions**](ApiApi.md#admincontrollerliststreakquestions) | **GET** /admin/streak-questions | List all streak quiz questions |
-| [**adminControllerListUsers**](ApiApi.md#admincontrollerlistusers) | **GET** /admin/users | List all users |
+| [**adminControllerListUsers**](ApiApi.md#admincontrollerlistusers) | **GET** /admin/users | List users, paged |
 | [**adminControllerUpdateStreakQuestion**](ApiApi.md#admincontrollerupdatestreakquestion) | **PATCH** /admin/streak-questions/{id} | Update a streak quiz question |
 | [**adminControllerUpdateUserRole**](ApiApi.md#admincontrollerupdateuserrole) | **PATCH** /admin/users/{id} | Update user role flags |
 | [**authControllerCallback**](ApiApi.md#authcontrollercallback) | **GET** /auth/callback | Handle Spotify OAuth callback |
@@ -268,9 +268,9 @@ This endpoint does not need any parameter.
 
 ## adminControllerListUsers
 
-> Array&lt;AdminUserDto&gt; adminControllerListUsers()
+> AdminUsersPageDto adminControllerListUsers(page, limit, search, isTrusted, isAdmin, sortBy, sortOrder)
 
-List all users
+List users, paged
 
 ### Example
 
@@ -289,8 +289,25 @@ async function example() {
   });
   const api = new ApiApi(config);
 
+  const body = {
+    // number (optional)
+    page: 8.14,
+    // number (optional)
+    limit: 8.14,
+    // string | Match against the display name (optional)
+    search: search_example,
+    // boolean | Keep only users with the trusted role (optional)
+    isTrusted: true,
+    // boolean | Keep only users with the admin role (optional)
+    isAdmin: true,
+    // 'displayName' | 'createdAt' (optional)
+    sortBy: sortBy_example,
+    // 'asc' | 'desc' (optional)
+    sortOrder: sortOrder_example,
+  } satisfies AdminControllerListUsersRequest;
+
   try {
-    const data = await api.adminControllerListUsers();
+    const data = await api.adminControllerListUsers(body);
     console.log(data);
   } catch (error) {
     console.error(error);
@@ -303,11 +320,20 @@ example().catch(console.error);
 
 ### Parameters
 
-This endpoint does not need any parameter.
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **page** | `number` |  | [Optional] [Defaults to `1`] |
+| **limit** | `number` |  | [Optional] [Defaults to `10`] |
+| **search** | `string` | Match against the display name | [Optional] [Defaults to `undefined`] |
+| **isTrusted** | `boolean` | Keep only users with the trusted role | [Optional] [Defaults to `undefined`] |
+| **isAdmin** | `boolean` | Keep only users with the admin role | [Optional] [Defaults to `undefined`] |
+| **sortBy** | `displayName`, `createdAt` |  | [Optional] [Defaults to `&#39;createdAt&#39;`] [Enum: displayName, createdAt] |
+| **sortOrder** | `asc`, `desc` |  | [Optional] [Defaults to `&#39;desc&#39;`] [Enum: asc, desc] |
 
 ### Return type
 
-[**Array&lt;AdminUserDto&gt;**](AdminUserDto.md)
+[**AdminUsersPageDto**](AdminUsersPageDto.md)
 
 ### Authorization
 

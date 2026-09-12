@@ -2,6 +2,7 @@
 /* eslint-disable */
 export * from './ActualTrackDto';
 export * from './AdminUserDto';
+export * from './AdminUsersPageDto';
 export * from './AuthMeResponseDto';
 export * from './ChangePasswordDto';
 export * from './ConfirmEmailDto';

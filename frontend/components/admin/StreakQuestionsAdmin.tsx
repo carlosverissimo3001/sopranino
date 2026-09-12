@@ -204,7 +204,7 @@ export function StreakQuestionsAdmin() {
             variant="spotify"
             size="sm"
             onClick={() => setCreateOpen(true)}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 rounded-full"
           >
             <Plus className="w-4 h-4" /> Add Question
           </Button>
