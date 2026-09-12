@@ -7,6 +7,7 @@ import {
   ArrowUp,
   Check,
   Loader2,
+  Plus,
   Search,
   Users,
   X,
@@ -282,7 +283,7 @@ export function UsersAdmin() {
                   users.map((user) => (
                     <tr
                       key={user.id}
-                      className="border-b border-fg/[0.06] last:border-0 hover:bg-fg/[0.03]"
+                      className="group border-b border-fg/[0.06] last:border-0 hover:bg-fg/[0.03]"
                     >
                       <td className="px-3 py-2.5">
                         <div className="flex items-center gap-3">
@@ -392,8 +393,8 @@ function FilterChip({
 }
 
 /**
- * The state is the control. A row holding the role reads as filled and one
- * without it as a dash, so the column can be scanned rather than read.
+ * The state is the control. Only a row holding the role draws anything, so the
+ * column reads as the few users who have it; the rest surface on hover.
  */
 function RoleToggle({
   on,
@@ -423,10 +424,10 @@ function RoleToggle({
       title={label}
       aria-label={label}
       aria-pressed={on}
-      className={`inline-flex h-7 w-7 items-center justify-center rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+      className={`inline-flex h-7 w-7 items-center justify-center rounded-full transition disabled:cursor-not-allowed disabled:opacity-40 ${
         on
           ? `ring-1 ${onClasses}`
-          : 'text-fg/20 hover:bg-fg/5 hover:text-fg/50 hover:ring-1 hover:ring-fg/15'
+          : 'text-fg/30 opacity-0 ring-1 ring-inset ring-fg/15 group-hover:opacity-100 hover:bg-fg/5 hover:text-fg/60 focus-visible:opacity-100'
       }`}
     >
       {busy ? (
@@ -434,7 +435,7 @@ function RoleToggle({
       ) : on ? (
         <Check className="h-3.5 w-3.5" strokeWidth={3} />
       ) : (
-        <span className="h-px w-2.5 rounded-full bg-current" />
+        <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
       )}
     </button>
   );
