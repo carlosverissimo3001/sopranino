@@ -1,8 +1,5 @@
-/** Signs every webhook Resend sends; from the webhook's page in the dashboard. */
 export const RESEND_WEBHOOK_SECRET = 'RESEND_WEBHOOK_SECRET';
-/** Comma-separated addresses whose mail is forwarded; the rest is ignored. */
 export const INBOUND_ADDRESSES = 'INBOUND_ADDRESSES';
-/** The inbox forwarded mail goes to. */
 export const INBOUND_FORWARD_TO = 'INBOUND_FORWARD_TO';
 
 export const RESEND_CLIENT = Symbol('RESEND_CLIENT');

@@ -130,7 +130,7 @@ describe('InboundMailService', () => {
         from: 'sopranino <noreply@mail.sopranino.app>',
         to: 'inbox@example.com',
         replyTo: 'Player <player@example.com>',
-        subject: '[support@mail.sopranino.app] The round will not load',
+        subject: 'The round will not load',
         html: '<p>It spins forever</p>',
         text: 'It spins forever',
       }),
