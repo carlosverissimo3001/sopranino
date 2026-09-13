@@ -14,7 +14,8 @@ export class GetFeedbackDto extends PaginationQueryDto {
 
   @ApiPropertyOptional({ description: 'Only resolved, or only open, reports' })
   @IsNotNullableOptional()
-  @Transform(({ value }) => toBoolean(value))
+  // The raw value: implicit conversion has already turned "false" into true.
+  @Transform(({ obj }) => toBoolean(obj.resolved))
   @IsBoolean()
   resolved?: boolean;
 }

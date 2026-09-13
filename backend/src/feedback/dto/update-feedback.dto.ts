@@ -5,7 +5,7 @@ import { toBoolean } from '@utils/transformers/toBoolean.transform';
 
 export class UpdateFeedbackDto {
   @ApiProperty({ description: 'Resolved, or reopened' })
-  @Transform(({ value }) => toBoolean(value))
+  @Transform(({ obj }) => toBoolean(obj.resolved))
   @IsBoolean()
   resolved: boolean;
 }
