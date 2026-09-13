@@ -44,6 +44,41 @@ describe('PoolService', () => {
     expect(tracks.findById).toHaveBeenCalledWith('dz:1');
   });
 
+  describe('famousOnly', () => {
+    const pool = [
+      candidate('dz:famous-1', 900),
+      candidate('dz:famous-2', 800),
+      ...Array.from({ length: 6 }, (_, i) => candidate(`dz:deep-${i}`, 1)),
+    ];
+
+    beforeEach(() => {
+      poolTracks.findCandidates.mockResolvedValue(pool);
+      tracks.findById.mockImplementation((id: string) =>
+        Promise.resolve({ id }),
+      );
+    });
+
+    it('draws only from the most famous quarter', async () => {
+      for (let i = 0; i < 20; i++) {
+        const track = await service.pickTrack([], undefined, {
+          famousOnly: true,
+        });
+        expect(track.id).toMatch(/^dz:famous-/);
+      }
+    });
+
+    // A famous track whose audio would not resolve must not fail the round.
+    it('falls back to the whole list once the famous end is used up', async () => {
+      const track = await service.pickTrack(
+        ['dz:famous-1', 'dz:famous-2'],
+        undefined,
+        { famousOnly: true },
+      );
+
+      expect(track.id).toMatch(/^dz:deep-/);
+    });
+  });
+
   it('reads the candidate list once across repeated picks', async () => {
     await service.pickTrack();
     await service.pickTrack();
