@@ -222,8 +222,12 @@ export class GameService {
     mode: GameMode,
     trackGroupId?: string,
   ): Promise<GameStateDto> {
-    const { track, previewUrl } =
-      await this.pickPoolTrackWithPreview(trackGroupId);
+    const famousOnly =
+      !(await this.gameSessionRepository.hasFinishedGame(userId));
+    const { track, previewUrl } = await this.pickPoolTrackWithPreview(
+      trackGroupId,
+      famousOnly,
+    );
 
     const game = await this.gameSessionRepository.createSession({
       user: { connect: { id: userId } },
@@ -246,14 +250,19 @@ export class GameService {
    * is resolved per round. A track that resolves to nothing is set aside and
    * another drawn, rather than failing the round.
    */
-  private async pickPoolTrackWithPreview(trackGroupId?: string): Promise<{
+  private async pickPoolTrackWithPreview(
+    trackGroupId?: string,
+    famousOnly = false,
+  ): Promise<{
     track: TrackEntity;
     previewUrl: string;
   }> {
     const tried: string[] = [];
 
     for (let i = 0; i < POOL_MAX_PREVIEW_ATTEMPTS; i++) {
-      const track = await this.poolService.pickTrack(tried, trackGroupId);
+      const track = await this.poolService.pickTrack(tried, trackGroupId, {
+        famousOnly,
+      });
       try {
         const previewUrl = await this.trackService.resolvePreview(track);
         if (previewUrl) {

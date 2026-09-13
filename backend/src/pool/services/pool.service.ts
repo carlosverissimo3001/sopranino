@@ -5,7 +5,11 @@ import {
   PoolCandidate,
   PoolTrackRepository,
 } from '../repositories/pool-track.repository';
-import { POOL_CANDIDATE_CACHE_MS } from '../../consts';
+import {
+  FIRST_GAME_FAME_SHARE,
+  POOL_CANDIDATE_CACHE_MS,
+} from '../../consts';
+import { mostFamous } from '../utils/most-famous';
 import { weightedPick } from '../utils/weighted-pick';
 
 @Injectable()
@@ -32,9 +36,15 @@ export class PoolService {
   async pickTrack(
     excludeIds: string[] = [],
     trackGroupId?: string,
+    { famousOnly = false }: { famousOnly?: boolean } = {},
   ): Promise<TrackEntity> {
     const candidates = await this.getCandidates(trackGroupId);
-    const id = weightedPick(candidates, new Set(excludeIds));
+    const exclude = new Set(excludeIds);
+    // Falls back to the whole list once every famous candidate has been tried.
+    const id =
+      (famousOnly &&
+        weightedPick(mostFamous(candidates, FIRST_GAME_FAME_SHARE), exclude)) ||
+      weightedPick(candidates, exclude);
     if (!id) {
       throw new NotFoundException(
         trackGroupId

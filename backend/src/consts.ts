@@ -85,6 +85,8 @@ export const POOL_PLAYLIST_TRACKS_CACHE_PREFIX = 'pool:playlist_tracks:';
 export const POOL_PLAYLIST_TRACKS_CACHE_TTL = 6 * 60 * 60;
 
 export const POOL_MAX_PREVIEW_ATTEMPTS = 10;
+/** A first game draws from this share of a pool or group, most famous first. */
+export const FIRST_GAME_FAME_SHARE = 0.25;
 
 // Multiplayer room state (Redis-backed so it survives a restart and is shared across instances)
 export const ROOM_PRESENCE_PREFIX = 'room:presence:';

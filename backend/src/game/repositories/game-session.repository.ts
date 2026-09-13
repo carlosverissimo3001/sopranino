@@ -129,6 +129,17 @@ export class GameSessionRepository {
    * filter, which quietly turned this into "any active round in this mode" and
    * handed a player the round they left open somewhere else.
    */
+  async hasFinishedGame(userId: string): Promise<boolean> {
+    const finished = await this.prisma.gameSession.findFirst({
+      where: {
+        userId,
+        status: { in: [GameStatus.WON, GameStatus.LOST] },
+      },
+      select: { id: true },
+    });
+    return finished !== null;
+  }
+
   async findActiveSession(
     userId: string,
     mode: GameMode,

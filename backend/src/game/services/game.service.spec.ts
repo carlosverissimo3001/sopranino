@@ -78,6 +78,7 @@ describe('GameService', () => {
     findActiveSession: jest.fn(),
     findTodayDailySession: jest.fn(),
     createSession: jest.fn(),
+    hasFinishedGame: jest.fn().mockResolvedValue(true),
   };
 
   const mockTrackRepository = {};
@@ -538,6 +539,7 @@ describe('GameService', () => {
       expect(mockPoolService.pickTrack).toHaveBeenLastCalledWith(
         ['pool-1'],
         undefined,
+        { famousOnly: false },
       );
     });
 
@@ -561,6 +563,7 @@ describe('GameService', () => {
       expect(mockPoolService.pickTrack).toHaveBeenCalledWith(
         [],
         'group-eighties',
+        { famousOnly: false },
       );
     });
   });
@@ -624,6 +627,33 @@ describe('GameService', () => {
       expect(mockTrackService.enrichInBackground).toHaveBeenCalledWith(
         expect.objectContaining({ id: 'pool-1' }),
       );
+    });
+
+    it("draws a new player's first round from the famous end", async () => {
+      mockGameSessionRepository.hasFinishedGame.mockResolvedValueOnce(false);
+
+      await service.startGame(OWNER_SESSION_ID, {
+        trackGroupId: GROUP_A,
+        mode: GameMode.ALL,
+      });
+
+      expect(mockGameSessionRepository.hasFinishedGame).toHaveBeenCalledWith(
+        OWNER_USER_ID,
+      );
+      expect(mockPoolService.pickTrack).toHaveBeenCalledWith([], GROUP_A, {
+        famousOnly: true,
+      });
+    });
+
+    it('draws a returning player from the whole group', async () => {
+      await service.startGame(OWNER_SESSION_ID, {
+        trackGroupId: GROUP_A,
+        mode: GameMode.ALL,
+      });
+
+      expect(mockPoolService.pickTrack).toHaveBeenCalledWith([], GROUP_A, {
+        famousOnly: false,
+      });
     });
 
     it('records the group a round drew from', async () => {
