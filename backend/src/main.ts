@@ -10,7 +10,11 @@ import { RedisIoAdapter } from './redis/redis-io.adapter';
 declare const module: any;
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  // rawBody keeps the request bytes beside the parsed JSON, for webhook
+  // signatures; parsing is unchanged.
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    rawBody: true,
+  });
   app.set('trust proxy', 1);
 
   app.use(cookieParser());
