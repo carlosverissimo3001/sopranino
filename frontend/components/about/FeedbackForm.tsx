@@ -113,16 +113,20 @@ export function FeedbackForm() {
         />
       </label>
 
-      {/* Out of sight and out of the tab order; only bots fill it. */}
+      {/* Hidden and oddly named: autofill must never fill it, or the report is dropped. */}
       <input
         type="text"
-        name="website"
+        name="hp_field"
         value={website}
         onChange={(e) => setWebsite(e.target.value)}
         tabIndex={-1}
         autoComplete="off"
         aria-hidden
-        className="absolute -left-[9999px] h-px w-px opacity-0"
+        data-1p-ignore
+        data-lpignore="true"
+        data-bwignore
+        data-form-type="other"
+        className="hidden"
       />
 
       <div className="flex items-center justify-between gap-3">
