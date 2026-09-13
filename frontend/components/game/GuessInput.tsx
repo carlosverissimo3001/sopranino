@@ -1,6 +1,7 @@
 'use client';
 
 import { formatSeconds } from '@/lib/snippet-timeline';
+import { useIsBelowSm } from '@/hooks/useIsBelowSm';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Search, X, Disc3 } from 'lucide-react';
@@ -39,6 +40,8 @@ interface GuessInputProps {
   nextSnippetDuration?: number;
   /** The last round's four options, shown in place of search. */
   choices?: TrackOptionDto[];
+  /** Pinned to the bottom on a phone, so results open upwards there. */
+  pinned?: boolean;
 }
 
 interface TrackRowProps {
@@ -93,7 +96,9 @@ export function GuessInput({
   gameMode,
   nextSnippetDuration,
   choices,
+  pinned = false,
 }: GuessInputProps) {
+  const isBelowSm = useIsBelowSm();
   const givesUp = gameMode === GameMode.Gauntlet || !nextSnippetDuration;
   const {
     searchQuery,
@@ -222,7 +227,7 @@ export function GuessInput({
               boxShadow:
                 '0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgb(var(--fg) / 0.06)',
             }}
-            side="bottom"
+            side={pinned && isBelowSm ? 'top' : 'bottom'}
             avoidCollisions={false}
             align="start"
             sideOffset={8}

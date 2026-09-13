@@ -20,9 +20,9 @@ export function GameTitle({
 }: GameTitleProps) {
   if (mode === GameMode.All) {
     return (
-      <div className="text-center mb-4 md:mb-6">
+      <div className="text-center mb-3 sm:mb-4 md:mb-6">
         <h1
-          className="text-2xl md:text-3xl font-bold tracking-tight text-fg"
+          className={`${heading ? '' : 'hidden sm:block '}text-2xl md:text-3xl font-bold tracking-tight text-fg`}
           style={{
             letterSpacing: '-0.02em',
             textShadow: '0 2px 20px rgba(0,0,0,0.3)',
@@ -38,9 +38,9 @@ export function GameTitle({
   }
 
   return (
-    <div className="text-center mb-4 md:mb-6">
+    <div className="text-center mb-3 sm:mb-4 md:mb-6">
       <h1
-        className="text-2xl md:text-3xl font-bold mb-2 tracking-tight text-fg"
+        className="hidden sm:block text-2xl md:text-3xl font-bold mb-2 tracking-tight text-fg"
         style={{
           letterSpacing: '-0.02em',
           textShadow: '0 2px 20px rgba(0,0,0,0.3)',
