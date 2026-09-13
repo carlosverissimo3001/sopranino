@@ -60,8 +60,7 @@ export class InboundMailService {
     }
 
     const allowed = this.allowedAddresses();
-    const recipient = event.data.to.find((to) => allowed.has(addressOf(to)));
-    if (!recipient) {
+    if (!event.data.to.some((to) => allowed.has(addressOf(to)))) {
       return 'ignored-recipient';
     }
 
@@ -73,7 +72,7 @@ export class InboundMailService {
       return 'over-daily-limit';
     }
 
-    await this.forward({ emailId, recipient, forwardTo });
+    await this.forward({ emailId, forwardTo });
     return 'forwarded';
   }
 
@@ -98,11 +97,9 @@ export class InboundMailService {
 
   private async forward({
     emailId,
-    recipient,
     forwardTo,
   }: {
     emailId: string;
-    recipient: string;
     forwardTo: string;
   }): Promise<void> {
     const client = this.resend!;
@@ -122,7 +119,7 @@ export class InboundMailService {
         to: forwardTo,
         // So a reply from the inbox goes to whoever wrote, not back to us.
         replyTo: email.reply_to?.[0] ?? email.from,
-        subject: `[${addressOf(recipient)}] ${oneLine(email.subject) || '(no subject)'}`,
+        subject: oneLine(email.subject) || '(no subject)',
         ...(email.html ? { html: email.html } : {}),
         text: email.text ?? '',
         attachments: attachments.map((attachment) => ({
