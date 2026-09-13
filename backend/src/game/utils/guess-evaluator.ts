@@ -96,6 +96,7 @@ export function addGuessToHistory(
     trackName,
     artistName,
     result,
+    ...(guess.audio && { audio: guess.audio }),
   });
 
   return history;

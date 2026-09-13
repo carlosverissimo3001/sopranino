@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
+import type { GuessAudioDto } from './GuessAudioDto';
+import {
+    GuessAudioDtoFromJSON,
+    GuessAudioDtoFromJSONTyped,
+    GuessAudioDtoToJSON,
+    GuessAudioDtoToJSONTyped,
+} from './GuessAudioDto';
+
 /**
  * 
  * @export
@@ -55,6 +63,12 @@ export interface GuessDto {
      * @memberof GuessDto
      */
     albumName?: string;
+    /**
+     * 
+     * @type {GuessAudioDto}
+     * @memberof GuessDto
+     */
+    audio?: GuessAudioDto;
 }
 
 /**
@@ -80,6 +94,7 @@ export function GuessDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean): 
         'artistName': json['artistName'] == null ? undefined : json['artistName'],
         'isrc': json['isrc'] == null ? undefined : json['isrc'],
         'albumName': json['albumName'] == null ? undefined : json['albumName'],
+        'audio': json['audio'] == null ? undefined : GuessAudioDtoFromJSON(json['audio']),
     };
 }
 
@@ -100,6 +115,7 @@ export function GuessDtoToJSONTyped(value?: GuessDto | null, ignoreDiscriminator
         'artistName': value['artistName'],
         'isrc': value['isrc'],
         'albumName': value['albumName'],
+        'audio': GuessAudioDtoToJSON(value['audio']),
     };
 }
 

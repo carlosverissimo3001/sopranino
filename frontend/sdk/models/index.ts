@@ -27,6 +27,7 @@ export * from './GauntletLeaderboardDto';
 export * from './GauntletLeaderboardEntryDto';
 export * from './GauntletRunStateDto';
 export * from './GauntletUserLeaderboardEntryDto';
+export * from './GuessAudioDto';
 export * from './GuessDemoDto';
 export * from './GuessDto';
 export * from './GuessHistoryDto';

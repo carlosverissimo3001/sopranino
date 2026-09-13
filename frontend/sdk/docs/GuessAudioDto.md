@@ -1,30 +1,30 @@
 
-# GuessHistoryDto
+# GuessAudioDto
 
 
 ## Properties
 
 Name | Type
 ------------ | -------------
-`trackId` | string
-`trackName` | string
-`artistName` | string
-`result` | string
-`audio` | [GuessAudioDto](GuessAudioDto.md)
+`played` | boolean
+`path` | string
+`contextState` | string
+`sessionHeld` | boolean
+`userAgent` | string
 
 ## Example
 
 ```typescript
-import type { GuessHistoryDto } from ''
+import type { GuessAudioDto } from ''
 
 // TODO: Update the object below with actual values
 const example = {
-  "trackId": null,
-  "trackName": null,
-  "artistName": null,
-  "result": null,
-  "audio": null,
-} satisfies GuessHistoryDto
+  "played": null,
+  "path": null,
+  "contextState": null,
+  "sessionHeld": null,
+  "userAgent": null,
+} satisfies GuessAudioDto
 
 console.log(example)
 
@@ -33,7 +33,7 @@ const exampleJSON: string = JSON.stringify(example)
 console.log(exampleJSON)
 
 // Parse the JSON string back to an object
-const exampleParsed = JSON.parse(exampleJSON) as GuessHistoryDto
+const exampleParsed = JSON.parse(exampleJSON) as GuessAudioDto
 console.log(exampleParsed)
 ```
 
