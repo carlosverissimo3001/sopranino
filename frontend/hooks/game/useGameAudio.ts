@@ -1,9 +1,16 @@
 'use client';
 
 import { useRef, useState, useEffect, useCallback, useMemo } from 'react';
-import { primeAudioContextOnFirstGesture } from '@/lib/audio-context';
+import {
+  peekAudioContextState,
+  primeAudioContextOnFirstGesture,
+} from '@/lib/audio-context';
 import { logAudio } from '@/lib/audio-debug';
-import { holdAudioSession } from '@/lib/audio-session';
+import { holdAudioSession, isAudioSessionHeld } from '@/lib/audio-session';
+import {
+  GuessAudioDtoPathEnum as SnippetPath,
+  type GuessAudioDto,
+} from '@/sdk';
 import { useMediaSession } from '../useMediaSession';
 import { useSnippetAudio } from './useSnippetAudio';
 
@@ -32,6 +39,12 @@ export function useGameAudio({
   const [isFullSongPlaying, setIsFullSongPlaying] = useState(false);
 
   const requestRef = useRef<number | null>(null);
+
+  // Per round: a new snippet length or a new song starts the count again.
+  const playedPathRef = useRef<SnippetPath | null>(null);
+  useEffect(() => {
+    playedPathRef.current = null;
+  }, [previewUrl, snippetDuration]);
 
   const handleSnippetEnded = useCallback(() => setIsPlaying(false), []);
   const snippet = useSnippetAudio({
@@ -310,15 +323,18 @@ export function useGameAudio({
       holdAudioSession();
       logAudio(`tap: web-audio, ${snippetDuration}s`);
       if (snippet.play(snippetDuration)) {
+        playedPathRef.current = SnippetPath.WebAudio;
         setIsPlaying(true);
         return;
       }
       logAudio('web-audio refused; falling back to element');
       // The context would not run; the element is unaffected by that.
+      playedPathRef.current = SnippetPath.Element;
       playViaElement();
       return;
     }
 
+    playedPathRef.current = SnippetPath.Element;
     playViaElement();
   }, [snippetDuration, previewUrl, snippet, playViaElement]);
 
@@ -446,6 +462,17 @@ export function useGameAudio({
     return () => cleanupReveal?.();
   }, [isGameOver, previewUrl]);
 
+  const getAudioReport = useCallback(
+    (): GuessAudioDto => ({
+      played: playedPathRef.current !== null,
+      path: playedPathRef.current ?? undefined,
+      contextState: peekAudioContextState() ?? undefined,
+      sessionHeld: isAudioSessionHeld(),
+      userAgent: navigator.userAgent,
+    }),
+    [],
+  );
+
   return {
     audioRef,
     fullAudioRef,
@@ -459,5 +486,7 @@ export function useGameAudio({
     pauseSnippet,
     toggleFullSong,
     stopFullSong,
+    /** What the device was doing, sent with each guess for CAR-253's audit. */
+    getAudioReport,
   };
 }

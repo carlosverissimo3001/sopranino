@@ -9,6 +9,7 @@ import type {
   GuessDto,
   GameStateDto,
   GuessHistoryDto,
+  GuessAudioDto,
 } from '@/sdk';
 import { GuessHistoryDtoResultEnum } from '@/sdk/models/GuessHistoryDto';
 
@@ -20,6 +21,7 @@ interface SubmitGuessParams {
   artistName?: string;
   albumName?: string;
   isrc?: string;
+  audio?: GuessAudioDto;
 }
 
 /**
@@ -43,6 +45,7 @@ export function useSubmitGuess() {
       artistName,
       albumName,
       isrc,
+      audio,
     }) => {
       const guessDto: GuessDto = {
         trackId: trackId || undefined,
@@ -51,6 +54,7 @@ export function useSubmitGuess() {
         artistName,
         albumName,
         isrc,
+        audio,
       };
       return api.gameControllerSubmitGuess({ id: sessionId, guessDto });
     },

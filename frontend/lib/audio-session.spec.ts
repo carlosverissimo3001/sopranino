@@ -10,6 +10,7 @@ interface FakeAudio {
   pause: jest.Mock;
   setAttribute: jest.Mock;
   src: string;
+  paused: boolean;
 }
 
 const made: FakeAudio[] = [];
@@ -23,8 +24,15 @@ function install(playResult: Promise<void> = Promise.resolve()) {
         src,
         loop: false,
         preload: '',
-        play: jest.fn(() => playResult),
-        pause: jest.fn(),
+        paused: true,
+        play: jest.fn(() => {
+          playResult.then(
+            () => (audio.paused = false),
+            () => undefined,
+          );
+          return playResult;
+        }),
+        pause: jest.fn(() => (audio.paused = true)),
         setAttribute: jest.fn(),
       };
       made.push(audio);
@@ -94,5 +102,41 @@ describe('holdAudioSession', () => {
     releaseAudioSession();
 
     expect(made[0].pause).toHaveBeenCalled();
+  });
+});
+
+// Sent with each guess, so the audit can tell a muted round from a hard one.
+describe('isAudioSessionHeld', () => {
+  it('is held once the silent element is playing', async () => {
+    install();
+    jest.resetModules();
+    const { holdAudioSession, isAudioSessionHeld } =
+      await import('./audio-session');
+
+    holdAudioSession();
+    await Promise.resolve();
+
+    expect(isAudioSessionHeld()).toBe(true);
+  });
+
+  it('is not held when the play was refused', async () => {
+    install(Promise.reject(new Error('blocked')));
+    jest.resetModules();
+    const { holdAudioSession, isAudioSessionHeld } =
+      await import('./audio-session');
+
+    holdAudioSession();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(isAudioSessionHeld()).toBe(false);
+  });
+
+  it('is not held before anything asked for it', async () => {
+    install();
+    jest.resetModules();
+    const { isAudioSessionHeld } = await import('./audio-session');
+
+    expect(isAudioSessionHeld()).toBe(false);
   });
 });

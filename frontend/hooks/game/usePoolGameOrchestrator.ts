@@ -57,6 +57,7 @@ export function usePoolGameOrchestrator({
     maxSnippetDuration: gameState?.snippetSteps?.at(-1),
     volume,
   });
+  const { getAudioReport } = gameAudio;
 
   const isLoading = sessionLoading || loadingState;
   const error = sessionError ?? errorState;
@@ -83,15 +84,26 @@ export function usePoolGameOrchestrator({
         artistName: spotifySearch.selectedTrack.artist,
         albumName: spotifySearch.selectedTrack.albumName,
         isrc: spotifySearch.selectedTrack.isrc,
+        audio: getAudioReport(),
       },
       { onSuccess: () => spotifySearch.handleClearSelection() },
     );
-  }, [gameState, submitPending, spotifySearch, submitGuessMutation]);
+  }, [
+    gameState,
+    submitPending,
+    spotifySearch,
+    submitGuessMutation,
+    getAudioReport,
+  ]);
 
   const handleSkip = useCallback(() => {
     if (!gameState || submitPending) return;
-    submitGuessMutation.mutate({ sessionId: gameState.sessionId, skip: true });
-  }, [gameState, submitPending, submitGuessMutation]);
+    submitGuessMutation.mutate({
+      sessionId: gameState.sessionId,
+      skip: true,
+      audio: getAudioReport(),
+    });
+  }, [gameState, submitPending, submitGuessMutation, getAudioReport]);
 
   const handlePlayAgain = useCallback(() => {
     gameAudio.stopFullSong();
