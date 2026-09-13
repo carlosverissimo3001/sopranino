@@ -2803,6 +2803,38 @@
           "mode"
         ]
       },
+      "GuessAudioDto": {
+        "type": "object",
+        "properties": {
+          "played": {
+            "type": "boolean",
+            "description": "Whether the snippet was started this round"
+          },
+          "path": {
+            "type": "string",
+            "description": "How the last snippet was played, when one was",
+            "enum": [
+              "web-audio",
+              "element"
+            ]
+          },
+          "contextState": {
+            "type": "string",
+            "description": "The Web Audio context's state, including WebKit's `interrupted`"
+          },
+          "sessionHeld": {
+            "type": "boolean",
+            "description": "Whether the silent element holding the iOS playback session is playing"
+          },
+          "userAgent": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "played",
+          "sessionHeld"
+        ]
+      },
       "GuessHistoryDto": {
         "type": "object",
         "properties": {
@@ -2829,6 +2861,9 @@
               "SKIP",
               "ARTIST_AND_ALBUM"
             ]
+          },
+          "audio": {
+            "$ref": "#/components/schemas/GuessAudioDto"
           }
         },
         "required": [
@@ -3332,6 +3367,9 @@
           "albumName": {
             "type": "string",
             "description": "Album name"
+          },
+          "audio": {
+            "$ref": "#/components/schemas/GuessAudioDto"
           }
         }
       },

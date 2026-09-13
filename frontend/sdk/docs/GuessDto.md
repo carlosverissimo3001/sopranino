@@ -12,6 +12,7 @@ Name | Type
 `artistName` | string
 `isrc` | string
 `albumName` | string
+`audio` | [GuessAudioDto](GuessAudioDto.md)
 
 ## Example
 
@@ -26,6 +27,7 @@ const example = {
   "artistName": null,
   "isrc": null,
   "albumName": null,
+  "audio": null,
 } satisfies GuessDto
 
 console.log(example)

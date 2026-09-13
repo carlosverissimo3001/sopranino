@@ -1,8 +1,9 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { IsString, ValidateNested } from 'class-validator';
 import { IsNotNullableOptional } from '@utils/decorators/notNullableOptional.decorator';
 import { toBoolean } from '@utils/transformers/toBoolean.transform';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+import { GuessAudioDto } from './guess-audio.dto';
 
 export class GuessDto {
   @ApiPropertyOptional({
@@ -44,4 +45,10 @@ export class GuessDto {
   @IsNotNullableOptional()
   @IsString()
   albumName?: string;
+
+  @ApiPropertyOptional({ type: GuessAudioDto })
+  @IsNotNullableOptional()
+  @ValidateNested()
+  @Type(() => GuessAudioDto)
+  audio?: GuessAudioDto;
 }

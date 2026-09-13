@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { GuessResult } from '../../consts';
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { GuessAudioDto } from './guess-audio.dto';
 
 export class GuessHistoryDto {
   @ApiPropertyOptional({ description: 'The ID of the track', type: String })
@@ -14,4 +15,7 @@ export class GuessHistoryDto {
 
   @ApiProperty({ description: 'The result of the guess', enum: GuessResult })
   result: GuessResult;
+
+  @ApiPropertyOptional({ type: GuessAudioDto })
+  audio?: GuessAudioDto;
 }

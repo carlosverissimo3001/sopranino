@@ -275,6 +275,30 @@ describe('guess-evaluator', () => {
       expect(result[0].result).toBe(GuessResult.Wrong);
     });
 
+    // What the audit reads to tell a silent round from an unknown song.
+    it("keeps the device's audio report with the guess", () => {
+      const audio = {
+        played: false,
+        contextState: 'interrupted',
+        sessionHeld: false,
+      };
+
+      const result = addGuessToHistory([], GuessResult.Skip, track, {
+        skip: true,
+        audio,
+      } as GuessDto);
+
+      expect(result[0].audio).toEqual(audio);
+    });
+
+    it('records no report when the client sent none', () => {
+      const result = addGuessToHistory([], GuessResult.Skip, track, {
+        skip: true,
+      } as GuessDto);
+
+      expect(result[0]).not.toHaveProperty('audio');
+    });
+
     it('should use actual track name on correct guess', () => {
       const result = addGuessToHistory([], GuessResult.Correct, track, {
         trackId: track.id,
