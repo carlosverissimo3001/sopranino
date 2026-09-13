@@ -61,6 +61,7 @@ export function AlbumArtReveal({
           {albumImageUrl && (
             <motion.div
               className="absolute inset-0"
+              initial={false}
               animate={{ filter: `blur(${blur}px)` }}
               transition={{ duration: 0.6, ease: 'easeOut' }}
             >
