@@ -26,7 +26,7 @@ export function HintPanel({ hints, currentRound }: HintPanelProps) {
         className="flex items-center justify-center gap-2 mb-3 sm:mb-4 py-2 text-zinc-500 text-sm"
       >
         <Lightbulb className="w-3.5 h-3.5" />
-        <span>Wrong guesses unlock hints</span>
+        <span>Every guess or skip unlocks a hint</span>
       </motion.div>
     );
   }

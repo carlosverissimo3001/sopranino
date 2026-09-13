@@ -1,5 +1,6 @@
 'use client';
 
+import { formatSeconds } from '@/lib/format-seconds';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Search, X, Disc3 } from 'lucide-react';
@@ -34,6 +35,8 @@ interface GuessInputProps {
   onSubmit: () => void;
   onSkip: () => void;
   submitPending: boolean;
+  /** What skipping buys. Absent on the last round, where skipping gives up. */
+  nextSnippetDuration?: number;
 }
 
 interface TrackRowProps {
@@ -86,7 +89,9 @@ export function GuessInput({
   onSkip,
   submitPending,
   gameMode,
+  nextSnippetDuration,
 }: GuessInputProps) {
+  const givesUp = gameMode === GameMode.Gauntlet || !nextSnippetDuration;
   const {
     searchQuery,
     setSearchQuery,
@@ -241,12 +246,12 @@ export function GuessInput({
           type="button"
           onClick={onSkip}
           disabled={submitPending}
-          aria-label={
-            gameMode === GameMode.Gauntlet ? 'Give up' : 'Skip this round'
-          }
+          aria-label={givesUp ? 'Give up' : 'Skip this round'}
           className="shrink-0 px-5 sm:px-6 rounded-xl border border-fg/15 text-fg/50 hover:text-fg/80 hover:border-fg/25 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors touch-manipulation"
         >
-          {gameMode === GameMode.Gauntlet ? 'Give up' : 'Skip'}
+          {givesUp || !nextSnippetDuration
+            ? 'Give up'
+            : `Skip · ${formatSeconds(nextSnippetDuration)}`}
         </button>
       </div>
     </div>

@@ -1,5 +1,6 @@
 'use client';
 
+import { formatSeconds } from '@/lib/format-seconds';
 import { motion, useTransform, type MotionValue } from 'framer-motion';
 import { getGuessResultStyle } from './guess-result-styles';
 import { GuessHistoryDtoResultEnum } from '@/sdk/models/GuessHistoryDto';
@@ -102,10 +103,6 @@ export function RoundProgressBar({
 
   const ceiling = position(steps[round] ?? longest);
 
-  /** "0.1s" rather than "0.1000000000001s". */
-  const label = (seconds: number) =>
-    `${Number.isInteger(seconds) ? seconds : seconds.toFixed(1)}s`;
-
   return (
     // Same column as the content below, or it reads as a separate element.
     <div className="mx-auto w-full max-w-xl mb-4 sm:mb-6 md:mb-8">
@@ -133,7 +130,7 @@ export function RoundProgressBar({
               }`}
               style={{ left: `${position(step) * 100}%` }}
             >
-              {label(step)}
+              {formatSeconds(step)}
             </span>
           );
         })}
