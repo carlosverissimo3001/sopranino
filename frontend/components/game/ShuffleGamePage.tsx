@@ -280,6 +280,7 @@ export function ShuffleGamePage({ canSignIn }: { canSignIn: boolean }) {
                   nextSnippetDuration={
                     gameState.snippetSteps[gameState.currentRound + 1]
                   }
+                  choices={gameState.choices}
                   gameMode={GameMode.All}
                 />
               </div>
