@@ -210,6 +210,8 @@ export class GameService {
       status: GameStatus.PLAYING,
     });
 
+    this.enrichInBackground(track);
+
     return mapInitialGameState(game.id, previewUrl);
   }
 
@@ -232,6 +234,8 @@ export class GameService {
       guesses: [],
       status: GameStatus.PLAYING,
     });
+
+    this.enrichInBackground(track);
 
     return mapInitialGameState(game.id, previewUrl);
   }
@@ -487,16 +491,36 @@ export class GameService {
     const existing = await this.trackRepository.findById(trackId);
     const meta = existing?.metadata ?? {};
 
-    if (meta.lastfm?.fetchedAt) {
-      const thirtyDaysAgo = subDays(new Date(), 30);
-      if (isAfter(new Date(meta.lastfm.fetchedAt), thirtyDaysAgo)) {
-        return meta;
-      }
+    if (hasFreshLastfm(meta)) {
+      return meta;
     }
 
     const lastfm = await this.lastfmService.getTrackInfo(trackName, artistName);
 
     return lastfm ? { ...meta, lastfm } : meta;
+  }
+
+  /**
+   * Pool and daily rounds never went through the playlist path's enrichment,
+   * so their fame hint never rendered. Run after the response: the hint is not
+   * needed until a round is lost, and a start should not wait on Last.fm.
+   */
+  private enrichInBackground(track: TrackEntity): void {
+    const meta = track.metadata ?? {};
+    if (hasFreshLastfm(meta)) {
+      return;
+    }
+
+    void this.lastfmService
+      .getTrackInfo(track.name, track.artistName)
+      .then((lastfm) =>
+        lastfm
+          ? this.trackRepository.updateMetadata(track.id, { ...meta, lastfm })
+          : undefined,
+      )
+      .catch((err: Error) =>
+        this.logger.warn(`Enrichment failed for ${track.id}: ${err.message}`),
+      );
   }
 
   async getHistory(
@@ -644,4 +668,14 @@ export class GameService {
 
     return games;
   }
+}
+
+const LASTFM_REUSE_DAYS = 30;
+
+function hasFreshLastfm(meta: TrackMetadataVo): boolean {
+  const fetchedAt = meta.lastfm?.fetchedAt;
+  return (
+    !!fetchedAt &&
+    isAfter(new Date(fetchedAt), subDays(new Date(), LASTFM_REUSE_DAYS))
+  );
 }

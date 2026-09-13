@@ -3,6 +3,7 @@ import { PrismaService } from '@prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { TrackEntity } from '../entities/track.entity';
 import { UpsertTrackDto } from '../dto/upsert-track.dto';
+import { TrackMetadataVo } from '../vo/track-metadata.vo';
 import { mapTrack } from '../../utils/mappers';
 
 @Injectable()
@@ -49,5 +50,12 @@ export class TrackRepository {
       },
     });
     return mapTrack(track);
+  }
+
+  async updateMetadata(id: string, metadata: TrackMetadataVo): Promise<void> {
+    await this.prisma.track.update({
+      where: { id },
+      data: { metadata: metadata as unknown as Prisma.InputJsonObject },
+    });
   }
 }
