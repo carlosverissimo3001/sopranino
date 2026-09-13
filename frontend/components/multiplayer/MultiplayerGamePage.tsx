@@ -233,6 +233,7 @@ export function MultiplayerGamePage({ roomId }: MultiplayerGamePageProps) {
     snippetDuration: roundState?.snippetDuration ?? 0.5,
     volume,
   });
+  const { getAudioReport } = gameAudio;
 
   const {
     audioRef,
@@ -264,19 +265,20 @@ export function MultiplayerGamePage({ roomId }: MultiplayerGamePageProps) {
           albumName: spotifySearch.selectedTrack.albumName,
           isrc: spotifySearch.selectedTrack.isrc,
           skip: false,
+          audio: getAudioReport(),
         },
       },
       { onSuccess: () => spotifySearch.handleClearSelection() },
     );
-  }, [roundState, submitGuessMutation, spotifySearch, roomId]);
+  }, [roundState, submitGuessMutation, spotifySearch, roomId, getAudioReport]);
 
   const handleSkip = useCallback(() => {
     if (!roundState || submitGuessMutation.isPending) return;
     submitGuessMutation.mutate({
       roomId,
-      guess: { skip: true },
+      guess: { skip: true, audio: getAudioReport() },
     });
-  }, [roundState, submitGuessMutation, roomId]);
+  }, [roundState, submitGuessMutation, roomId, getAudioReport]);
 
   const handleNextRound = useCallback(() => {
     setTransitionKey((k) => k + 1);

@@ -72,6 +72,10 @@ export function holdAudioSession(): void {
     });
 }
 
+export function isAudioSessionHeld(): boolean {
+  return !!element && !element.paused;
+}
+
 export function releaseAudioSession(): void {
   element?.pause();
   element = null;

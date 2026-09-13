@@ -61,6 +61,7 @@ export function useGameOrchestrator(
     maxSnippetDuration: gameState?.snippetSteps?.at(-1),
     volume,
   });
+  const { getAudioReport } = gameAudio;
 
   const isLoading =
     isPlaylist || isDaily ? sessionLoading || loadingState : false;
@@ -108,10 +109,17 @@ export function useGameOrchestrator(
         artistName: spotifySearch.selectedTrack.artist,
         albumName: spotifySearch.selectedTrack.albumName,
         isrc: spotifySearch.selectedTrack.isrc,
+        audio: getAudioReport(),
       },
       { onSuccess: () => spotifySearch.handleClearSelection() },
     );
-  }, [gameState, submitPending, spotifySearch, submitGuessMutation]);
+  }, [
+    gameState,
+    submitPending,
+    spotifySearch,
+    submitGuessMutation,
+    getAudioReport,
+  ]);
 
   const handleSkip = useCallback(() => {
     if (!gameState || submitPending) {
@@ -120,8 +128,9 @@ export function useGameOrchestrator(
     submitGuessMutation.mutate({
       sessionId: gameState.sessionId,
       skip: true,
+      audio: getAudioReport(),
     });
-  }, [gameState, submitPending, submitGuessMutation]);
+  }, [gameState, submitPending, submitGuessMutation, getAudioReport]);
 
   const handlePlayAgain = useCallback(() => {
     gameAudio.stopFullSong();

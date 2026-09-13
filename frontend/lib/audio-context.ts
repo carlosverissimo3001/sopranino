@@ -23,6 +23,11 @@ type WindowWithWebkitAudio = Window & {
   webkitAudioContext?: typeof AudioContext;
 };
 
+/** For reporting only: reads the state without creating a context. */
+export function peekAudioContextState(): string | null {
+  return ctx?.state ?? null;
+}
+
 export function getAudioContext(): AudioContext | null {
   if (typeof window === 'undefined') {
     return null;
