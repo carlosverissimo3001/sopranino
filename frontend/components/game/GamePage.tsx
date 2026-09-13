@@ -158,7 +158,7 @@ export function GamePage({
         animate={shouldShake && !reducedMotion ? 'shake' : ''}
         className="p-3 sm:p-6 md:p-8 lg:p-10 relative z-10 flex flex-col min-h-screen min-h-[100dvh] safe-area-inset"
       >
-        <div className="max-w-2xl mx-auto w-full flex-1 flex flex-col gap-3 sm:gap-0">
+        <div className="max-w-2xl mx-auto w-full flex-1 flex flex-col">
           <GameHeader
             mode={mode}
             playlist={playlist ?? null}
@@ -205,29 +205,42 @@ export function GamePage({
             />
           )}
 
-          {!isGameOver && showAlbumHint && (
-            <AlbumArtReveal
-              albumImageUrl={gameState.albumImageUrl}
-              currentRound={gameState.currentRound}
-              maxRounds={gameState.maxRounds}
-            />
-          )}
+          <div
+            className={
+              isGameOver
+                ? 'contents'
+                : 'flex min-h-0 flex-1 flex-col sm:contents'
+            }
+          >
+            {!isGameOver && showAlbumHint && (
+              <AlbumArtReveal
+                albumImageUrl={gameState.albumImageUrl}
+                currentRound={gameState.currentRound}
+                maxRounds={gameState.maxRounds}
+                isPlaying={isPlaying}
+                onPlay={playSnippet}
+                onPause={pauseSnippet}
+              />
+            )}
 
-          {!isGameOver && (
-            <PlaySnippetButton
-              snippetDuration={gameState.snippetDuration}
-              isPlaying={isPlaying}
-              onPlay={playSnippet}
-              onPause={pauseSnippet}
-            />
-          )}
+            {!isGameOver && (
+              <div className={showAlbumHint ? 'hidden sm:block' : undefined}>
+                <PlaySnippetButton
+                  snippetDuration={gameState.snippetDuration}
+                  isPlaying={isPlaying}
+                  onPlay={playSnippet}
+                  onPause={pauseSnippet}
+                />
+              </div>
+            )}
 
-          {!isGameOver && showTextHints && (
-            <HintPanel
-              hints={gameState.hints ?? []}
-              currentRound={gameState.currentRound}
-            />
-          )}
+            {!isGameOver && showTextHints && (
+              <HintPanel
+                hints={gameState.hints ?? []}
+                currentRound={gameState.currentRound}
+              />
+            )}
+          </div>
 
           <AnimatePresence mode="wait">
             {isGameOver ? (
@@ -262,8 +275,9 @@ export function GamePage({
                 />
               </motion.div>
             ) : (
-              <div className="relative z-20">
+              <div className="sticky bottom-0 z-20 order-last -mx-3 mt-auto bg-[rgb(var(--bg))] px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:relative sm:order-none sm:mx-0 sm:mt-0 sm:bg-transparent sm:p-0">
                 <GuessInput
+                  pinned
                   search={spotifySearch}
                   onSubmit={handleSubmit}
                   onSkip={handleSkip}

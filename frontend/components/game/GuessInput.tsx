@@ -1,6 +1,7 @@
 'use client';
 
 import { formatSeconds } from '@/lib/snippet-timeline';
+import { useIsBelowSm } from '@/hooks/useIsBelowSm';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Search, X, Disc3 } from 'lucide-react';
@@ -39,6 +40,8 @@ interface GuessInputProps {
   nextSnippetDuration?: number;
   /** The last round's four options, shown in place of search. */
   choices?: TrackOptionDto[];
+  /** Pinned to the bottom on a phone, so results open upwards there. */
+  pinned?: boolean;
 }
 
 interface TrackRowProps {
@@ -93,7 +96,9 @@ export function GuessInput({
   gameMode,
   nextSnippetDuration,
   choices,
+  pinned = false,
 }: GuessInputProps) {
+  const isBelowSm = useIsBelowSm();
   const givesUp = gameMode === GameMode.Gauntlet || !nextSnippetDuration;
   const {
     searchQuery,
@@ -126,7 +131,7 @@ export function GuessInput({
         <div
           role="radiogroup"
           aria-label="Pick the song"
-          className="grid grid-cols-1 gap-2 sm:grid-cols-2"
+          className="grid grid-cols-2 gap-2"
         >
           {choices.map((choice) => {
             const isSelected = choice.id === selectedTrack?.id;
@@ -137,15 +142,17 @@ export function GuessInput({
                 role="radio"
                 aria-checked={isSelected}
                 onClick={() => handleSelectTrack(choice)}
-                className={`min-h-[56px] rounded-xl px-4 py-3 text-left transition-colors touch-manipulation ${
+                className={`min-h-[52px] rounded-xl px-3 py-2 text-left sm:min-h-[56px] sm:px-4 sm:py-3 transition-colors touch-manipulation ${
                   isSelected
                     ? 'bg-[#1DB954] text-black shadow-lg shadow-[#1DB954]/20'
                     : 'border border-fg/[0.08] bg-fg/[0.06] text-fg hover:bg-fg/10'
                 }`}
               >
-                <p className="truncate font-semibold">{choice.name}</p>
+                <p className="line-clamp-2 text-sm font-semibold leading-tight sm:line-clamp-none sm:truncate sm:text-base sm:leading-normal">
+                  {choice.name}
+                </p>
                 <p
-                  className={`truncate text-sm ${isSelected ? 'text-black/70' : 'text-fg/50'}`}
+                  className={`truncate text-xs sm:text-sm ${isSelected ? 'text-black/70' : 'text-fg/50'}`}
                 >
                   {choice.artist}
                 </p>
@@ -222,7 +229,7 @@ export function GuessInput({
               boxShadow:
                 '0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgb(var(--fg) / 0.06)',
             }}
-            side="bottom"
+            side={pinned && isBelowSm ? 'top' : 'bottom'}
             avoidCollisions={false}
             align="start"
             sideOffset={8}
