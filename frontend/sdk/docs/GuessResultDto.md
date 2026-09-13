@@ -15,6 +15,7 @@ Name | Type
 `rankTitle` | string
 `specialNote` | string
 `hints` | [Array&lt;HintDto&gt;](HintDto.md)
+`choices` | [Array&lt;TrackOptionDto&gt;](TrackOptionDto.md)
 
 ## Example
 
@@ -32,6 +33,7 @@ const example = {
   "rankTitle": null,
   "specialNote": null,
   "hints": null,
+  "choices": null,
 } satisfies GuessResultDto
 
 console.log(example)

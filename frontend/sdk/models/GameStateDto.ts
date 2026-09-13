@@ -119,6 +119,12 @@ export interface GameStateDto {
      * @memberof GameStateDto
      */
     hints?: Array<HintDto>;
+    /**
+     * Four choices, while the last round is in play
+     * @type {Array<TrackOptionDto>}
+     * @memberof GameStateDto
+     */
+    choices?: Array<TrackOptionDto>;
 }
 
 
@@ -172,6 +178,7 @@ export function GameStateDtoFromJSONTyped(json: any, ignoreDiscriminator: boolea
         'rankTitle': json['rankTitle'] == null ? undefined : json['rankTitle'],
         'specialNote': json['specialNote'] == null ? undefined : json['specialNote'],
         'hints': json['hints'] == null ? undefined : ((json['hints'] as Array<any>).map(HintDtoFromJSON)),
+        'choices': json['choices'] == null ? undefined : ((json['choices'] as Array<any>).map(TrackOptionDtoFromJSON)),
     };
 }
 
@@ -199,6 +206,7 @@ export function GameStateDtoToJSONTyped(value?: GameStateDto | null, ignoreDiscr
         'rankTitle': value['rankTitle'],
         'specialNote': value['specialNote'],
         'hints': value['hints'] == null ? undefined : ((value['hints'] as Array<any>).map(HintDtoToJSON)),
+        'choices': value['choices'] == null ? undefined : ((value['choices'] as Array<any>).map(TrackOptionDtoToJSON)),
     };
 }
 

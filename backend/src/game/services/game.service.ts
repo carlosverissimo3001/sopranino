@@ -20,6 +20,7 @@ import {
 import { PoolService } from '../../pool/services/pool.service';
 import { TrackEntity } from '../../track/entities/track.entity';
 import { hasFreshLastfm } from '../../track/utils/lastfm-freshness';
+import { ChoiceService } from './choice.service';
 import { AppLoggerService } from '../../logger/logger.service';
 import { StreakService } from '../../streak/services/streak.service';
 import { TrackMetadataVo } from '../../track/vo/track-metadata.vo';
@@ -79,6 +80,7 @@ export class GameService {
     private readonly poolService: PoolService,
     private readonly dailyTrackService: DailyTrackService,
     private readonly trackGroupService: TrackGroupService,
+    private readonly choiceService: ChoiceService,
     appLogger: AppLoggerService,
   ) {
     this.logger = appLogger.child(GameService.name);
@@ -415,7 +417,17 @@ export class GameService {
       throw new NotFoundException('Track not found or no preview URL');
     }
 
-    return mapToGameStateDto(game, { ...game.track, previewUrl });
+    const state = mapToGameStateDto(game, { ...game.track, previewUrl });
+    const onLastRound =
+      game.status === GameStatus.PLAYING &&
+      game.currentRound === MAX_ROUNDS - 1;
+
+    return onLastRound && game.choiceTrackIds.length > 0
+      ? {
+          ...state,
+          choices: await this.choiceService.loadChoices(game.choiceTrackIds),
+        }
+      : state;
   }
 
   @Transactional()
@@ -467,11 +479,19 @@ export class GameService {
       });
     }
 
+    const choiceTrackIds =
+      !gameOver &&
+      nextRound === MAX_ROUNDS - 1 &&
+      game.choiceTrackIds.length === 0
+        ? await this.choiceService.pickChoiceIds(game, game.track)
+        : undefined;
+
     await this.gameSessionRepository.updateSessionProgress(gameSessionId, {
       currentRound: nextRound,
       guesses: updatedGuesses,
       status,
       completedAt: gameOver ? new Date() : undefined,
+      choiceTrackIds,
     });
 
     const hints =
@@ -487,6 +507,9 @@ export class GameService {
       snippetDuration: ROUND_DURATIONS[Math.min(nextRound, MAX_ROUNDS - 1)],
       maxRounds: MAX_ROUNDS,
       hints,
+      choices: choiceTrackIds?.length
+        ? await this.choiceService.loadChoices(choiceTrackIds)
+        : undefined,
     };
   }
 

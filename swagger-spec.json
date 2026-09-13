@@ -3039,6 +3039,13 @@
             "items": {
               "$ref": "#/components/schemas/HintDto"
             }
+          },
+          "choices": {
+            "description": "Four choices, while the last round is in play",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrackOptionDto"
+            }
           }
         },
         "required": [
@@ -3427,6 +3434,13 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/HintDto"
+            }
+          },
+          "choices": {
+            "description": "Four choices, when the next round is the last",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrackOptionDto"
             }
           }
         },

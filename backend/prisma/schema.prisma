@@ -74,6 +74,8 @@ model GameSession {
   guesses      Json       @default("[]")
   status       GameStatus @default(PLAYING)
 
+  choiceTrackIds String[] @default([]) @map("choice_track_ids")
+
   multiplayerRoomId String?          @map("multiplayer_room_id")
   multiplayerRoom   MultiplayerRoom? @relation(fields: [multiplayerRoomId], references: [id], onDelete: SetNull)
 

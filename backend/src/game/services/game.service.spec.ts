@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { GameMode, GameStatus } from '@prisma/client';
 import { GameService } from './game.service';
+import { ChoiceService } from './choice.service';
+import { MAX_ROUNDS } from '../consts';
 import { GameSessionRepository } from '../repositories/game-session.repository';
 import { GameStatsService } from './game-stats.service';
 import { TrackRepository } from '@/track/repositories/track.repository';
@@ -65,6 +67,7 @@ describe('GameService', () => {
     guesses: [],
     status: GameStatus.PLAYING,
     createdAt: new Date(),
+    choiceTrackIds: [],
     ...overrides,
   });
 
@@ -88,6 +91,7 @@ describe('GameService', () => {
 
   const mockGameStatsService = {
     getStats: jest.fn(),
+    recordFinishedGame: jest.fn(),
     updateGameStats: jest.fn(),
   };
 
@@ -106,6 +110,20 @@ describe('GameService', () => {
   const mockDailyTrackService = { today: jest.fn() };
 
   const mockTrackGroupService = { requireById: jest.fn(), list: jest.fn() };
+
+  const CHOICES = [
+    {
+      id: 'decoy-1',
+      name: 'Decoy',
+      normalizedName: 'Decoy',
+      artist: 'Someone',
+      normalizedArtist: 'Someone',
+    },
+  ];
+  const mockChoiceService = {
+    pickChoiceIds: jest.fn(),
+    loadChoices: jest.fn(),
+  };
   const mockUserPreferencesRepository = {
     findByUserId: jest.fn().mockResolvedValue({ timezone: 'UTC' }),
   };
@@ -126,6 +144,7 @@ describe('GameService', () => {
         { provide: PoolService, useValue: mockPoolService },
         { provide: DailyTrackService, useValue: mockDailyTrackService },
         { provide: TrackGroupService, useValue: mockTrackGroupService },
+        { provide: ChoiceService, useValue: mockChoiceService },
         { provide: PrismaService, useValue: mockPrismaService },
         {
           provide: UserPreferencesRepository,
@@ -270,6 +289,103 @@ describe('GameService', () => {
       albumName: 'Some Album',
       skip: false,
     };
+
+    describe('last-round choices', () => {
+      const LAST_ROUND = MAX_ROUNDS - 1;
+
+      beforeEach(() => {
+        mockAuthService.getUserBySessionId.mockResolvedValue({
+          id: OWNER_USER_ID,
+        });
+        mockGameSessionRepository.updateSessionProgress.mockResolvedValue(
+          makeGameSession(),
+        );
+        mockChoiceService.pickChoiceIds.mockResolvedValue(['decoy-1']);
+        mockChoiceService.loadChoices.mockResolvedValue(CHOICES);
+      });
+
+      it('picks, stores and returns them when a guess reaches the last round', async () => {
+        const game = {
+          ...makeGameSession({ currentRound: LAST_ROUND - 1 }),
+          track: mockTrack,
+        };
+        mockGameSessionRepository.findByIdWithTrack.mockResolvedValue(game);
+
+        const result = await service.submitGuess(OWNER_SESSION_ID, GAME_ID, {
+          skip: true,
+        });
+
+        expect(mockChoiceService.pickChoiceIds).toHaveBeenCalledWith(
+          game,
+          mockTrack,
+        );
+        expect(
+          mockGameSessionRepository.updateSessionProgress,
+        ).toHaveBeenCalledWith(
+          GAME_ID,
+          expect.objectContaining({ choiceTrackIds: ['decoy-1'] }),
+        );
+        expect(result.choices).toEqual(CHOICES);
+      });
+
+      it('offers none before the last round', async () => {
+        mockGameSessionRepository.findByIdWithTrack.mockResolvedValue({
+          ...makeGameSession({ currentRound: 0 }),
+          track: mockTrack,
+        });
+
+        const result = await service.submitGuess(OWNER_SESSION_ID, GAME_ID, {
+          skip: true,
+        });
+
+        expect(mockChoiceService.pickChoiceIds).not.toHaveBeenCalled();
+        expect(result.choices).toBeUndefined();
+      });
+
+      it('offers none once the game is decided', async () => {
+        mockGameSessionRepository.findByIdWithTrack.mockResolvedValue({
+          ...makeGameSession({ currentRound: LAST_ROUND }),
+          track: mockTrack,
+        });
+
+        const result = await service.submitGuess(OWNER_SESSION_ID, GAME_ID, {
+          skip: true,
+        });
+
+        expect(mockChoiceService.pickChoiceIds).not.toHaveBeenCalled();
+        expect(result.choices).toBeUndefined();
+      });
+
+      // A refresh reads them back, so they have to be the ones stored.
+      it('returns the stored choices with the state of a last round', async () => {
+        mockGameSessionRepository.findByIdWithTrack.mockResolvedValue({
+          ...makeGameSession({
+            currentRound: LAST_ROUND,
+            choiceTrackIds: ['decoy-1', TRACK_ID],
+          }),
+          track: mockTrack,
+        });
+
+        const state = await service.getGameState(OWNER_SESSION_ID, GAME_ID);
+
+        expect(mockChoiceService.loadChoices).toHaveBeenCalledWith([
+          'decoy-1',
+          TRACK_ID,
+        ]);
+        expect(state.choices).toEqual(CHOICES);
+      });
+
+      it('returns no choices with the state of an earlier round', async () => {
+        mockGameSessionRepository.findByIdWithTrack.mockResolvedValue({
+          ...makeGameSession({ currentRound: 2 }),
+          track: mockTrack,
+        });
+
+        const state = await service.getGameState(OWNER_SESSION_ID, GAME_ID);
+
+        expect(state.choices).toBeUndefined();
+      });
+    });
 
     it('should accept a guess from the session owner', async () => {
       mockAuthService.getUserBySessionId.mockResolvedValue({

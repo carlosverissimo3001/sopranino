@@ -20,6 +20,13 @@ import {
     HintDtoToJSON,
     HintDtoToJSONTyped,
 } from './HintDto';
+import type { TrackOptionDto } from './TrackOptionDto';
+import {
+    TrackOptionDtoFromJSON,
+    TrackOptionDtoFromJSONTyped,
+    TrackOptionDtoToJSON,
+    TrackOptionDtoToJSONTyped,
+} from './TrackOptionDto';
 
 /**
  * 
@@ -81,6 +88,12 @@ export interface GuessResultDto {
      * @memberof GuessResultDto
      */
     hints?: Array<HintDto>;
+    /**
+     * Four choices, when the next round is the last
+     * @type {Array<TrackOptionDto>}
+     * @memberof GuessResultDto
+     */
+    choices?: Array<TrackOptionDto>;
 }
 
 
@@ -141,6 +154,7 @@ export function GuessResultDtoFromJSONTyped(json: any, ignoreDiscriminator: bool
         'rankTitle': json['rankTitle'] == null ? undefined : json['rankTitle'],
         'specialNote': json['specialNote'] == null ? undefined : json['specialNote'],
         'hints': json['hints'] == null ? undefined : ((json['hints'] as Array<any>).map(HintDtoFromJSON)),
+        'choices': json['choices'] == null ? undefined : ((json['choices'] as Array<any>).map(TrackOptionDtoFromJSON)),
     };
 }
 
@@ -164,6 +178,7 @@ export function GuessResultDtoToJSONTyped(value?: GuessResultDto | null, ignoreD
         'rankTitle': value['rankTitle'],
         'specialNote': value['specialNote'],
         'hints': value['hints'] == null ? undefined : ((value['hints'] as Array<any>).map(HintDtoToJSON)),
+        'choices': value['choices'] == null ? undefined : ((value['choices'] as Array<any>).map(TrackOptionDtoToJSON)),
     };
 }
 
