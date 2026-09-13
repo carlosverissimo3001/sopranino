@@ -37,6 +37,8 @@ interface GuessInputProps {
   submitPending: boolean;
   /** What skipping buys. Absent on the last round, where skipping gives up. */
   nextSnippetDuration?: number;
+  /** The last round's four options, shown in place of search. */
+  choices?: TrackOptionDto[];
 }
 
 interface TrackRowProps {
@@ -90,6 +92,7 @@ export function GuessInput({
   submitPending,
   gameMode,
   nextSnippetDuration,
+  choices,
 }: GuessInputProps) {
   const givesUp = gameMode === GameMode.Gauntlet || !nextSnippetDuration;
   const {
@@ -119,110 +122,146 @@ export function GuessInput({
         border: '1px solid rgb(var(--fg) / 0.09)',
       }}
     >
-      <Popover open={dropdownOpen} modal={false}>
-        <div ref={searchRef}>
-          {selectedTrack ? (
-            <motion.div
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-3 p-3 sm:p-4 rounded-xl text-black min-h-[56px]"
-              style={{
-                background: '#1DB954',
-                border: '1px solid rgba(255,255,255,0.2)',
-                boxShadow: '0 0 20px rgba(29,185,84,0.3)',
-              }}
-            >
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold truncate">{selectedTrack.name}</p>
-                <p className="text-sm text-black/70 truncate">
-                  {selectedTrack.artist}
-                </p>
-              </div>
-              <motion.button
-                type="button"
-                onClick={handleClearSelection}
-                aria-label="Clear selection"
-                className="p-2 hover:bg-black/10 rounded-full transition-colors"
-                whileHover={{ scale: 1.05, rotate: 90 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <X className="w-5 h-5" />
-              </motion.button>
-            </motion.div>
-          ) : (
-            <PopoverAnchor asChild>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 z-10 text-[#535353]">
-                  <Search className="w-5 h-5 pointer-events-none" />
-                </span>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setShowDropdown(true);
-                  }}
-                  onFocus={() => setShowDropdown(true)}
-                  placeholder="Search for a song..."
-                  // Ring colour is set unconditionally and only the width
-                  // changes on focus: transitioning the colour too animates it
-                  // up from Tailwind's default, which flashes pale blue first.
-                  className="w-full pl-12 pr-4 py-3.5 sm:py-4 rounded-xl text-base text-fg placeholder-[#535353] outline-none ring-0 ring-[#1DB954]/50 focus:ring-2 transition-[box-shadow,border-color] duration-200 min-h-[48px] touch-manipulation"
-                  style={{
-                    background: 'rgb(var(--fg) / 0.06)',
-                    border: '1px solid rgb(var(--fg) / 0.08)',
-                  }}
-                />
-              </div>
-            </PopoverAnchor>
-          )}
-        </div>
-
-        <PopoverContent
-          className="p-0 w-[--radix-popover-trigger-width] overflow-hidden rounded-xl border border-fg/10 shadow-2xl"
-          style={{
-            background: 'rgb(var(--surface) / 0.95)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            boxShadow:
-              '0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgb(var(--fg) / 0.06)',
-          }}
-          side="bottom"
-          avoidCollisions={false}
-          align="start"
-          sideOffset={8}
-          onOpenAutoFocus={(e) => e.preventDefault()}
-          onCloseAutoFocus={(e) => e.preventDefault()}
-          onInteractOutside={(e) => {
-            if (
-              searchRef.current &&
-              searchRef.current.contains(e.target as Node)
-            ) {
-              e.preventDefault();
-              return;
-            }
-            setShowDropdown(false);
-          }}
+      {choices?.length ? (
+        <div
+          role="radiogroup"
+          aria-label="Pick the song"
+          className="grid grid-cols-1 gap-2 sm:grid-cols-2"
         >
-          {filteredTracks.length > 0 ? (
-            <List<TrackRowProps>
-              rowComponent={TrackRow}
-              rowCount={filteredTracks.length}
-              rowHeight={ITEM_HEIGHT}
-              rowProps={{ tracks: filteredTracks, onSelect: handleSelectTrack }}
-              style={{ height: listHeight, overscrollBehavior: 'contain' }}
-            />
-          ) : (
-            <div className="p-4 text-[#b3b3b3] text-center text-sm">
-              {isLoading
-                ? 'Searching...'
-                : searchQuery.trim().length < MIN_QUERY_LENGTH
-                  ? `Type at least ${MIN_QUERY_LENGTH} characters`
-                  : 'No songs found'}
-            </div>
-          )}
-        </PopoverContent>
-      </Popover>
+          {choices.map((choice) => {
+            const isSelected = choice.id === selectedTrack?.id;
+            return (
+              <button
+                key={choice.id}
+                type="button"
+                role="radio"
+                aria-checked={isSelected}
+                onClick={() => handleSelectTrack(choice)}
+                className={`min-h-[56px] rounded-xl px-4 py-3 text-left transition-colors touch-manipulation ${
+                  isSelected
+                    ? 'bg-[#1DB954] text-black shadow-lg shadow-[#1DB954]/20'
+                    : 'border border-fg/[0.08] bg-fg/[0.06] text-fg hover:bg-fg/10'
+                }`}
+              >
+                <p className="truncate font-semibold">{choice.name}</p>
+                <p
+                  className={`truncate text-sm ${isSelected ? 'text-black/70' : 'text-fg/50'}`}
+                >
+                  {choice.artist}
+                </p>
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        <Popover open={dropdownOpen} modal={false}>
+          <div ref={searchRef}>
+            {selectedTrack ? (
+              <motion.div
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center gap-3 p-3 sm:p-4 rounded-xl text-black min-h-[56px]"
+                style={{
+                  background: '#1DB954',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  boxShadow: '0 0 20px rgba(29,185,84,0.3)',
+                }}
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold truncate">{selectedTrack.name}</p>
+                  <p className="text-sm text-black/70 truncate">
+                    {selectedTrack.artist}
+                  </p>
+                </div>
+                <motion.button
+                  type="button"
+                  onClick={handleClearSelection}
+                  aria-label="Clear selection"
+                  className="p-2 hover:bg-black/10 rounded-full transition-colors"
+                  whileHover={{ scale: 1.05, rotate: 90 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <X className="w-5 h-5" />
+                </motion.button>
+              </motion.div>
+            ) : (
+              <PopoverAnchor asChild>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 z-10 text-[#535353]">
+                    <Search className="w-5 h-5 pointer-events-none" />
+                  </span>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setShowDropdown(true);
+                    }}
+                    onFocus={() => setShowDropdown(true)}
+                    placeholder="Search for a song..."
+                    // Ring colour is set unconditionally and only the width
+                    // changes on focus: transitioning the colour too animates it
+                    // up from Tailwind's default, which flashes pale blue first.
+                    className="w-full pl-12 pr-4 py-3.5 sm:py-4 rounded-xl text-base text-fg placeholder-[#535353] outline-none ring-0 ring-[#1DB954]/50 focus:ring-2 transition-[box-shadow,border-color] duration-200 min-h-[48px] touch-manipulation"
+                    style={{
+                      background: 'rgb(var(--fg) / 0.06)',
+                      border: '1px solid rgb(var(--fg) / 0.08)',
+                    }}
+                  />
+                </div>
+              </PopoverAnchor>
+            )}
+          </div>
+
+          <PopoverContent
+            className="p-0 w-[--radix-popover-trigger-width] overflow-hidden rounded-xl border border-fg/10 shadow-2xl"
+            style={{
+              background: 'rgb(var(--surface) / 0.95)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              boxShadow:
+                '0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgb(var(--fg) / 0.06)',
+            }}
+            side="bottom"
+            avoidCollisions={false}
+            align="start"
+            sideOffset={8}
+            onOpenAutoFocus={(e) => e.preventDefault()}
+            onCloseAutoFocus={(e) => e.preventDefault()}
+            onInteractOutside={(e) => {
+              if (
+                searchRef.current &&
+                searchRef.current.contains(e.target as Node)
+              ) {
+                e.preventDefault();
+                return;
+              }
+              setShowDropdown(false);
+            }}
+          >
+            {filteredTracks.length > 0 ? (
+              <List<TrackRowProps>
+                rowComponent={TrackRow}
+                rowCount={filteredTracks.length}
+                rowHeight={ITEM_HEIGHT}
+                rowProps={{
+                  tracks: filteredTracks,
+                  onSelect: handleSelectTrack,
+                }}
+                style={{ height: listHeight, overscrollBehavior: 'contain' }}
+              />
+            ) : (
+              <div className="p-4 text-[#b3b3b3] text-center text-sm">
+                {isLoading
+                  ? 'Searching...'
+                  : searchQuery.trim().length < MIN_QUERY_LENGTH
+                    ? `Type at least ${MIN_QUERY_LENGTH} characters`
+                    : 'No songs found'}
+              </div>
+            )}
+          </PopoverContent>
+        </Popover>
+      )}
 
       {/* Side by side, but not the same weight: submitting is the move,
           skipping is the way out. */}

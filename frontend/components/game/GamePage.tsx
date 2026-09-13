@@ -271,6 +271,7 @@ export function GamePage({
                   nextSnippetDuration={
                     gameState.snippetSteps[gameState.currentRound + 1]
                   }
+                  choices={gameState.choices}
                   gameMode={mode}
                 />
               </div>
