@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { GameMode, GameStatus } from '@prisma/client';
 import { Transactional } from '@transaction/transactional.decorator';
-import { formatDate, isAfter, subDays, subHours } from 'date-fns';
+import { formatDate, subHours } from 'date-fns';
 import {
   LIKED_SONGS_ID_SUFFIX,
   POOL_MAX_PREVIEW_ATTEMPTS,
@@ -19,6 +19,7 @@ import {
 } from '../../consts';
 import { PoolService } from '../../pool/services/pool.service';
 import { TrackEntity } from '../../track/entities/track.entity';
+import { hasFreshLastfm } from '../../track/utils/lastfm-freshness';
 import { AppLoggerService } from '../../logger/logger.service';
 import { StreakService } from '../../streak/services/streak.service';
 import { TrackMetadataVo } from '../../track/vo/track-metadata.vo';
@@ -210,7 +211,7 @@ export class GameService {
       status: GameStatus.PLAYING,
     });
 
-    this.enrichInBackground(track);
+    this.trackService.enrichInBackground(track);
 
     return mapInitialGameState(game.id, previewUrl);
   }
@@ -235,7 +236,7 @@ export class GameService {
       status: GameStatus.PLAYING,
     });
 
-    this.enrichInBackground(track);
+    this.trackService.enrichInBackground(track);
 
     return mapInitialGameState(game.id, previewUrl);
   }
@@ -500,29 +501,6 @@ export class GameService {
     return lastfm ? { ...meta, lastfm } : meta;
   }
 
-  /**
-   * Pool and daily rounds never went through the playlist path's enrichment,
-   * so their fame hint never rendered. Run after the response: the hint is not
-   * needed until a round is lost, and a start should not wait on Last.fm.
-   */
-  private enrichInBackground(track: TrackEntity): void {
-    const meta = track.metadata ?? {};
-    if (hasFreshLastfm(meta)) {
-      return;
-    }
-
-    void this.lastfmService
-      .getTrackInfo(track.name, track.artistName)
-      .then((lastfm) =>
-        lastfm
-          ? this.trackRepository.updateMetadata(track.id, { ...meta, lastfm })
-          : undefined,
-      )
-      .catch((err: Error) =>
-        this.logger.warn(`Enrichment failed for ${track.id}: ${err.message}`),
-      );
-  }
-
   async getHistory(
     sessionId: string,
     dto: GetHistoryDto,
@@ -668,14 +646,4 @@ export class GameService {
 
     return games;
   }
-}
-
-const LASTFM_REUSE_DAYS = 30;
-
-function hasFreshLastfm(meta: TrackMetadataVo): boolean {
-  const fetchedAt = meta.lastfm?.fetchedAt;
-  return (
-    !!fetchedAt &&
-    isAfter(new Date(fetchedAt), subDays(new Date(), LASTFM_REUSE_DAYS))
-  );
 }

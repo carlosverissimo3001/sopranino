@@ -80,9 +80,7 @@ describe('GameService', () => {
     createSession: jest.fn(),
   };
 
-  const mockTrackRepository = {
-    updateMetadata: jest.fn().mockResolvedValue(undefined),
-  };
+  const mockTrackRepository = {};
   const mockLastfmService = {
     getTrackInfo: jest.fn().mockResolvedValue(null),
   };
@@ -95,6 +93,7 @@ describe('GameService', () => {
   const mockPlaylistService = {};
   const mockTrackService = {
     resolvePreview: jest.fn(),
+    enrichInBackground: jest.fn(),
     playableUrl: jest
       .fn()
       .mockImplementation((track: { previewUrl?: string | null }) =>
@@ -614,80 +613,17 @@ describe('GameService', () => {
       );
     });
 
-    describe('fame for the hint', () => {
-      const lastfm = { tags: [], playcount: 2_300_000, fetchedAt: 'now' };
-      const flush = () => new Promise((resolve) => setImmediate(resolve));
-
-      it('fetches it for a group round, which the playlist path never did', async () => {
-        mockLastfmService.getTrackInfo.mockResolvedValue(lastfm);
-
-        await service.startGame(OWNER_SESSION_ID, {
-          trackGroupId: GROUP_A,
-          mode: GameMode.ALL,
-        });
-        await flush();
-
-        expect(mockLastfmService.getTrackInfo).toHaveBeenCalledWith(
-          'Track',
-          'Artist',
-        );
-        expect(mockTrackRepository.updateMetadata).toHaveBeenCalledWith(
-          'pool-1',
-          { lastfm },
-        );
+    // The hint is not needed until a guess is spent, so a start hands the
+    // lookup off rather than waiting on it.
+    it('hands a group round its fame lookup', async () => {
+      await service.startGame(OWNER_SESSION_ID, {
+        trackGroupId: GROUP_A,
+        mode: GameMode.ALL,
       });
 
-      // The hint is not needed until a round is lost.
-      it('does not hold the start for Last.fm', async () => {
-        mockLastfmService.getTrackInfo.mockReturnValue(new Promise(() => {}));
-
-        await expect(
-          service.startGame(OWNER_SESSION_ID, {
-            trackGroupId: GROUP_A,
-            mode: GameMode.ALL,
-          }),
-        ).resolves.toBeDefined();
-      });
-
-      it('leaves a start untouched when the write fails', async () => {
-        mockLastfmService.getTrackInfo.mockResolvedValue(lastfm);
-        mockTrackRepository.updateMetadata.mockRejectedValueOnce(
-          new Error('db down'),
-        );
-
-        await expect(
-          service.startGame(OWNER_SESSION_ID, {
-            trackGroupId: GROUP_A,
-            mode: GameMode.ALL,
-          }),
-        ).resolves.toBeDefined();
-        await flush();
-      });
-
-      it('reuses fame fetched within the month', async () => {
-        mockPoolService.pickTrack.mockResolvedValue(
-          new TrackEntity({
-            id: 'pool-1',
-            name: 'Track',
-            artistName: 'Artist',
-            allArtists: ['Artist'],
-            metadata: {
-              lastfm: { ...lastfm, fetchedAt: new Date().toISOString() },
-            },
-            lastScrapedAt: new Date(),
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          }),
-        );
-
-        await service.startGame(OWNER_SESSION_ID, {
-          trackGroupId: GROUP_A,
-          mode: GameMode.ALL,
-        });
-        await flush();
-
-        expect(mockLastfmService.getTrackInfo).not.toHaveBeenCalled();
-      });
+      expect(mockTrackService.enrichInBackground).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'pool-1' }),
+      );
     });
 
     it('records the group a round drew from', async () => {

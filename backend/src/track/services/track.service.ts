@@ -8,13 +8,45 @@ import { TrackDto } from '../dto/track.dto';
 import { TrackRepository } from '../repositories/track.repository';
 import { TrackEntity } from '../entities/track.entity';
 import { UpsertTrackDto } from '../dto/upsert-track.dto';
+import { LastfmService } from './lastfm.service';
+import { hasFreshLastfm } from '../utils/lastfm-freshness';
+import { AppLoggerService } from '../../logger/logger.service';
 
 @Injectable()
 export class TrackService {
+  private readonly logger: AppLoggerService;
+
   constructor(
     private readonly trackRepository: TrackRepository,
     private readonly previewLookup: PreviewLookupService,
-  ) {}
+    private readonly lastfmService: LastfmService,
+    appLogger: AppLoggerService,
+  ) {
+    this.logger = appLogger.child(TrackService.name);
+  }
+
+  /**
+   * Fetches a track's Last.fm metadata, which the fame and genre hints read,
+   * without holding up the caller: the hints are not needed until a guess has
+   * been spent. A failure is logged and the next play simply tries again.
+   */
+  enrichInBackground(track: TrackEntity): void {
+    const meta = track.metadata ?? {};
+    if (hasFreshLastfm(meta)) {
+      return;
+    }
+
+    void this.lastfmService
+      .getTrackInfo(track.name, track.artistName)
+      .then((lastfm) =>
+        lastfm
+          ? this.trackRepository.updateMetadata(track.id, { ...meta, lastfm })
+          : undefined,
+      )
+      .catch((err: Error) =>
+        this.logger.warn(`Enrichment failed for ${track.id}: ${err.message}`),
+      );
+  }
 
   async findById(id: string): Promise<TrackEntity | null> {
     return this.trackRepository.findById(id);

@@ -4151,6 +4151,13 @@
                 "$ref": "#/components/schemas/TrackOptionDto"
               }
             ]
+          },
+          "hints": {
+            "description": "Hints earned so far (only while the round is in play)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HintDto"
+            }
           }
         },
         "required": [

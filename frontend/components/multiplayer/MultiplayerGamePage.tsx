@@ -9,6 +9,8 @@ import { VolumeSlider } from '@/components/game/VolumeSlider';
 import { SongRevealCard } from '@/components/game/SongRevealCard';
 import { GuessHistoryList } from '@/components/game/GuessHistoryList';
 import { GuessInput } from '@/components/game/GuessInput';
+import { HintPanel } from '@/components/game/HintPanel';
+import { useUserPreferences } from '@/hooks/user-preferences/useUserPreferences';
 import { useGameAudio } from '@/hooks/game/useGameAudio';
 import { useVolume } from '@/hooks/game/useVolume';
 import { useSpotifyTrackSearch } from '@/hooks/spotify/useSpotifyTrackSearch';
@@ -148,6 +150,8 @@ export function MultiplayerGamePage({ roomId }: MultiplayerGamePageProps) {
   const submitGuessMutation = useSubmitMultiplayerGuess();
   const spotifySearch = useSpotifyTrackSearch();
   const { data: me } = useMe();
+  const { data: preferences } = useUserPreferences();
+  const showTextHints = preferences?.showTextHints ?? true;
 
   // Socket must come before useRoom so `connected` is available
   const currentUserIdRef = useRef<string | undefined>(undefined);
@@ -417,6 +421,13 @@ export function MultiplayerGamePage({ roomId }: MultiplayerGamePageProps) {
               isPlaying={isPlaying}
               onPlay={playSnippet}
               onPause={pauseSnippet}
+            />
+          )}
+
+          {!isRoundComplete && showTextHints && (
+            <HintPanel
+              hints={roundState.hints ?? []}
+              currentRound={roundState.currentGuess}
             />
           )}
 

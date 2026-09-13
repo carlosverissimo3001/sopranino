@@ -17,6 +17,7 @@ Name | Type
 `guesses` | [Array&lt;GuessHistoryDto&gt;](GuessHistoryDto.md)
 `previewUrl` | string
 `answer` | [TrackOptionDto](TrackOptionDto.md)
+`hints` | [Array&lt;HintDto&gt;](HintDto.md)
 
 ## Example
 
@@ -36,6 +37,7 @@ const example = {
   "guesses": null,
   "previewUrl": null,
   "answer": null,
+  "hints": null,
 } satisfies MultiplayerRoundStateDto
 
 console.log(example)
