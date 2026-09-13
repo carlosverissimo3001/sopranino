@@ -58,6 +58,7 @@ export function useSubmitMultiplayerGuess() {
             status:
               result.status as unknown as MultiplayerRoundStateDtoStatusEnum,
             guesses: [...current.guesses, played],
+            hints: result.hints ?? current.hints,
           },
         );
       }

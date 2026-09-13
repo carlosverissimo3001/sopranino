@@ -18,6 +18,7 @@ import {
   calculateNextState,
   getSnippetDuration,
 } from '../../game/utils/guess-evaluator';
+import { buildHintsForRound } from '../../game/utils/hint-builder';
 import { normalizeText } from '../../utils/text';
 import {
   RoomRepository,
@@ -104,6 +105,7 @@ export class MultiplayerGameService {
     const trackId = room.trackIds[currentRoundIndex];
     let currentSession = playerSessions.find((s) => s.trackId === trackId);
 
+    const isNewSession = !currentSession;
     if (!currentSession) {
       currentSession = await this.gameSessionRepository.createSession(
         userId,
@@ -113,6 +115,9 @@ export class MultiplayerGameService {
     }
 
     const track = mapTrack(currentSession.track);
+    if (isNewSession) {
+      this.trackService.enrichInBackground(track);
+    }
     const guesses =
       (currentSession.guesses as unknown as GuessHistoryDto[]) ?? [];
     const isComplete = currentSession.status !== GameStatus.PLAYING;
@@ -131,6 +136,11 @@ export class MultiplayerGameService {
       status: currentSession.status,
       guesses,
       previewUrl,
+      // Per player and never broadcast: the same spent guesses unlock the same
+      // hints for everyone.
+      hints: isComplete
+        ? undefined
+        : buildHintsForRound(track, currentSession.currentRound),
       answer: isComplete
         ? {
             id: track.id,
@@ -242,6 +252,9 @@ export class MultiplayerGameService {
       currentRound: nextRound,
       snippetDuration: getSnippetDuration(Math.min(nextRound, MAX_ROUNDS - 1)),
       maxRounds: MAX_ROUNDS,
+      hints: gameOver
+        ? undefined
+        : buildHintsForRound(mapTrack(activeSession.track), nextRound),
     };
   }
 

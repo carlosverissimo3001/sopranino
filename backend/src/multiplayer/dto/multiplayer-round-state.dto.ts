@@ -2,6 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { GameStatus } from '@prisma/client';
 import { GuessHistoryDto } from '../../game/dto/guess/guess-history.dto';
 import { TrackOptionDto } from '../../track/dto/track-option.dto';
+import { HintDto } from '../../game/dto/hint/hint.dto';
 
 export class MultiplayerRoundStateDto {
   @ApiProperty({ description: 'The game session ID for this round' })
@@ -43,4 +44,11 @@ export class MultiplayerRoundStateDto {
     type: TrackOptionDto,
   })
   answer?: TrackOptionDto;
+
+  @ApiPropertyOptional({
+    description: 'Hints earned so far (only while the round is in play)',
+    type: HintDto,
+    isArray: true,
+  })
+  hints?: HintDto[];
 }

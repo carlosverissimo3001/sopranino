@@ -118,6 +118,8 @@ describe('MultiplayerGameService', () => {
     onlineUserIds: jest.fn(),
   };
 
+  const mockEnrich = jest.fn();
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -133,6 +135,7 @@ describe('MultiplayerGameService', () => {
         {
           provide: TrackService,
           useValue: {
+            enrichInBackground: mockEnrich,
             // A pool track carries no preview, so the round mints one.
             resolvePreview: jest
               .fn()
@@ -233,6 +236,59 @@ describe('MultiplayerGameService', () => {
       expect(result.answer!.name).toBe('Test Song');
     });
 
+    describe('hints', () => {
+      beforeEach(() => {
+        mockAuthService.getUserBySessionId.mockResolvedValue({
+          id: HOST_USER_ID,
+        });
+        mockRoomRepository.findById.mockResolvedValue(makeRoom());
+      });
+
+      // A refreshed page reads this, so it has to carry what was earned.
+      it('returns the hints earned so far in a round still in play', async () => {
+        mockGameSessionRepository.findPlayerSessions.mockResolvedValue([
+          makeSession({ currentRound: 1 }),
+        ]);
+
+        const result = await service.getRoundState(HOST_SESSION, ROOM_ID);
+
+        expect(result.hints).toEqual([
+          expect.objectContaining({ type: 'DECADE', value: '2020s' }),
+        ]);
+      });
+
+      it('returns none once the round is over', async () => {
+        mockRoomRepository.findById.mockResolvedValue(
+          makeRoom({ roundCount: 1, trackIds: [TRACK_1] }),
+        );
+        mockGameSessionRepository.findPlayerSessions.mockResolvedValue([
+          makeSession({ status: GameStatus.WON, currentRound: 3 }),
+        ]);
+
+        const result = await service.getRoundState(HOST_SESSION, ROOM_ID);
+
+        expect(result.hints).toBeUndefined();
+      });
+
+      it('looks up fame when a round starts, not on every read', async () => {
+        mockGameSessionRepository.findPlayerSessions.mockResolvedValueOnce([]);
+        mockGameSessionRepository.createSession.mockResolvedValue(
+          makeSession(),
+        );
+        await service.getRoundState(HOST_SESSION, ROOM_ID);
+
+        mockGameSessionRepository.findPlayerSessions.mockResolvedValueOnce([
+          makeSession(),
+        ]);
+        await service.getRoundState(HOST_SESSION, ROOM_ID);
+
+        expect(mockEnrich).toHaveBeenCalledTimes(1);
+        expect(mockEnrich).toHaveBeenCalledWith(
+          expect.objectContaining({ id: TRACK_1 }),
+        );
+      });
+    });
+
     it('should throw NotFoundException for non-existent room', async () => {
       mockAuthService.getUserBySessionId.mockResolvedValue({
         id: HOST_USER_ID,
@@ -318,6 +374,39 @@ describe('MultiplayerGameService', () => {
       expect(result.result).toBe('SKIP');
       expect(result.gameOver).toBe(false);
       expect(mockRoomRepository.addToPlayerScore).not.toHaveBeenCalled();
+    });
+
+    it('unlocks the next hint with a spent guess', async () => {
+      mockAuthService.getUserBySessionId.mockResolvedValue({
+        id: HOST_USER_ID,
+      });
+      mockRoomRepository.findById.mockResolvedValue(makeRoom());
+      mockGameSessionRepository.findActiveSession.mockResolvedValue(
+        makeSession(),
+      );
+
+      const result = await service.submitGuess(HOST_SESSION, ROOM_ID, {
+        skip: true,
+      });
+
+      expect(result.hints).toEqual([
+        expect.objectContaining({ type: 'DECADE', value: '2020s' }),
+      ]);
+    });
+
+    it('sends no hints once the round is decided', async () => {
+      mockAuthService.getUserBySessionId.mockResolvedValue({
+        id: HOST_USER_ID,
+      });
+      mockRoomRepository.findById.mockResolvedValue(makeRoom());
+      mockGameSessionRepository.findActiveSession.mockResolvedValue(
+        makeSession(),
+      );
+      mockGameSessionRepository.countCompletedSessions.mockResolvedValue(0);
+
+      const result = await service.submitGuess(HOST_SESSION, ROOM_ID, guessDto);
+
+      expect(result.hints).toBeUndefined();
     });
 
     it('should throw when room is not PLAYING', async () => {

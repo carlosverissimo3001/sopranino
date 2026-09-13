@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
+import type { HintDto } from './HintDto';
+import {
+    HintDtoFromJSON,
+    HintDtoFromJSONTyped,
+    HintDtoToJSON,
+    HintDtoToJSONTyped,
+} from './HintDto';
 import type { GuessHistoryDto } from './GuessHistoryDto';
 import {
     GuessHistoryDtoFromJSON,
@@ -100,6 +107,12 @@ export interface MultiplayerRoundStateDto {
      * @memberof MultiplayerRoundStateDto
      */
     answer?: TrackOptionDto;
+    /**
+     * Hints earned so far (only while the round is in play)
+     * @type {Array<HintDto>}
+     * @memberof MultiplayerRoundStateDto
+     */
+    hints?: Array<HintDto>;
 }
 
 
@@ -153,6 +166,7 @@ export function MultiplayerRoundStateDtoFromJSONTyped(json: any, ignoreDiscrimin
         'guesses': ((json['guesses'] as Array<any>).map(GuessHistoryDtoFromJSON)),
         'previewUrl': json['previewUrl'],
         'answer': json['answer'] == null ? undefined : TrackOptionDtoFromJSON(json['answer']),
+        'hints': json['hints'] == null ? undefined : ((json['hints'] as Array<any>).map(HintDtoFromJSON)),
     };
 }
 
@@ -178,6 +192,7 @@ export function MultiplayerRoundStateDtoToJSONTyped(value?: MultiplayerRoundStat
         'guesses': ((value['guesses'] as Array<any>).map(GuessHistoryDtoToJSON)),
         'previewUrl': value['previewUrl'],
         'answer': TrackOptionDtoToJSON(value['answer']),
+        'hints': value['hints'] == null ? undefined : ((value['hints'] as Array<any>).map(HintDtoToJSON)),
     };
 }
 
