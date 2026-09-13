@@ -17,6 +17,9 @@ function AppFooterComponent() {
             About
           </Link>
           <External href={SOURCE}>Source</External>
+          <Link href="/about#feedback" className={linkClass}>
+            Report a bug
+          </Link>
         </nav>
         <p className="text-fg/35">
           Songs via <External href={DEEZER}>Deezer</External> and{' '}

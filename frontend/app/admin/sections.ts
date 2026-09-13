@@ -1,4 +1,4 @@
-import { Snowflake, Users, type LucideIcon } from 'lucide-react';
+import { Inbox, Snowflake, Users, type LucideIcon } from 'lucide-react';
 
 /** Adding a section is a folder under `app/admin` and an entry here. */
 export const ADMIN_SECTIONS: {
@@ -19,5 +19,11 @@ export const ADMIN_SECTIONS: {
     label: 'Streak quiz',
     icon: Snowflake,
     tone: 'text-cyan-400',
+  },
+  {
+    href: '/admin/reports',
+    label: 'Reports',
+    icon: Inbox,
+    tone: 'text-amber-400',
   },
 ];
