@@ -13,13 +13,6 @@ import { useGameAudio } from './useGameAudio';
 import { useSpotifyTrackSearch } from '@/hooks/spotify/useSpotifyTrackSearch';
 import { GameStatsDtoModeEnum as GameMode } from '../../sdk';
 
-const ShouldShakeResult: GuessResult[] = [
-  GuessResult.Wrong,
-  GuessResult.Artist,
-  GuessResult.Album,
-  GuessResult.ArtistAndAlbum,
-];
-
 /**
  * Rounds drawn from the curated pool, for a player with no Spotify library to
  * play from. Same endpoints and same sub-systems as useGameOrchestrator; it
@@ -130,9 +123,7 @@ export function usePoolGameOrchestrator({
   }, [gameAudio, gameState, queryClient, startGameMutation]);
 
   const lastGuess = gameState?.guesses?.[gameState.guesses.length - 1];
-  const shouldShake = lastGuess
-    ? ShouldShakeResult.includes(lastGuess.result)
-    : false;
+  const shouldShake = lastGuess?.result === GuessResult.Wrong;
 
   return {
     gameState,

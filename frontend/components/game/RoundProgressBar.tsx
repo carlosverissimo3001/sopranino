@@ -1,6 +1,6 @@
 'use client';
 
-import { formatSeconds } from '@/lib/format-seconds';
+import { formatSeconds } from '@/lib/snippet-timeline';
 import { motion, useTransform, type MotionValue } from 'framer-motion';
 import { getGuessResultStyle } from './guess-result-styles';
 import { GuessHistoryDtoResultEnum } from '@/sdk/models/GuessHistoryDto';

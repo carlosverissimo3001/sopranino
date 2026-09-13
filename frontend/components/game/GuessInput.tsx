@@ -1,6 +1,6 @@
 'use client';
 
-import { formatSeconds } from '@/lib/format-seconds';
+import { formatSeconds } from '@/lib/snippet-timeline';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Search, X, Disc3 } from 'lucide-react';

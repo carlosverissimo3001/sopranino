@@ -32,4 +32,8 @@ describe('formatSeconds', () => {
     expect(formatSeconds(1)).toBe('1s');
     expect(formatSeconds(12)).toBe('12s');
   });
+
+  it('rounds away floating point noise', () => {
+    expect(formatSeconds(0.1000000000001)).toBe('0.1s');
+  });
 });

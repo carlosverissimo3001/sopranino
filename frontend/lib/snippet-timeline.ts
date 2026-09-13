@@ -14,6 +14,7 @@ export function snippetSeconds(round: number): number {
   return SNIPPET_STEPS[index];
 }
 
+/** "0.1s" rather than "0.1000000000001s". */
 export function formatSeconds(seconds: number): string {
-  return `${seconds}s`;
+  return `${Number.isInteger(seconds) ? seconds : seconds.toFixed(1)}s`;
 }
