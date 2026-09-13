@@ -16,9 +16,9 @@ import { cardVariants } from './card-motion';
 
 const GUESS_LABEL: Record<string, string> = {
   [GuessHistoryDtoResultEnum.Correct]: 'Correct',
-  [GuessHistoryDtoResultEnum.Artist]: 'Same artist',
-  [GuessHistoryDtoResultEnum.ArtistAndAlbum]: 'Same artist & album',
-  [GuessHistoryDtoResultEnum.Album]: 'Same album',
+  [GuessHistoryDtoResultEnum.Artist]: 'Right artist',
+  [GuessHistoryDtoResultEnum.ArtistAndAlbum]: 'Right artist & album',
+  [GuessHistoryDtoResultEnum.Album]: 'Right album',
   [GuessHistoryDtoResultEnum.Wrong]: 'Wrong',
   [GuessHistoryDtoResultEnum.Skip]: 'Skipped',
 };

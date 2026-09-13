@@ -22,7 +22,7 @@ export const GUESS_RESULT_STYLE: Record<
     dotClass: 'bg-green-500',
   },
   [GuessHistoryDtoResultEnum.Artist]: {
-    label: 'Same artist',
+    label: 'Right artist',
     barClass: 'bg-yellow-500',
     cardClass: 'bg-yellow-500/20 border-yellow-500/50',
     badgeClass: 'bg-yellow-500/30 text-yellow-200 border-yellow-500/60',
@@ -30,7 +30,7 @@ export const GUESS_RESULT_STYLE: Record<
     dotClass: 'bg-yellow-500',
   },
   [GuessHistoryDtoResultEnum.Album]: {
-    label: 'Same album',
+    label: 'Right album',
     barClass: 'bg-amber-500',
     cardClass: 'bg-amber-500/20 border-amber-500/50',
     badgeClass: 'bg-amber-500/30 text-amber-200 border-amber-500/60',
@@ -38,7 +38,7 @@ export const GUESS_RESULT_STYLE: Record<
     dotClass: 'bg-amber-500',
   },
   [GuessHistoryDtoResultEnum.ArtistAndAlbum]: {
-    label: 'Same artist & album',
+    label: 'Right artist & album',
     barClass: 'bg-orange-500',
     cardClass: 'bg-orange-500/20 border-orange-500/50',
     badgeClass: 'bg-orange-500/30 text-orange-200 border-orange-500/60',

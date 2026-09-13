@@ -14,13 +14,6 @@ import { useSpotifyTrackSearch } from '@/hooks/spotify/useSpotifyTrackSearch';
 import { usePlaylistById } from '@/hooks/playlists/usePlaylistById';
 import { GameStatsDtoModeEnum as GameMode } from '../../sdk';
 
-const ShouldShakeResult: GuessResult[] = [
-  GuessResult.Wrong,
-  GuessResult.Artist,
-  GuessResult.Album,
-  GuessResult.ArtistAndAlbum,
-];
-
 export function useGameOrchestrator(
   mode: GameMode,
   playlistId?: string,
@@ -175,9 +168,7 @@ export function useGameOrchestrator(
   ]);
 
   const lastGuess = gameState?.guesses?.[gameState.guesses.length - 1];
-  const shouldShake = lastGuess
-    ? ShouldShakeResult.includes(lastGuess.result)
-    : false;
+  const shouldShake = lastGuess?.result === GuessResult.Wrong;
 
   return {
     // State
