@@ -8,6 +8,7 @@ import {
 } from '@prisma/client';
 import { Track as SpotifyTrack } from '@spotify/web-api-ts-sdk';
 import { isNil } from 'lodash';
+import { GuessAudioDto } from '../game/dto/guess/guess-audio.dto';
 import { GuessResult } from '../game/consts';
 import { GuessHistoryDto } from '../game/dto/guess/guess-history.dto';
 import { GameSessionEntity } from '../game/entities/game-session.entity';
@@ -22,6 +23,7 @@ type PrismaGuessItem = {
   trackId?: string;
   trackName?: string;
   artistName?: string;
+  audio?: GuessAudioDto;
 };
 
 // Type to include all nested prisma relations of TModel, recursively
@@ -71,6 +73,9 @@ function mapGuesses(
     trackId: g.trackId,
     trackName: g.trackName ?? 'Unknown',
     artistName: g.artistName ?? 'Unknown',
+    // A guess writes the whole history back, so a field dropped here is
+    // erased from every earlier round.
+    ...(g.audio && { audio: g.audio }),
   }));
 }
 
