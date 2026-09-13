@@ -268,6 +268,9 @@ export function GamePage({
                   onSubmit={handleSubmit}
                   onSkip={handleSkip}
                   submitPending={submitPending}
+                  nextSnippetDuration={
+                    gameState.snippetSteps[gameState.currentRound + 1]
+                  }
                   gameMode={mode}
                 />
               </div>

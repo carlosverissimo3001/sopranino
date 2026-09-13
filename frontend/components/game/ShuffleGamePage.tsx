@@ -277,6 +277,9 @@ export function ShuffleGamePage({ canSignIn }: { canSignIn: boolean }) {
                   onSubmit={handleSubmit}
                   onSkip={handleSkip}
                   submitPending={submitPending}
+                  nextSnippetDuration={
+                    gameState.snippetSteps[gameState.currentRound + 1]
+                  }
                   gameMode={GameMode.All}
                 />
               </div>

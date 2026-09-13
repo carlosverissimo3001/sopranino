@@ -490,6 +490,9 @@ export function MultiplayerGamePage({ roomId }: MultiplayerGamePageProps) {
                   onSubmit={handleSubmit}
                   onSkip={handleSkip}
                   submitPending={submitGuessMutation.isPending}
+                  nextSnippetDuration={
+                    roundState.snippetSteps[roundState.currentGuess + 1]
+                  }
                   gameMode={GameMode.Multiplayer}
                 />
               </motion.div>
