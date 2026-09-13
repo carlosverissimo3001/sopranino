@@ -21,9 +21,12 @@ import type {
   ChangePasswordDto,
   ConfirmEmailDto,
   ConfirmPasswordResetDto,
+  CreateFeedbackControllerDto,
   CreateRoomControllerDto,
   CreateStreakQuestionDto,
   EmailVerificationResultDto,
+  FeedbackDto,
+  FeedbackPageDto,
   GameHistoryDto,
   GameStateDto,
   GameStatsDto,
@@ -60,6 +63,7 @@ import type {
   TrackGroupDto,
   TrackOptionDto,
   UpdateAvatarSourceDto,
+  UpdateFeedbackDto,
   UpdateRoomSettingsControllerDto,
   UpdateStreakQuestionDto,
   UpdateUserPreferenceDto,
@@ -80,12 +84,18 @@ import {
     ConfirmEmailDtoToJSON,
     ConfirmPasswordResetDtoFromJSON,
     ConfirmPasswordResetDtoToJSON,
+    CreateFeedbackControllerDtoFromJSON,
+    CreateFeedbackControllerDtoToJSON,
     CreateRoomControllerDtoFromJSON,
     CreateRoomControllerDtoToJSON,
     CreateStreakQuestionDtoFromJSON,
     CreateStreakQuestionDtoToJSON,
     EmailVerificationResultDtoFromJSON,
     EmailVerificationResultDtoToJSON,
+    FeedbackDtoFromJSON,
+    FeedbackDtoToJSON,
+    FeedbackPageDtoFromJSON,
+    FeedbackPageDtoToJSON,
     GameHistoryDtoFromJSON,
     GameHistoryDtoToJSON,
     GameStateDtoFromJSON,
@@ -158,6 +168,8 @@ import {
     TrackOptionDtoToJSON,
     UpdateAvatarSourceDtoFromJSON,
     UpdateAvatarSourceDtoToJSON,
+    UpdateFeedbackDtoFromJSON,
+    UpdateFeedbackDtoToJSON,
     UpdateRoomSettingsControllerDtoFromJSON,
     UpdateRoomSettingsControllerDtoToJSON,
     UpdateStreakQuestionDtoFromJSON,
@@ -180,6 +192,13 @@ export interface AdminControllerDeleteStreakQuestionRequest {
     id: string;
 }
 
+export interface AdminControllerListFeedbackRequest {
+    page?: number;
+    limit?: number;
+    kind?: AdminControllerListFeedbackKindEnum;
+    resolved?: boolean;
+}
+
 export interface AdminControllerListUsersRequest {
     page?: number;
     limit?: number;
@@ -188,6 +207,11 @@ export interface AdminControllerListUsersRequest {
     isAdmin?: boolean;
     sortBy?: AdminControllerListUsersSortByEnum;
     sortOrder?: AdminControllerListUsersSortOrderEnum;
+}
+
+export interface AdminControllerUpdateFeedbackRequest {
+    id: string;
+    updateFeedbackDto: UpdateFeedbackDto;
 }
 
 export interface AdminControllerUpdateStreakQuestionRequest {
@@ -233,6 +257,10 @@ export interface AuthControllerSignupRequest {
 
 export interface AuthControllerUpdateMeRequest {
     patchUserDto: PatchUserDto;
+}
+
+export interface FeedbackControllerSubmitRequest {
+    createFeedbackControllerDto: CreateFeedbackControllerDto;
 }
 
 export interface GameControllerGetGameStateRequest {
@@ -473,6 +501,51 @@ export class ApiApi extends runtime.BaseAPI {
     }
 
     /**
+     * List player reports, newest first
+     */
+    async adminControllerListFeedbackRaw(requestParameters: AdminControllerListFeedbackRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<FeedbackPageDto>> {
+        const queryParameters: any = {};
+
+        if (requestParameters['page'] != null) {
+            queryParameters['page'] = requestParameters['page'];
+        }
+
+        if (requestParameters['limit'] != null) {
+            queryParameters['limit'] = requestParameters['limit'];
+        }
+
+        if (requestParameters['kind'] != null) {
+            queryParameters['kind'] = requestParameters['kind'];
+        }
+
+        if (requestParameters['resolved'] != null) {
+            queryParameters['resolved'] = requestParameters['resolved'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/admin/feedback`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => FeedbackPageDtoFromJSON(jsonValue));
+    }
+
+    /**
+     * List player reports, newest first
+     */
+    async adminControllerListFeedback(requestParameters: AdminControllerListFeedbackRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<FeedbackPageDto> {
+        const response = await this.adminControllerListFeedbackRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * List all streak quiz questions
      */
     async adminControllerListStreakQuestionsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<StreakQuestionDto>>> {
@@ -555,6 +628,53 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async adminControllerListUsers(requestParameters: AdminControllerListUsersRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminUsersPageDto> {
         const response = await this.adminControllerListUsersRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Resolve or reopen a player report
+     */
+    async adminControllerUpdateFeedbackRaw(requestParameters: AdminControllerUpdateFeedbackRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<FeedbackDto>> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling adminControllerUpdateFeedback().'
+            );
+        }
+
+        if (requestParameters['updateFeedbackDto'] == null) {
+            throw new runtime.RequiredError(
+                'updateFeedbackDto',
+                'Required parameter "updateFeedbackDto" was null or undefined when calling adminControllerUpdateFeedback().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/admin/feedback/{id}`;
+        urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'PATCH',
+            headers: headerParameters,
+            query: queryParameters,
+            body: UpdateFeedbackDtoToJSON(requestParameters['updateFeedbackDto']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => FeedbackDtoFromJSON(jsonValue));
+    }
+
+    /**
+     * Resolve or reopen a player report
+     */
+    async adminControllerUpdateFeedback(requestParameters: AdminControllerUpdateFeedbackRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<FeedbackDto> {
+        const response = await this.adminControllerUpdateFeedbackRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1121,6 +1241,44 @@ export class ApiApi extends runtime.BaseAPI {
     async authControllerUpdateMe(requestParameters: AuthControllerUpdateMeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AuthMeResponseDto> {
         const response = await this.authControllerUpdateMeRaw(requestParameters, initOverrides);
         return await response.value();
+    }
+
+    /**
+     * Report a bug or suggest a feature
+     */
+    async feedbackControllerSubmitRaw(requestParameters: FeedbackControllerSubmitRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters['createFeedbackControllerDto'] == null) {
+            throw new runtime.RequiredError(
+                'createFeedbackControllerDto',
+                'Required parameter "createFeedbackControllerDto" was null or undefined when calling feedbackControllerSubmit().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/feedback`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: CreateFeedbackControllerDtoToJSON(requestParameters['createFeedbackControllerDto']),
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Report a bug or suggest a feature
+     */
+    async feedbackControllerSubmit(requestParameters: FeedbackControllerSubmitRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.feedbackControllerSubmitRaw(requestParameters, initOverrides);
     }
 
     /**
@@ -2723,6 +2881,14 @@ export class ApiApi extends runtime.BaseAPI {
 
 }
 
+/**
+ * @export
+ */
+export const AdminControllerListFeedbackKindEnum = {
+    Bug: 'BUG',
+    Suggestion: 'SUGGESTION'
+} as const;
+export type AdminControllerListFeedbackKindEnum = typeof AdminControllerListFeedbackKindEnum[keyof typeof AdminControllerListFeedbackKindEnum];
 /**
  * @export
  */

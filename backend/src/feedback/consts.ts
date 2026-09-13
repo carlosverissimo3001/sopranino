@@ -1,0 +1,2 @@
+export const FEEDBACK_MESSAGE_MIN = 3;
+export const FEEDBACK_MESSAGE_MAX = 2000;

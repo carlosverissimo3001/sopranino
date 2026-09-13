@@ -28,6 +28,11 @@ import { AdminUserDto } from '../dto/admin-user.dto';
 import { UpdateUserRoleDto } from '../dto/update-user-role.dto';
 import { AdminUsersPageDto } from '../dto/admin-users-page.dto';
 import { GetAdminUsersDto } from '../dto/get-admin-users.dto';
+import { FeedbackService } from '../../feedback/services/feedback.service';
+import { FeedbackDto } from '../../feedback/dto/feedback.dto';
+import { FeedbackPageDto } from '../../feedback/dto/feedback-page.dto';
+import { GetFeedbackDto } from '../../feedback/dto/get-feedback.dto';
+import { UpdateFeedbackDto } from '../../feedback/dto/update-feedback.dto';
 
 @ApiTags('Api')
 @Controller('admin')
@@ -36,6 +41,7 @@ export class AdminController {
   constructor(
     private readonly streakQuizService: StreakQuizService,
     private readonly adminUserService: AdminUserService,
+    private readonly feedbackService: FeedbackService,
   ) {}
 
   @Get('streak-questions')
@@ -96,5 +102,24 @@ export class AdminController {
     @Body() dto: UpdateUserRoleDto,
   ): Promise<AdminUserDto> {
     return this.adminUserService.updateUserRole(id, dto);
+  }
+
+  @Get('feedback')
+  @ApiCookieAuth()
+  @ApiOperation({ summary: 'List player reports, newest first' })
+  @ApiResponse({ status: 200, type: FeedbackPageDto })
+  async listFeedback(@Query() dto: GetFeedbackDto): Promise<FeedbackPageDto> {
+    return this.feedbackService.list(dto);
+  }
+
+  @Patch('feedback/:id')
+  @ApiCookieAuth()
+  @ApiOperation({ summary: 'Resolve or reopen a player report' })
+  @ApiResponse({ status: 200, type: FeedbackDto })
+  async updateFeedback(
+    @Param('id') id: string,
+    @Body() dto: UpdateFeedbackDto,
+  ): Promise<FeedbackDto> {
+    return this.feedbackService.setResolved(id, dto.resolved);
   }
 }
