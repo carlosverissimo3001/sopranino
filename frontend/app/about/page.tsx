@@ -6,6 +6,7 @@ import { AppHeader } from '@/components/features/AppHeader';
 import { AppFooter } from '@/components/features/AppFooter';
 import { useMe } from '@/hooks/auth/useMe';
 import { useLogout } from '@/hooks/auth/useLogout';
+import { FeedbackForm } from '@/components/about/FeedbackForm';
 
 const linkClass =
   'underline underline-offset-4 decoration-fg/25 hover:decoration-spotify-green transition-colors';
@@ -117,7 +118,20 @@ export default function AboutPage() {
             </p>
           </div>
 
-          <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+          <section id="feedback" className="mt-10 scroll-mt-24">
+            <h2 className="text-lg font-bold tracking-tight text-fg">
+              Report a bug or suggest something
+            </h2>
+            <p className="mt-1 text-[15px] text-muted-foreground">
+              Silence where a snippet should be, a round that will not load, or
+              an idea. It goes straight to me.
+            </p>
+            <div className="mt-4">
+              <FeedbackForm />
+            </div>
+          </section>
+
+          <div className="mt-10 flex flex-wrap items-center justify-between gap-4">
             <Link
               href="/"
               className="inline-flex items-center gap-1.5 text-[13px] uppercase tracking-widest text-muted-foreground transition-colors hover:text-fg"
