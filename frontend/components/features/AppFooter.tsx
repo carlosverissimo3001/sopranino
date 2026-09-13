@@ -3,6 +3,8 @@
 import { memo } from 'react';
 import Link from 'next/link';
 
+const DEEZER = 'https://www.deezer.com';
+const SPOTIFY = 'https://www.spotify.com';
 const AUTHOR = 'https://carlosverissimo.com';
 const SOURCE = 'https://github.com/carlosverissimo3001/sopranino';
 
@@ -17,7 +19,9 @@ function AppFooterComponent() {
           <External href={SOURCE}>Source</External>
         </nav>
         <p className="text-fg/35">
-          Songs via Deezer and Spotify. Not affiliated with either.
+          Songs via <External href={DEEZER}>Deezer</External> and{' '}
+          <External href={SPOTIFY}>Spotify</External>. Not affiliated with
+          either.
         </p>
         <p>
           Built by <External href={AUTHOR}>Carlos Veríssimo</External>
