@@ -11,7 +11,8 @@ import { Pause, Play } from 'lucide-react';
  * hint - it is a placeholder that happens to be square.
  */
 const MAX_BLUR = 26;
-const MIN_BLUR = 0;
+/** Never sharp: a readable sleeve names the artist, and the last round lists four choices. */
+const MIN_BLUR = 4;
 
 /**
  * Clears fastest through the middle rounds. A linear ramp spent its first half
