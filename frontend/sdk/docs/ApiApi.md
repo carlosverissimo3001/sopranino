@@ -6,8 +6,10 @@ All URIs are relative to *http://localhost*
 |------------- | ------------- | -------------|
 | [**adminControllerCreateStreakQuestion**](ApiApi.md#admincontrollercreatestreakquestion) | **POST** /admin/streak-questions | Create a streak quiz question |
 | [**adminControllerDeleteStreakQuestion**](ApiApi.md#admincontrollerdeletestreakquestion) | **DELETE** /admin/streak-questions/{id} | Soft-delete a streak quiz question |
+| [**adminControllerListFeedback**](ApiApi.md#admincontrollerlistfeedback) | **GET** /admin/feedback | List player reports, newest first |
 | [**adminControllerListStreakQuestions**](ApiApi.md#admincontrollerliststreakquestions) | **GET** /admin/streak-questions | List all streak quiz questions |
 | [**adminControllerListUsers**](ApiApi.md#admincontrollerlistusers) | **GET** /admin/users | List users, paged |
+| [**adminControllerUpdateFeedback**](ApiApi.md#admincontrollerupdatefeedback) | **PATCH** /admin/feedback/{id} | Resolve or reopen a player report |
 | [**adminControllerUpdateStreakQuestion**](ApiApi.md#admincontrollerupdatestreakquestion) | **PATCH** /admin/streak-questions/{id} | Update a streak quiz question |
 | [**adminControllerUpdateUserRole**](ApiApi.md#admincontrollerupdateuserrole) | **PATCH** /admin/users/{id} | Update user role flags |
 | [**authControllerCallback**](ApiApi.md#authcontrollercallback) | **GET** /auth/callback | Handle Spotify OAuth callback |
@@ -23,6 +25,7 @@ All URIs are relative to *http://localhost*
 | [**authControllerResendVerification**](ApiApi.md#authcontrollerresendverification) | **POST** /auth/verify-email/resend | Send the verification link again |
 | [**authControllerSignup**](ApiApi.md#authcontrollersignup) | **POST** /auth/signup | Create an account, keeping any guest progress |
 | [**authControllerUpdateMe**](ApiApi.md#authcontrollerupdateme) | **PATCH** /auth/me | Update current user profile |
+| [**feedbackControllerSubmit**](ApiApi.md#feedbackcontrollersubmit) | **POST** /feedback | Report a bug or suggest a feature |
 | [**gameControllerGetGameState**](ApiApi.md#gamecontrollergetgamestate) | **GET** /game/{id} | Get current game state |
 | [**gameControllerGetHistory**](ApiApi.md#gamecontrollergethistory) | **GET** /game/history | Get user\&#39;s game session history (paginated) |
 | [**gameControllerGetPlayedToday**](ApiApi.md#gamecontrollergetplayedtoday) | **GET** /game/daily/played-today | Whether the user has played today\&#39;s daily |
@@ -205,6 +208,84 @@ example().catch(console.error);
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 
+## adminControllerListFeedback
+
+> FeedbackPageDto adminControllerListFeedback(page, limit, kind, resolved)
+
+List player reports, newest first
+
+### Example
+
+```ts
+import {
+  Configuration,
+  ApiApi,
+} from '';
+import type { AdminControllerListFeedbackRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: cookie
+    apiKey: "YOUR API KEY",
+  });
+  const api = new ApiApi(config);
+
+  const body = {
+    // number (optional)
+    page: 8.14,
+    // number (optional)
+    limit: 8.14,
+    // 'BUG' | 'SUGGESTION' (optional)
+    kind: kind_example,
+    // boolean | Only resolved, or only open, reports (optional)
+    resolved: true,
+  } satisfies AdminControllerListFeedbackRequest;
+
+  try {
+    const data = await api.adminControllerListFeedback(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **page** | `number` |  | [Optional] [Defaults to `1`] |
+| **limit** | `number` |  | [Optional] [Defaults to `10`] |
+| **kind** | `BUG`, `SUGGESTION` |  | [Optional] [Defaults to `undefined`] [Enum: BUG, SUGGESTION] |
+| **resolved** | `boolean` | Only resolved, or only open, reports | [Optional] [Defaults to `undefined`] |
+
+### Return type
+
+[**FeedbackPageDto**](FeedbackPageDto.md)
+
+### Authorization
+
+[cookie](../README.md#cookie)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** |  |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
 ## adminControllerListStreakQuestions
 
 > Array&lt;StreakQuestionDto&gt; adminControllerListStreakQuestions()
@@ -342,6 +423,78 @@ example().catch(console.error);
 ### HTTP request headers
 
 - **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** |  |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## adminControllerUpdateFeedback
+
+> FeedbackDto adminControllerUpdateFeedback(id, updateFeedbackDto)
+
+Resolve or reopen a player report
+
+### Example
+
+```ts
+import {
+  Configuration,
+  ApiApi,
+} from '';
+import type { AdminControllerUpdateFeedbackRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: cookie
+    apiKey: "YOUR API KEY",
+  });
+  const api = new ApiApi(config);
+
+  const body = {
+    // string
+    id: id_example,
+    // UpdateFeedbackDto
+    updateFeedbackDto: ...,
+  } satisfies AdminControllerUpdateFeedbackRequest;
+
+  try {
+    const data = await api.adminControllerUpdateFeedback(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **id** | `string` |  | [Defaults to `undefined`] |
+| **updateFeedbackDto** | [UpdateFeedbackDto](UpdateFeedbackDto.md) |  | |
+
+### Return type
+
+[**FeedbackDto**](FeedbackDto.md)
+
+### Authorization
+
+[cookie](../README.md#cookie)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
 
@@ -1330,6 +1483,72 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** |  |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## feedbackControllerSubmit
+
+> feedbackControllerSubmit(createFeedbackControllerDto)
+
+Report a bug or suggest a feature
+
+### Example
+
+```ts
+import {
+  Configuration,
+  ApiApi,
+} from '';
+import type { FeedbackControllerSubmitRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const api = new ApiApi();
+
+  const body = {
+    // CreateFeedbackControllerDto
+    createFeedbackControllerDto: ...,
+  } satisfies FeedbackControllerSubmitRequest;
+
+  try {
+    const data = await api.feedbackControllerSubmit(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **createFeedbackControllerDto** | [CreateFeedbackControllerDto](CreateFeedbackControllerDto.md) |  | |
+
+### Return type
+
+`void` (Empty response body)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: Not defined
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **204** |  |  -  |
+| **429** | Rate limit exceeded |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 

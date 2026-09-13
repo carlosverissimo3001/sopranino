@@ -1423,6 +1423,150 @@
         ]
       }
     },
+    "/admin/feedback": {
+      "get": {
+        "operationId": "AdminController_listFeedback",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "kind",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "BUG",
+                "SUGGESTION"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "resolved",
+            "required": false,
+            "in": "query",
+            "description": "Only resolved, or only open, reports",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedbackPageDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "List player reports, newest first",
+        "tags": [
+          "Api"
+        ]
+      }
+    },
+    "/admin/feedback/{id}": {
+      "patch": {
+        "operationId": "AdminController_updateFeedback",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateFeedbackDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedbackDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Resolve or reopen a player report",
+        "tags": [
+          "Api"
+        ]
+      }
+    },
+    "/feedback": {
+      "post": {
+        "operationId": "FeedbackController_submit",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFeedbackControllerDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
+        },
+        "summary": "Report a bug or suggest a feature",
+        "tags": [
+          "Api"
+        ]
+      }
+    },
     "/multiplayer/rooms/open": {
       "get": {
         "operationId": "MultiplayerController_listOpenRooms",
@@ -3903,6 +4047,116 @@
             "type": "boolean"
           }
         }
+      },
+      "FeedbackDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "BUG",
+              "SUGGESTION"
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "userDisplayName": {
+            "type": "string"
+          },
+          "pagePath": {
+            "type": "string"
+          },
+          "userAgent": {
+            "type": "string"
+          },
+          "resolvedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "message",
+          "createdAt"
+        ]
+      },
+      "FeedbackPageDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FeedbackDto"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMetaDto"
+          }
+        },
+        "required": [
+          "items",
+          "meta"
+        ]
+      },
+      "UpdateFeedbackDto": {
+        "type": "object",
+        "properties": {
+          "resolved": {
+            "type": "boolean",
+            "description": "Resolved, or reopened"
+          }
+        },
+        "required": [
+          "resolved"
+        ]
+      },
+      "CreateFeedbackControllerDto": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "BUG",
+              "SUGGESTION"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 2000
+          },
+          "email": {
+            "type": "string",
+            "description": "Where to reply, if anywhere"
+          },
+          "pagePath": {
+            "type": "string",
+            "description": "The page the report was sent from"
+          },
+          "website": {
+            "type": "string",
+            "description": "Left empty by people; a filled one is dropped silently"
+          }
+        },
+        "required": [
+          "kind",
+          "message"
+        ]
       },
       "OpenRoomDto": {
         "type": "object",

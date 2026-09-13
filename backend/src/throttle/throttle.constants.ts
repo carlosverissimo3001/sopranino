@@ -43,6 +43,12 @@ export const THROTTLE_AVATAR = 'avatar';
  */
 export const THROTTLE_AVATAR_LIMIT = 5;
 
+/** Named throttler for player reports */
+export const THROTTLE_FEEDBACK = 'feedback';
+
+/** Per IP: guests can send them, and a person has no reason to send more. */
+export const THROTTLE_FEEDBACK_LIMIT = 5;
+
 /** Named throttler for signup and login */
 export const THROTTLE_CREDENTIALS = 'credentials';
 

@@ -1,3 +1,4 @@
+import { FeedbackModule } from './feedback/feedback.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LoggerModule } from './logger/logger.module';
@@ -48,6 +49,7 @@ import { GAME_CLEANUP_QUEUE, JOB_OPTIONS_WITH_BACKOFF } from './consts';
     DemoModule,
     ChartModule,
     TrackGroupModule,
+    FeedbackModule,
     BullModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
