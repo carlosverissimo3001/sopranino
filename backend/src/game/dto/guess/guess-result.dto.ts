@@ -2,6 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { GuessResult } from '../../consts';
 import { GameStatus } from '@prisma/client';
 import { HintDto } from '../hint/hint.dto';
+import { TrackOptionDto } from '../../../track/dto/track-option.dto';
 
 export class GuessResultDto {
   @ApiProperty({ enum: GuessResult, description: 'The result of the guess' })
@@ -40,4 +41,11 @@ export class GuessResultDto {
     isArray: true,
   })
   hints?: HintDto[];
+
+  @ApiPropertyOptional({
+    description: 'Four choices, when the next round is the last',
+    type: TrackOptionDto,
+    isArray: true,
+  })
+  choices?: TrackOptionDto[];
 }

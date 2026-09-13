@@ -66,4 +66,11 @@ export class GameStateDto {
     isArray: true,
   })
   hints?: HintDto[];
+
+  @ApiPropertyOptional({
+    description: 'Four choices, while the last round is in play',
+    type: TrackOptionDto,
+    isArray: true,
+  })
+  choices?: TrackOptionDto[];
 }

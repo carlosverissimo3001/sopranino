@@ -7,7 +7,12 @@ import { InputJsonValue } from '@prisma/client/runtime/client';
 import { GuessHistoryDto } from '../dto/guess/guess-history.dto';
 import { GameSessionEntity } from '../entities/game-session.entity';
 import { FindGameSessionsDto } from '../dto/session/find-game-sessions.dto';
-import { mapGameSession, PrismaGameSessionResult } from '../../utils/mappers';
+import {
+  mapGameSession,
+  mapTrack,
+  PrismaGameSessionResult,
+} from '../../utils/mappers';
+import { TrackEntity } from '../../track/entities/track.entity';
 import { skipTake } from '../../utils/pagination/paginate';
 
 @Injectable()
@@ -73,6 +78,7 @@ export class GameSessionRepository {
       guesses: GuessHistoryDto[];
       status: GameStatus;
       completedAt?: Date;
+      choiceTrackIds?: string[];
     },
   ): Promise<GameSessionEntity> {
     const updatedSession = await this.prisma.gameSession.update({
@@ -82,6 +88,9 @@ export class GameSessionRepository {
         guesses: updateData.guesses as unknown as InputJsonValue,
         status: updateData.status,
         completedAt: updateData.completedAt ?? null,
+        ...(updateData.choiceTrackIds && {
+          choiceTrackIds: updateData.choiceTrackIds,
+        }),
       },
     });
     return mapGameSession(updatedSession as PrismaGameSessionResult);
@@ -129,6 +138,22 @@ export class GameSessionRepository {
    * filter, which quietly turned this into "any active round in this mode" and
    * handed a player the round they left open somewhere else.
    */
+  /** Songs this player has had from a playlist, newest first, one per song. */
+  async findPlayedTracks(
+    userId: string,
+    playlistId: string,
+    excludeTrackId: string,
+  ): Promise<TrackEntity[]> {
+    const sessions = await this.prisma.gameSession.findMany({
+      where: { userId, playlistId, trackId: { not: excludeTrackId } },
+      distinct: ['trackId'],
+      orderBy: { createdAt: 'desc' },
+      take: 200,
+      select: { track: true },
+    });
+    return sessions.map((session) => mapTrack(session.track));
+  }
+
   async hasFinishedGame(userId: string): Promise<boolean> {
     const finished = await this.prisma.gameSession.findFirst({
       where: {

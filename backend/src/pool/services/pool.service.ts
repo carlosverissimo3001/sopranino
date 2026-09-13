@@ -62,6 +62,10 @@ export class PoolService {
     return track;
   }
 
+  candidates(trackGroupId?: string): Promise<PoolCandidate[]> {
+    return this.getCandidates(trackGroupId);
+  }
+
   async isReady(): Promise<boolean> {
     return (await this.getCandidates()).length > 0;
   }

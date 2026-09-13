@@ -177,6 +177,8 @@ export function mapGameSession(
     completedAt: toUndefinedIfNull(data.completedAt),
     score: computeScore(data.status, data.currentRound),
     guesses: mapGuesses(data.guesses),
+    trackGroupId: toUndefinedIfNull(data.trackGroupId),
+    choiceTrackIds: data.choiceTrackIds ?? [],
     ...incMap(data, 'track', mapTrack),
   };
 }

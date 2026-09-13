@@ -32,6 +32,16 @@ export class GameSessionEntity {
   @ApiProperty({ description: 'The status of the game', enum: GameStatus })
   status: GameStatus;
 
+  @ApiPropertyOptional({ description: 'The curated group a round drew from' })
+  trackGroupId?: string;
+
+  @ApiProperty({
+    description: "The last round's choices, answer included, once offered",
+    type: String,
+    isArray: true,
+  })
+  choiceTrackIds: string[];
+
   @ApiProperty({ description: 'The date the game was created' })
   createdAt: Date;
 
