@@ -228,7 +228,7 @@ export function ShuffleGamePage({ canSignIn }: { canSignIn: boolean }) {
             className={
               isGameOver
                 ? 'contents'
-                : 'flex flex-1 flex-col justify-center sm:contents'
+                : 'flex min-h-0 flex-1 flex-col sm:contents'
             }
           >
             {!isGameOver && (
@@ -284,7 +284,7 @@ export function ShuffleGamePage({ canSignIn }: { canSignIn: boolean }) {
                 </div>
               </motion.div>
             ) : (
-              <div className="sticky bottom-0 z-20 -mx-3 mt-auto bg-[rgb(var(--bg))] px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:relative sm:mx-0 sm:mt-0 sm:bg-transparent sm:p-0">
+              <div className="sticky bottom-0 z-20 order-last -mx-3 mt-auto bg-[rgb(var(--bg))] px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:relative sm:order-none sm:mx-0 sm:mt-0 sm:bg-transparent sm:p-0">
                 <GuessInput
                   pinned
                   search={spotifySearch}
