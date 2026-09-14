@@ -2,7 +2,6 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ShuffleGamePage } from '@/components/game/ShuffleGamePage';
 
@@ -18,16 +17,6 @@ export function LandingGame({ canSignIn }: { canSignIn: boolean }) {
         canSignIn={canSignIn}
         deferStart
         heading="Sopranino: guess the song from a snippet"
-        headerLeading={
-          <Link href="/" className="flex shrink-0 items-center gap-2">
-            <span className="rounded-lg bg-spotify-green p-1.5">
-              <Zap className="h-4 w-4 fill-black text-black" />
-            </span>
-            <span className="text-sm font-black uppercase italic tracking-tighter sm:text-base">
-              Sopranino
-            </span>
-          </Link>
-        }
         headerTrailing={
           // A player with a Spotify-linked account is one tap from it here, not
           // two pages away.

@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, type ReactNode } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
+import { Zap } from 'lucide-react';
 import { usePoolGameOrchestrator } from '@/hooks/game/usePoolGameOrchestrator';
 import { useMe } from '@/hooks/auth/useMe';
 import { useVolume } from '@/hooks/game/useVolume';
@@ -38,8 +40,6 @@ interface ShuffleGamePageProps {
    * landing needs this: `/` is crawled, and a page load must not mint a user.
    */
   deferStart?: boolean;
-  /** In place of the Back link, for a page that is itself the way in. */
-  headerLeading?: ReactNode;
   /** In place of the Spotify sign-in, for a page with its own way in. */
   headerTrailing?: ReactNode;
   /** Read by crawlers and screen readers; the round heads itself on screen. */
@@ -55,7 +55,6 @@ interface ShuffleGamePageProps {
 export function ShuffleGamePage({
   canSignIn,
   deferStart = false,
-  headerLeading,
   headerTrailing,
   heading = 'Shuffle: guess the song from a snippet',
   afterReveal,
@@ -140,7 +139,18 @@ export function ShuffleGamePage({
           mode={GameMode.All}
           volume={volume}
           onVolumeChange={setVolume}
-          leading={headerLeading}
+          // The name, not a Back link: this screen is the way in for a new
+          // visitor, and the logo is the way home for everyone else.
+          leading={
+            <Link href="/" className="flex shrink-0 items-center gap-2">
+              <span className="rounded-lg bg-spotify-green p-1.5">
+                <Zap className="h-4 w-4 fill-black text-black" />
+              </span>
+              <span className="text-sm font-black uppercase italic tracking-tighter sm:text-base">
+                Sopranino
+              </span>
+            </Link>
+          }
           trailing={
             headerTrailing ??
             // Nothing at all while the site is gated: /api/auth/login is
