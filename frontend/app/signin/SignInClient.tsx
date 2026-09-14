@@ -1,11 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CredentialsForm } from '@/components/auth/CredentialsForm';
+import { InviteForm } from '@/components/auth/InviteForm';
 import { useMe } from '@/hooks/auth/useMe';
 
 /**
@@ -22,6 +24,7 @@ import { useMe } from '@/hooks/auth/useMe';
 export function SignInClient({ canSignIn }: { canSignIn: boolean }) {
   const router = useRouter();
   const { data: user } = useMe();
+  const [showInvite, setShowInvite] = useState(false);
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-8 px-6">
@@ -71,6 +74,19 @@ export function SignInClient({ canSignIn }: { canSignIn: boolean }) {
             </span>
           )}
         </div>
+
+        {!canSignIn &&
+          (showInvite ? (
+            <InviteForm />
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowInvite(true)}
+              className="cursor-pointer self-center rounded-full border border-fg/15 px-5 py-2.5 text-sm font-semibold text-fg/70 transition-colors hover:border-fg/30 hover:bg-fg/5 hover:text-fg"
+            >
+              Played here before? Enter your secret word
+            </button>
+          ))}
       </div>
     </main>
   );
