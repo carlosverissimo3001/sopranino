@@ -169,6 +169,13 @@ export function ShuffleGamePage({
           onVolumeChange={setVolume}
           // The name, not a Back link: this screen is the way in for a new
           // visitor, and the logo is the way home for everyone else.
+          center={
+            playingSet && (
+              <p className="text-sm font-bold tracking-tight text-fg md:text-base">
+                {guessLine(playingSet)}
+              </p>
+            )
+          }
           leading={
             <Link href="/" className="flex shrink-0 items-center gap-2">
               <span className="rounded-lg bg-spotify-green p-1.5">
@@ -208,8 +215,9 @@ export function ShuffleGamePage({
         <>
           <div className="relative mb-5 flex flex-col items-center gap-3 sm:mb-8 sm:gap-4">
             <h1 className="sr-only">{heading}</h1>
+            {/* In the header from sm up; here on a phone, which has no room there. */}
             {playingSet && (
-              <p className="text-base font-bold tracking-tight text-fg sm:text-lg">
+              <p className="text-base font-bold tracking-tight text-fg sm:hidden">
                 {guessLine(playingSet)}
               </p>
             )}
