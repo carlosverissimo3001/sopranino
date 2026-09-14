@@ -46,20 +46,19 @@ export function LandingGame({ canSignIn }: { canSignIn: boolean }) {
           )
         }
         afterReveal={
-          // A full load: the session now exists, so the home page shows every
-          // mode rather than this.
-          <a
-            href="/"
+          // The round has minted a session, so the menu has someone to show.
+          <Link
+            href="/?menu"
             className="mt-4 block text-center text-sm font-semibold text-spotify-green hover:underline"
           >
             More ways to play
-          </a>
+          </Link>
         }
       />
       {/* Below the round on purpose: what a search engine reads, not what a
           player has to scroll past to play. */}
-      <section className="mx-auto max-w-2xl px-4 pb-10 text-sm leading-relaxed text-fg/50 sm:px-6">
-        <h2 className="mb-2 font-bold text-fg/70">How it works</h2>
+      <section className="mx-auto max-w-xl px-4 pb-8 text-center text-xs leading-relaxed text-fg/40 sm:px-6">
+        <h2 className="mb-1.5 text-xs font-bold text-fg/60">How it works</h2>
         <p>
           Press play and hear a tenth of a second of a song. Name it, or skip to
           hear a little more: every miss unlocks a longer snippet and a hint,

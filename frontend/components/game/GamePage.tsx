@@ -119,11 +119,10 @@ export function GamePage({
           onPlayAgain={isPlaylist ? handlePlayAgain : undefined}
           playlistExternalUrl={playlistReveal?.externalUrl ?? null}
           playlistName={playlistReveal?.name ?? null}
-          playlistTotalTracks={playlistReveal?.totalTracks ?? null}
-          playlistImageUrl={playlistReveal?.imageUrl ?? null}
           isFullSongPlaying={gameAudio.isFullSongPlaying}
           onToggleFullSong={gameAudio.toggleFullSong}
           rankTitle={gameState.rankTitle ?? null}
+          tries={gameState.guesses.length}
         />
       }
     />

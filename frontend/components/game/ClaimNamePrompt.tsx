@@ -58,7 +58,7 @@ export function ClaimNamePrompt() {
       <button
         type="button"
         onClick={() => setOverride('open')}
-        className="mx-auto flex items-center gap-1.5 text-[11px] font-bold text-fg/35 hover:text-fg/70 transition-colors"
+        className="flex items-center gap-1.5 text-[11px] font-bold text-fg/35 hover:text-fg/70 transition-colors"
       >
         Playing as {user.displayName}
         <Pencil className="w-3 h-3" />
@@ -66,55 +66,49 @@ export function ClaimNamePrompt() {
     );
   }
 
+  // One line, inside the reveal card: the round is the point, the name is not.
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
+    <motion.form
+      initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
-      className="relative rounded-2xl border border-fg/10 bg-fg/[0.04] p-4"
+      className="flex flex-wrap items-center gap-x-3 gap-y-2"
+      onSubmit={(e) => {
+        e.preventDefault();
+        const trimmed = name.trim();
+        if (!trimmed) return;
+        updateProfile(trimmed, { onSuccess: close });
+      }}
     >
-      <button
-        type="button"
-        onClick={close}
-        aria-label="Dismiss"
-        className="absolute top-3 right-3 text-fg/30 hover:text-fg/60 transition-colors"
-      >
-        <X className="w-3.5 h-3.5" />
-      </button>
-
-      <p className="text-sm font-black tracking-tight text-fg pr-6">
-        You&apos;re playing as {user.displayName}
+      <p className="text-xs text-fg/60">
+        Playing as <span className="font-bold text-fg">{user.displayName}</span>
+        . Pick a name, no email needed.
       </p>
-      <p className="mt-0.5 text-xs text-fg/50 tracking-tight">
-        Pick something better. No email, no password.
-      </p>
-
-      <form
-        className="mt-3 flex items-center gap-2"
-        onSubmit={(e) => {
-          e.preventDefault();
-          const trimmed = name.trim();
-          if (!trimmed) return;
-          updateProfile(trimmed, { onSuccess: close });
-        }}
-      >
+      <div className="flex min-w-[12rem] flex-1 items-center gap-2">
         <input
-          autoFocus
           value={name}
           onChange={(e) => setName(e.target.value)}
           maxLength={50}
           placeholder="Your name"
           aria-label="Your name"
-          className="min-w-0 flex-1 rounded-xl border border-fg/15 bg-fg/5 px-3 py-2 text-sm text-fg placeholder:text-fg/30 focus:outline-none focus:ring-2 focus:ring-spotify-green"
+          className="h-8 min-w-0 flex-1 rounded-lg border border-fg/15 bg-fg/5 px-2.5 text-sm text-fg placeholder:text-fg/30 focus:outline-none focus:ring-2 focus:ring-spotify-green"
         />
         <button
           type="submit"
           disabled={isPending || !name.trim()}
           aria-label="Save name"
-          className="flex items-center justify-center h-9 w-9 shrink-0 rounded-xl bg-spotify-green text-black disabled:opacity-40 active:scale-95 transition-all"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-spotify-green text-black transition-all active:scale-95 disabled:opacity-40"
         >
-          <Check className="w-4 h-4" />
+          <Check className="h-4 w-4" />
         </button>
-      </form>
-    </motion.div>
+        <button
+          type="button"
+          onClick={close}
+          aria-label="Dismiss"
+          className="flex h-8 w-8 shrink-0 items-center justify-center text-fg/30 transition-colors hover:text-fg/60"
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    </motion.form>
   );
 }

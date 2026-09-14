@@ -11,17 +11,12 @@ const SHUFFLE_ROUTE = '/shuffle';
 
 // Presence only; the backend validates. Multiplayer join is absent on purpose:
 // it routes signed out visitors through login itself.
-const NEEDS_SESSION = [
-  '/daily',
-  '/playlist',
-  '/history',
-  '/preferences',
-  '/admin',
-];
+const NEEDS_SESSION = ['/playlist', '/history', '/preferences', '/admin'];
 
 function needsSession(pathname: string): boolean {
   if (pathname.startsWith('/multiplayer/join')) return false;
-  // Playing without an account is the whole point of the shuffle.
+  // Playing without an account is the whole point of the shuffle, and the
+  // daily is one song for everyone: starting either mints the guest.
   if (pathname === SHUFFLE_ROUTE) return false;
   if (pathname.startsWith('/multiplayer')) return true;
   return NEEDS_SESSION.some(

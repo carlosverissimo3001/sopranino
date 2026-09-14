@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useMe } from '@/hooks/auth/useMe';
 import { consumeAuthReturnUrl, peekAuthReturnUrl } from '@/lib/auth-return';
@@ -87,6 +88,9 @@ export function HomeClient({
   // not turn into the home grid under a player halfway through it. A cookie
   // for a session that no longer exists lands here too.
   const [isLanding, setIsLanding] = useState(!hasSession);
+  // The landing's way to the menu, as its own history entry: a link to "/"
+  // from "/" replaces the entry, and Back then skips the round entirely.
+  const menuAsked = useSearchParams().has('menu');
   // null is the server saying nobody; undefined is a request that failed.
   const sessionIsGone = hasSession && user === null;
   useEffect(() => {
@@ -102,9 +106,14 @@ export function HomeClient({
 
   // Without a session cookie the answer is already known, so the landing
   // renders on the server rather than behind a spinner a crawler would index.
-  if (isLanding) {
+  if (isLanding && !menuAsked) {
     return (
-      <main className="min-h-screen text-fg">
+      // The round paints the screen; the copy and footer below it share that
+      // ground instead of the home page's gradient.
+      <main
+        className="min-h-screen text-fg"
+        style={{ background: 'rgb(var(--bg))' }}
+      >
         <LandingGame canSignIn={canSignIn} />
         <AppFooter />
       </main>

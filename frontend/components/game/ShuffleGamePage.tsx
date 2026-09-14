@@ -226,10 +226,9 @@ export function ShuffleGamePage({
               onPlayAgain={handlePlayAgain}
               isFullSongPlaying={gameAudio.isFullSongPlaying}
               onToggleFullSong={gameAudio.toggleFullSong}
+              tries={gameState.guesses.length}
+              footer={<ClaimNamePrompt />}
             />
-            <div className="mt-4 flex flex-col">
-              <ClaimNamePrompt />
-            </div>
             {afterReveal}
           </>
         )

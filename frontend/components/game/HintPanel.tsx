@@ -19,10 +19,13 @@ interface HintPanelProps {
 export function HintPanel({ hints, currentRound }: HintPanelProps) {
   if (currentRound === 0 && hints.length === 0) {
     return (
+      // Said once, then out of the way. It fades rather than unmounts, so the
+      // cover and the guess box do not jump when it goes.
       <motion.div
         initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5, duration: 0.4 }}
+        animate={{ opacity: [0, 1, 1, 0] }}
+        transition={{ duration: 5, times: [0, 0.1, 0.8, 1], delay: 0.5 }}
+        aria-hidden
         className="flex items-center justify-center gap-2 mb-3 sm:mb-4 py-2 text-zinc-500 text-sm"
       >
         <Lightbulb className="w-3.5 h-3.5" />
