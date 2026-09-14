@@ -1,28 +1,20 @@
 
-# StartGameDto
+# FameTier
 
 
 ## Properties
 
 Name | Type
 ------------ | -------------
-`playlistId` | string
-`trackGroupId` | string
-`fameTier` | [FameTier](FameTier.md)
-`mode` | string
 
 ## Example
 
 ```typescript
-import type { StartGameDto } from ''
+import type { FameTier } from ''
 
 // TODO: Update the object below with actual values
 const example = {
-  "playlistId": null,
-  "trackGroupId": null,
-  "fameTier": null,
-  "mode": null,
-} satisfies StartGameDto
+} satisfies FameTier
 
 console.log(example)
 
@@ -31,7 +23,7 @@ const exampleJSON: string = JSON.stringify(example)
 console.log(exampleJSON)
 
 // Parse the JSON string back to an object
-const exampleParsed = JSON.parse(exampleJSON) as StartGameDto
+const exampleParsed = JSON.parse(exampleJSON) as FameTier
 console.log(exampleParsed)
 ```
 

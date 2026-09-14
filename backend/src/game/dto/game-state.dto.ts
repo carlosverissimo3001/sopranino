@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { GameStatus } from '@prisma/client';
+import { FameTier, GameStatus } from '@prisma/client';
 import { TrackOptionDto } from '@/track/dto/track-option.dto';
 import { GuessHistoryDto } from './guess/guess-history.dto';
 import { HintDto } from './hint/hint.dto';
@@ -27,6 +27,13 @@ export class GameStateDto {
 
   @ApiProperty({ description: 'The status of the game', enum: GameStatus })
   status: GameStatus;
+
+  @ApiPropertyOptional({
+    description: 'How well-known the song was meant to be, for a pool game',
+    enum: FameTier,
+    enumName: 'FameTier',
+  })
+  fameTier?: FameTier;
 
   @ApiProperty({
     description: 'The guesses of the game',

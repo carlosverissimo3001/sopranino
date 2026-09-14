@@ -1,4 +1,4 @@
-import { GameMode, GameStatus } from '@prisma/client';
+import { FameTier, GameMode, GameStatus } from '@prisma/client';
 import { GuessHistoryDto } from '../dto/guess/guess-history.dto';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { TrackEntity } from '../../track/entities/track.entity';
@@ -34,6 +34,13 @@ export class GameSessionEntity {
 
   @ApiPropertyOptional({ description: 'The curated group a round drew from' })
   trackGroupId?: string;
+
+  @ApiPropertyOptional({
+    description: 'How well-known the song was meant to be, for a pool game',
+    enum: FameTier,
+    enumName: 'FameTier',
+  })
+  fameTier?: FameTier;
 
   @ApiProperty({
     description: "The last round's choices, answer included, once offered",

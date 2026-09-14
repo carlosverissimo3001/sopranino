@@ -9,7 +9,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { GameMode, GameStatus } from '@prisma/client';
+import { FameTier, GameMode, GameStatus } from '@prisma/client';
 import { Transactional } from '@transaction/transactional.decorator';
 import { formatDate, subHours } from 'date-fns';
 import {
@@ -91,7 +91,7 @@ export class GameService {
     sessionId: string,
     params: StartGameDto,
   ): Promise<GameStateDto> {
-    const { playlistId, trackGroupId, mode } = params;
+    const { playlistId, trackGroupId, mode, fameTier } = params;
     const user = await this.authService.getUserBySessionId(sessionId);
     const userId = user.id;
 
@@ -120,10 +120,24 @@ export class GameService {
             trackGroupId ?? null,
           );
 
+    const tier = isPool ? (fameTier ?? FameTier.EASY) : undefined;
+
+    // Switching difficulty before a guess swaps the song; after one, the
+    // round is the player's and the new tier waits for the next song.
+    const swapsSong =
+      !!existing &&
+      mode !== GameMode.DAILY &&
+      isPool &&
+      existing.guesses.length === 0 &&
+      (existing.fameTier ?? FameTier.EASY) !== tier;
+
     // If there's an active session (or already played daily) for this user and mode,
     // return it instead of starting a new one
-    if (existing) {
+    if (existing && !swapsSong) {
       return this.getGameState(sessionId, existing.id);
+    }
+    if (existing && swapsSong) {
+      await this.gameSessionRepository.markAsAbandoned(existing.id);
     }
 
     // The daily is one song a day for everyone, so it never looks at whose
@@ -143,11 +157,11 @@ export class GameService {
         throw new NotFoundException(`No track group ${trackGroupId}`);
       }
 
-      return this.startPoolGame(userId, mode, trackGroupId);
+      return this.startPoolGame({ userId, mode, tier: tier!, trackGroupId });
     }
 
     if (playlistId === POOL_PLAYLIST_ID) {
-      return this.startPoolGame(userId, mode);
+      return this.startPoolGame({ userId, mode, tier: tier! });
     }
 
     const targetPlaylistId = storedPlaylistId!;
@@ -219,22 +233,27 @@ export class GameService {
   }
 
   /** No Spotify library to draw from, so the round comes out of the pool. */
-  private async startPoolGame(
-    userId: string,
-    mode: GameMode,
-    trackGroupId?: string,
-  ): Promise<GameStateDto> {
-    const famousOnly =
-      !(await this.gameSessionRepository.hasFinishedGame(userId));
+  private async startPoolGame({
+    userId,
+    mode,
+    tier,
+    trackGroupId,
+  }: {
+    userId: string;
+    mode: GameMode;
+    tier: FameTier;
+    trackGroupId?: string;
+  }): Promise<GameStateDto> {
     const { track, previewUrl } = await this.pickPoolTrackWithPreview(
       trackGroupId,
-      famousOnly,
+      tier,
     );
 
     const game = await this.gameSessionRepository.createSession({
       user: { connect: { id: userId } },
       playlistId: POOL_PLAYLIST_ID,
       trackGroupId,
+      fameTier: tier,
       mode,
       track: { connect: { id: track.id } },
       currentRound: 0,
@@ -244,7 +263,7 @@ export class GameService {
 
     this.trackService.enrichInBackground(track);
 
-    return mapInitialGameState(game.id, previewUrl);
+    return mapInitialGameState(game.id, previewUrl, tier);
   }
 
   /**
@@ -254,7 +273,7 @@ export class GameService {
    */
   private async pickPoolTrackWithPreview(
     trackGroupId?: string,
-    famousOnly = false,
+    tier?: FameTier,
   ): Promise<{
     track: TrackEntity;
     previewUrl: string;
@@ -263,7 +282,7 @@ export class GameService {
 
     for (let i = 0; i < POOL_MAX_PREVIEW_ATTEMPTS; i++) {
       const track = await this.poolService.pickTrack(tried, trackGroupId, {
-        famousOnly,
+        tier,
       });
       try {
         const previewUrl = await this.trackService.resolvePreview(track);

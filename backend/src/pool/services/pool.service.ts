@@ -1,15 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { FameTier } from '@prisma/client';
 import { TrackEntity } from '../../track/entities/track.entity';
 import { TrackRepository } from '../../track/repositories/track.repository';
 import {
   PoolCandidate,
   PoolTrackRepository,
 } from '../repositories/pool-track.repository';
-import {
-  FIRST_GAME_FAME_SHARE,
-  POOL_CANDIDATE_CACHE_MS,
-} from '../../consts';
-import { mostFamous } from '../utils/most-famous';
+import { POOL_CANDIDATE_CACHE_MS } from '../../consts';
+import { tierCuts, tierFallback, tierOf } from '../utils/fame-tier';
 import { weightedPick } from '../utils/weighted-pick';
 
 @Injectable()
@@ -23,6 +21,7 @@ export class PoolService {
    * decade the last one asked for.
    */
   private cache = new Map<string, { candidates: PoolCandidate[]; at: number }>();
+  private cuts: { values: number[]; at: number } | null = null;
 
   constructor(
     private readonly poolTrackRepository: PoolTrackRepository,
@@ -36,15 +35,13 @@ export class PoolService {
   async pickTrack(
     excludeIds: string[] = [],
     trackGroupId?: string,
-    { famousOnly = false }: { famousOnly?: boolean } = {},
+    { tier }: { tier?: FameTier } = {},
   ): Promise<TrackEntity> {
     const candidates = await this.getCandidates(trackGroupId);
     const exclude = new Set(excludeIds);
-    // Falls back to the whole list once every famous candidate has been tried.
-    const id =
-      (famousOnly &&
-        weightedPick(mostFamous(candidates, FIRST_GAME_FAME_SHARE), exclude)) ||
-      weightedPick(candidates, exclude);
+    const id = tier
+      ? await this.pickInTier(candidates, tier, exclude)
+      : weightedPick(candidates, exclude);
     if (!id) {
       throw new NotFoundException(
         trackGroupId
@@ -62,6 +59,23 @@ export class PoolService {
     return track;
   }
 
+  /** A set can run out of a tier, so the nearest one stands in rather than failing. */
+  private async pickInTier(
+    candidates: PoolCandidate[],
+    tier: FameTier,
+    exclude: ReadonlySet<string>,
+  ): Promise<string | null> {
+    const cuts = await this.getCuts();
+    for (const fallback of tierFallback(tier)) {
+      const id = weightedPick(
+        candidates.filter((c) => tierOf(c.fame, cuts) === fallback),
+        exclude,
+      );
+      if (id) return id;
+    }
+    return null;
+  }
+
   candidates(trackGroupId?: string): Promise<PoolCandidate[]> {
     return this.getCandidates(trackGroupId);
   }
@@ -73,10 +87,20 @@ export class PoolService {
   /** Drops every cached list, for when the pool or a group has been rewritten. */
   clearCache(): void {
     this.cache.clear();
+    this.cuts = null;
   }
 
   async stats() {
     return this.poolTrackRepository.stats();
+  }
+
+  private async getCuts(): Promise<number[]> {
+    if (this.cuts && Date.now() - this.cuts.at < POOL_CANDIDATE_CACHE_MS) {
+      return this.cuts.values;
+    }
+    const values = tierCuts(await this.poolTrackRepository.findAllFame());
+    this.cuts = { values, at: Date.now() };
+    return values;
   }
 
   private async getCandidates(

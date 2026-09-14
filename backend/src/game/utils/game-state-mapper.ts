@@ -1,4 +1,4 @@
-import { GameStatus } from '@prisma/client';
+import { FameTier, GameStatus } from '@prisma/client';
 import { MAX_ROUNDS, ROUND_DURATIONS } from '../consts';
 import { GameStateDto } from '../dto/game-state.dto';
 import { GameSessionEntity } from '../entities/game-session.entity';
@@ -22,6 +22,7 @@ export function mapToGameStateDto(
     maxRounds: MAX_ROUNDS,
     snippetSteps: [...ROUND_DURATIONS],
     status: game.status,
+    fameTier: game.fameTier,
     guesses,
     // Safe to do, we throw on the caller if the track is not found or has no preview URL
     previewUrl: track.previewUrl!,
@@ -52,6 +53,7 @@ export function mapToGameStateDto(
 export function mapInitialGameState(
   sessionId: string,
   previewUrl: string,
+  fameTier?: FameTier,
 ): GameStateDto {
   return {
     sessionId,
@@ -60,6 +62,7 @@ export function mapInitialGameState(
     maxRounds: MAX_ROUNDS,
     snippetSteps: [...ROUND_DURATIONS],
     status: GameStatus.PLAYING,
+    fameTier,
     guesses: [],
     previewUrl,
   };

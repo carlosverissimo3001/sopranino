@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
-import { GameMode, GameStatus } from '@prisma/client';
+import { FameTier, GameMode, GameStatus } from '@prisma/client';
 import { GameService } from './game.service';
 import { ChoiceService } from './choice.service';
-import { MAX_ROUNDS } from '../consts';
+import { GuessResult, MAX_ROUNDS } from '../consts';
 import { GameSessionRepository } from '../repositories/game-session.repository';
 import { GameStatsService } from './game-stats.service';
 import { TrackRepository } from '@/track/repositories/track.repository';
@@ -81,7 +81,7 @@ describe('GameService', () => {
     findActiveSession: jest.fn(),
     findTodayDailySession: jest.fn(),
     createSession: jest.fn(),
-    hasFinishedGame: jest.fn().mockResolvedValue(true),
+    markAsAbandoned: jest.fn(),
   };
 
   const mockTrackRepository = {};
@@ -655,7 +655,7 @@ describe('GameService', () => {
       expect(mockPoolService.pickTrack).toHaveBeenLastCalledWith(
         ['pool-1'],
         undefined,
-        { famousOnly: false },
+        { tier: undefined },
       );
     });
 
@@ -674,12 +674,15 @@ describe('GameService', () => {
         'https://preview/pool-1.mp3',
       );
 
-      await service['pickPoolTrackWithPreview']('group-eighties');
+      await service['pickPoolTrackWithPreview'](
+        'group-eighties',
+        FameTier.HARD,
+      );
 
       expect(mockPoolService.pickTrack).toHaveBeenCalledWith(
         [],
         'group-eighties',
-        { famousOnly: false },
+        { tier: FameTier.HARD },
       );
     });
   });
@@ -745,30 +748,96 @@ describe('GameService', () => {
       );
     });
 
-    it("draws a new player's first round from the famous end", async () => {
-      mockGameSessionRepository.hasFinishedGame.mockResolvedValueOnce(false);
-
+    it('draws Easy songs when no tier is asked for', async () => {
       await service.startGame(OWNER_SESSION_ID, {
         trackGroupId: GROUP_A,
         mode: GameMode.ALL,
       });
 
-      expect(mockGameSessionRepository.hasFinishedGame).toHaveBeenCalledWith(
-        OWNER_USER_ID,
-      );
       expect(mockPoolService.pickTrack).toHaveBeenCalledWith([], GROUP_A, {
-        famousOnly: true,
+        tier: FameTier.EASY,
       });
     });
 
-    it('draws a returning player from the whole group', async () => {
+    it('draws and records the tier asked for', async () => {
       await service.startGame(OWNER_SESSION_ID, {
-        trackGroupId: GROUP_A,
+        playlistId: 'pool',
+        fameTier: FameTier.EXPERT,
         mode: GameMode.ALL,
       });
 
-      expect(mockPoolService.pickTrack).toHaveBeenCalledWith([], GROUP_A, {
-        famousOnly: false,
+      expect(mockPoolService.pickTrack).toHaveBeenCalledWith([], undefined, {
+        tier: FameTier.EXPERT,
+      });
+      expect(mockGameSessionRepository.createSession).toHaveBeenCalledWith(
+        expect.objectContaining({ fameTier: FameTier.EXPERT }),
+      );
+    });
+
+    describe('changing tier with a round open', () => {
+      it('swaps the song when nothing has been guessed yet', async () => {
+        mockGameSessionRepository.findActiveSession.mockResolvedValue(
+          makeGameSession({ id: 'open', fameTier: FameTier.EASY, guesses: [] }),
+        );
+
+        await service.startGame(OWNER_SESSION_ID, {
+          trackGroupId: GROUP_A,
+          fameTier: FameTier.HARD,
+          mode: GameMode.ALL,
+        });
+
+        expect(mockGameSessionRepository.markAsAbandoned).toHaveBeenCalledWith(
+          'open',
+        );
+        expect(mockPoolService.pickTrack).toHaveBeenCalledWith([], GROUP_A, {
+          tier: FameTier.HARD,
+        });
+      });
+
+      it('keeps the round once a guess has been made', async () => {
+        const open = makeGameSession({
+          id: 'open',
+          fameTier: FameTier.EASY,
+          guesses: [{ result: GuessResult.Skip }],
+        });
+        mockGameSessionRepository.findActiveSession.mockResolvedValue(open);
+        mockGameSessionRepository.findByIdWithTrack.mockResolvedValue(open);
+
+        await service
+          .startGame(OWNER_SESSION_ID, {
+            trackGroupId: GROUP_A,
+            fameTier: FameTier.HARD,
+            mode: GameMode.ALL,
+          })
+          .catch(() => undefined);
+
+        expect(
+          mockGameSessionRepository.markAsAbandoned,
+        ).not.toHaveBeenCalled();
+        expect(mockPoolService.pickTrack).not.toHaveBeenCalled();
+      });
+
+      it('resumes the round when the tier is the same', async () => {
+        const open = makeGameSession({
+          id: 'open',
+          fameTier: FameTier.HARD,
+          guesses: [],
+        });
+        mockGameSessionRepository.findActiveSession.mockResolvedValue(open);
+        mockGameSessionRepository.findByIdWithTrack.mockResolvedValue(open);
+
+        await service
+          .startGame(OWNER_SESSION_ID, {
+            trackGroupId: GROUP_A,
+            fameTier: FameTier.HARD,
+            mode: GameMode.ALL,
+          })
+          .catch(() => undefined);
+
+        expect(
+          mockGameSessionRepository.markAsAbandoned,
+        ).not.toHaveBeenCalled();
+        expect(mockPoolService.pickTrack).not.toHaveBeenCalled();
       });
     });
 

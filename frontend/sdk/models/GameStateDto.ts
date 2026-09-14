@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
+import type { FameTier } from './FameTier';
+import {
+    FameTierFromJSON,
+    FameTierFromJSONTyped,
+    FameTierToJSON,
+    FameTierToJSONTyped,
+} from './FameTier';
 import type { HintDto } from './HintDto';
 import {
     HintDtoFromJSON,
@@ -77,6 +84,12 @@ export interface GameStateDto {
      * @memberof GameStateDto
      */
     status: GameStateDtoStatusEnum;
+    /**
+     * How well-known the song was meant to be, for a pool game
+     * @type {FameTier}
+     * @memberof GameStateDto
+     */
+    fameTier?: FameTier;
     /**
      * The guesses of the game
      * @type {Array<GuessHistoryDto>}
@@ -171,6 +184,7 @@ export function GameStateDtoFromJSONTyped(json: any, ignoreDiscriminator: boolea
         'maxRounds': json['maxRounds'],
         'snippetSteps': json['snippetSteps'],
         'status': json['status'],
+        'fameTier': json['fameTier'] == null ? undefined : FameTierFromJSON(json['fameTier']),
         'guesses': ((json['guesses'] as Array<any>).map(GuessHistoryDtoFromJSON)),
         'previewUrl': json['previewUrl'],
         'answer': json['answer'] == null ? undefined : TrackOptionDtoFromJSON(json['answer']),
@@ -199,6 +213,7 @@ export function GameStateDtoToJSONTyped(value?: GameStateDto | null, ignoreDiscr
         'maxRounds': value['maxRounds'],
         'snippetSteps': value['snippetSteps'],
         'status': value['status'],
+        'fameTier': FameTierToJSON(value['fameTier']),
         'guesses': ((value['guesses'] as Array<any>).map(GuessHistoryDtoToJSON)),
         'previewUrl': value['previewUrl'],
         'answer': TrackOptionDtoToJSON(value['answer']),

@@ -12,6 +12,7 @@ Name | Type
 `maxRounds` | number
 `snippetSteps` | Array&lt;number&gt;
 `status` | string
+`fameTier` | [FameTier](FameTier.md)
 `guesses` | [Array&lt;GuessHistoryDto&gt;](GuessHistoryDto.md)
 `previewUrl` | string
 `answer` | [TrackOptionDto](TrackOptionDto.md)
@@ -34,6 +35,7 @@ const example = {
   "maxRounds": null,
   "snippetSteps": null,
   "status": null,
+  "fameTier": null,
   "guesses": null,
   "previewUrl": null,
   "answer": null,

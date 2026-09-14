@@ -2921,6 +2921,16 @@
           "offset"
         ]
       },
+      "FameTier": {
+        "type": "string",
+        "enum": [
+          "EASY",
+          "MEDIUM",
+          "HARD",
+          "EXPERT",
+          "IMPOSSIBLE"
+        ]
+      },
       "StartGameDto": {
         "type": "object",
         "properties": {
@@ -2931,6 +2941,14 @@
           "trackGroupId": {
             "type": "string",
             "description": "A curated group to draw from, for a player with no library of their own. Takes precedence over playlistId."
+          },
+          "fameTier": {
+            "description": "How well-known the songs should be, for a pool or group game. Easy when absent.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FameTier"
+              }
+            ]
           },
           "mode": {
             "type": "string",
@@ -3144,6 +3162,14 @@
               "WON",
               "LOST",
               "ABANDONED"
+            ]
+          },
+          "fameTier": {
+            "description": "How well-known the song was meant to be, for a pool game",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FameTier"
+              }
             ]
           },
           "guesses": {

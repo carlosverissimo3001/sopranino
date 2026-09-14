@@ -1,5 +1,6 @@
 import { Test } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
+import { FameTier } from '@prisma/client';
 import { TrackRepository } from '../../track/repositories/track.repository';
 import { PoolTrackRepository } from '../repositories/pool-track.repository';
 import { PoolService } from './pool.service';
@@ -13,12 +14,18 @@ const candidate = (id: string, fame: number, year = 2005) => ({
 
 describe('PoolService', () => {
   let service: PoolService;
-  let poolTracks: { findCandidates: jest.Mock; count: jest.Mock; stats: jest.Mock };
+  let poolTracks: {
+    findCandidates: jest.Mock;
+    findAllFame: jest.Mock;
+    count: jest.Mock;
+    stats: jest.Mock;
+  };
   let tracks: { findById: jest.Mock };
 
   beforeEach(async () => {
     poolTracks = {
       findCandidates: jest.fn().mockResolvedValue([candidate('dz:1', 500)]),
+      findAllFame: jest.fn().mockResolvedValue([500]),
       count: jest.fn().mockResolvedValue(1),
       stats: jest.fn(),
     };
@@ -44,38 +51,64 @@ describe('PoolService', () => {
     expect(tracks.findById).toHaveBeenCalledWith('dz:1');
   });
 
-  describe('famousOnly', () => {
-    const pool = [
-      candidate('dz:famous-1', 900),
-      candidate('dz:famous-2', 800),
-      ...Array.from({ length: 6 }, (_, i) => candidate(`dz:deep-${i}`, 1)),
-    ];
+  describe('tiers', () => {
+    // Ten songs across the whole pool, two per tier: 100 and 90 are Easy.
+    const wholePool = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
 
     beforeEach(() => {
-      poolTracks.findCandidates.mockResolvedValue(pool);
+      poolTracks.findAllFame.mockResolvedValue(wholePool);
       tracks.findById.mockImplementation((id: string) =>
         Promise.resolve({ id }),
       );
     });
 
-    it('draws only from the most famous quarter', async () => {
+    it('draws only songs of the tier asked for', async () => {
+      poolTracks.findCandidates.mockResolvedValue(
+        wholePool.map((fame) => candidate(`dz:${fame}`, fame)),
+      );
+
       for (let i = 0; i < 20; i++) {
         const track = await service.pickTrack([], undefined, {
-          famousOnly: true,
+          tier: FameTier.EASY,
         });
-        expect(track.id).toMatch(/^dz:famous-/);
+        expect(['dz:90', 'dz:100']).toContain(track.id);
       }
     });
 
-    // A famous track whose audio would not resolve must not fail the round.
-    it('falls back to the whole list once the famous end is used up', async () => {
-      const track = await service.pickTrack(
-        ['dz:famous-1', 'dz:famous-2'],
-        undefined,
-        { famousOnly: true },
-      );
+    // The scale is the whole pool's: a set of obscure songs has no Easy ones.
+    it('judges a set against the whole pool, not against itself', async () => {
+      poolTracks.findCandidates.mockResolvedValue([
+        candidate('dz:10', 10),
+        candidate('dz:60', 60),
+      ]);
 
-      expect(track.id).toMatch(/^dz:deep-/);
+      const track = await service.pickTrack([], 'group-old', {
+        tier: FameTier.IMPOSSIBLE,
+      });
+
+      expect(track.id).toBe('dz:10');
+    });
+
+    it('stands in the nearest tier once a set has run out of one', async () => {
+      poolTracks.findCandidates.mockResolvedValue([
+        candidate('dz:10', 10),
+        candidate('dz:60', 60),
+      ]);
+
+      const track = await service.pickTrack([], 'group-old', {
+        tier: FameTier.EASY,
+      });
+
+      expect(track.id).toBe('dz:60');
+    });
+
+    it('draws from the whole list when no tier is asked for', async () => {
+      poolTracks.findCandidates.mockResolvedValue([candidate('dz:10', 10)]);
+
+      await expect(service.pickTrack()).resolves.toMatchObject({
+        id: 'dz:10',
+      });
+      expect(poolTracks.findAllFame).not.toHaveBeenCalled();
     });
   });
 
