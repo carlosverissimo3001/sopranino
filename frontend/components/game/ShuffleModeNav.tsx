@@ -116,7 +116,7 @@ export function ShuffleModeNav({
           <div
             role="dialog"
             aria-label="Pick a set"
-            className="absolute left-1/2 top-full z-40 mt-2 w-[min(22rem,calc(100vw-2rem))] -translate-x-1/2 space-y-3 rounded-2xl border border-fg/10 bg-[rgb(var(--surface))] p-3 text-left shadow-2xl shadow-black/50"
+            className="absolute left-1/2 top-full z-40 mt-2 w-[min(22rem,calc(100vw-3rem))] -translate-x-1/2 space-y-3 rounded-2xl border border-fg/10 bg-[rgb(var(--surface))] p-3 text-left shadow-2xl shadow-black/50"
           >
             {sections.map((section) => (
               <div key={section.label}>
@@ -132,7 +132,7 @@ export function ShuffleModeNav({
                       onClick={() =>
                         pick(trackGroupId === set.id ? undefined : set)
                       }
-                      className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+                      className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors sm:px-2.5 sm:py-1 sm:text-[11px] ${
                         trackGroupId === set.id
                           ? 'bg-spotify-green/20 text-spotify-green'
                           : 'bg-fg/5 text-fg/70 hover:bg-fg/10 hover:text-fg'
