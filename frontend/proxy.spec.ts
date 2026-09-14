@@ -51,13 +51,19 @@ describe('proxy route gating', () => {
     expect(response.status).toBe(200);
   });
 
-  test.each(['/daily', '/history', '/preferences', '/admin'])(
+  test.each(['/history', '/preferences', '/admin'])(
     'gates %s on a session',
     async (pathname) => {
       const response = await proxy(request(pathname));
       expect(response.headers.get('location')).toBe('https://unpaused.test/');
     },
   );
+
+  // One song for everyone, and starting it mints the guest, like the shuffle.
+  test('lets a signed out visitor reach the daily', async () => {
+    const response = await proxy(request('/daily'));
+    expect(response.status).toBe(200);
+  });
 
   test('leaves the multiplayer join flow to handle sign in itself', async () => {
     const response = await proxy(request('/multiplayer/join/ABCD'));
