@@ -7,6 +7,8 @@ const DEEZER = 'https://www.deezer.com';
 const SPOTIFY = 'https://www.spotify.com';
 const AUTHOR = 'https://carlosverissimo.com';
 const SOURCE = 'https://github.com/carlosverissimo3001/sopranino';
+const VERSION = process.env.NEXT_PUBLIC_APP_VERSION;
+const COMMIT = process.env.NEXT_PUBLIC_COMMIT_SHA;
 
 function AppFooterComponent() {
   return (
@@ -28,6 +30,20 @@ function AppFooterComponent() {
         </p>
         <p>
           Built by <External href={AUTHOR}>Carlos Veríssimo</External>
+          {VERSION && (
+            <>
+              {' '}
+              <a
+                href={`${SOURCE}/releases/tag/v${VERSION}`}
+                target="_blank"
+                rel="noreferrer"
+                title={COMMIT ? `Build ${COMMIT}` : undefined}
+                className="ml-2 tabular-nums text-fg/30 transition-colors hover:text-fg/60"
+              >
+                v{VERSION}
+              </a>
+            </>
+          )}
         </p>
       </div>
     </footer>

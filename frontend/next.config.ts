@@ -1,6 +1,13 @@
 import type { NextConfig } from 'next';
+import { version } from './package.json';
 
 const nextConfig: NextConfig = {
+  // Fixed at build, so a deploy always reports the release it was built from.
+  env: {
+    NEXT_PUBLIC_APP_VERSION: version,
+    NEXT_PUBLIC_COMMIT_SHA:
+      process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? '',
+  },
   async rewrites() {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
