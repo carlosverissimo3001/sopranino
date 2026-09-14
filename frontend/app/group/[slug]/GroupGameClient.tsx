@@ -1,10 +1,9 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { GamePage } from '@/components/game/GamePage';
+import { ShuffleGamePage } from '@/components/game/ShuffleGamePage';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useTrackGroupBySlug } from '@/hooks/track-groups/useTrackGroups';
-import { GameStatsDtoModeEnum as GameMode } from '@/sdk';
 import { groupHasFameTiers } from '@/lib/fame-tier';
 
 /**
@@ -40,12 +39,14 @@ export function GroupGameClient({ heading }: { heading?: string }) {
     );
   }
 
+  // The shuffle screen, opened on this set: the player can still switch sets
+  // and tiers in place, and the page reads the same as the landing.
   return (
-    <GamePage
-      mode={GameMode.All}
-      trackGroupId={group.id}
+    <ShuffleGamePage
+      canSignIn={false}
       heading={heading}
-      withFameTier={groupHasFameTiers(group.type)}
+      initialTrackGroupId={group.id}
+      initialTiersApply={groupHasFameTiers(group.type)}
     />
   );
 }

@@ -48,10 +48,12 @@ export function ShuffleModeNav({
 }: ShuffleModeNavProps) {
   const [setsOpen, setSetsOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
+  const { data: artists = [] } = useTrackGroups(TrackGroupDtoTypeEnum.Artist);
   const { data: decades = [] } = useTrackGroups(TrackGroupDtoTypeEnum.Decade);
   const { data: genres = [] } = useTrackGroups(TrackGroupDtoTypeEnum.Genre);
   const { data: charts = [] } = useTrackGroups(TrackGroupDtoTypeEnum.Chart);
   const sections = [
+    { label: 'Artists', sets: artists },
     { label: 'Decades', sets: decades },
     { label: 'Genres', sets: genres },
     { label: 'Charts', sets: charts },
@@ -105,7 +107,7 @@ export function ShuffleModeNav({
           className={`${PILL} ${playingName ? PILL_ACTIVE : PILL_IDLE}`}
         >
           <Disc3 className="hidden h-3.5 w-3.5 sm:block" />
-          {playingName ?? 'Decades, genres & charts'}
+          {playingName ?? 'Artists, decades & more'}
           <ChevronDown
             className={`h-3 w-3 transition-transform ${setsOpen ? 'rotate-180' : ''}`}
           />

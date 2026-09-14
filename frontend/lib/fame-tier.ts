@@ -35,7 +35,8 @@ export const FAME_TIERS: { value: FameTier; label: string; accent: string }[] =
 export function groupHasFameTiers(type: TrackGroupDtoTypeEnum): boolean {
   return (
     type === TrackGroupDtoTypeEnum.Decade ||
-    type === TrackGroupDtoTypeEnum.Genre
+    type === TrackGroupDtoTypeEnum.Genre ||
+    type === TrackGroupDtoTypeEnum.Artist
   );
 }
 
