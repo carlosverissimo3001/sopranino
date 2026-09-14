@@ -1,124 +1,10 @@
 'use client';
 
-import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import {
-  Calendar,
-  ChevronDown,
-  Disc3,
-  Shuffle,
-  Timer,
-  Users,
-  Zap,
-} from 'lucide-react';
+import { Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ShuffleGamePage } from '@/components/game/ShuffleGamePage';
-import { useTrackGroups } from '@/hooks/track-groups/useTrackGroups';
-import { TrackGroupDtoTypeEnum } from '@/sdk';
-
-const PILL =
-  'flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors';
-const PILL_IDLE = 'border-fg/10 text-fg/60 hover:border-fg/25 hover:text-fg';
-const PILL_ACTIVE =
-  'border-spotify-green/30 bg-spotify-green/15 text-spotify-green';
-
-const LINKED_MODES = [
-  { href: '/daily', icon: Calendar, label: 'Daily song' },
-  { href: '/speed-run', icon: Timer, label: 'Speed run' },
-  { href: '/multiplayer/join', icon: Users, label: 'With friends' },
-];
-
-/** Decades and genres, picked in place: the round draws from the chosen set. */
-function SetList({
-  selected,
-  onSelect,
-}: {
-  selected?: string;
-  onSelect: (groupId: string | undefined) => void;
-}) {
-  const { data: decades = [] } = useTrackGroups(TrackGroupDtoTypeEnum.Decade);
-  const { data: genres = [] } = useTrackGroups(TrackGroupDtoTypeEnum.Genre);
-
-  return (
-    <div className="flex max-w-md flex-wrap justify-center gap-1.5">
-      {[...decades, ...genres].map((group) => (
-        <button
-          key={group.id}
-          type="button"
-          aria-pressed={selected === group.id}
-          onClick={() => onSelect(selected === group.id ? undefined : group.id)}
-          className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors ${
-            selected === group.id
-              ? 'bg-spotify-green/20 text-spotify-green'
-              : 'bg-fg/5 text-fg/70 hover:bg-fg/10 hover:text-fg'
-          }`}
-        >
-          {group.name}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function ModeNav({
-  trackGroupId,
-  onTrackGroupChange,
-}: {
-  trackGroupId?: string;
-  onTrackGroupChange: (groupId: string | undefined) => void;
-}) {
-  const [setsOpen, setSetsOpen] = useState(false);
-  const { data: decades = [] } = useTrackGroups(TrackGroupDtoTypeEnum.Decade);
-  const { data: genres = [] } = useTrackGroups(TrackGroupDtoTypeEnum.Genre);
-  const chosen = [...decades, ...genres].find((g) => g.id === trackGroupId);
-
-  return (
-    <>
-      <nav
-        aria-label="Game modes"
-        className="flex flex-wrap justify-center gap-1.5"
-      >
-        <button
-          type="button"
-          aria-pressed={!trackGroupId}
-          onClick={() => onTrackGroupChange(undefined)}
-          className={`${PILL} ${trackGroupId ? PILL_IDLE : PILL_ACTIVE}`}
-        >
-          <Shuffle className="hidden h-3.5 w-3.5 sm:block" />
-          All songs
-        </button>
-        <button
-          type="button"
-          aria-expanded={setsOpen}
-          onClick={() => setSetsOpen((open) => !open)}
-          className={`${PILL} ${chosen ? PILL_ACTIVE : PILL_IDLE}`}
-        >
-          <Disc3 className="hidden h-3.5 w-3.5 sm:block" />
-          {chosen ? chosen.name : 'Decades & genres'}
-          <ChevronDown
-            className={`h-3 w-3 transition-transform ${setsOpen ? 'rotate-180' : ''}`}
-          />
-        </button>
-        {LINKED_MODES.map(({ href, icon: Icon, label }) => (
-          <Link key={href} href={href} className={`${PILL} ${PILL_IDLE}`}>
-            <Icon className="hidden h-3.5 w-3.5 sm:block" />
-            {label}
-          </Link>
-        ))}
-      </nav>
-      {setsOpen && (
-        <SetList
-          selected={trackGroupId}
-          onSelect={(groupId) => {
-            onTrackGroupChange(groupId);
-            setSetsOpen(false);
-          }}
-        />
-      )}
-    </>
-  );
-}
 
 /**
  * What a visitor with no session lands on: a round they can play with one tap,
@@ -131,35 +17,7 @@ export function LandingGame({ canSignIn }: { canSignIn: boolean }) {
       <ShuffleGamePage
         canSignIn={canSignIn}
         deferStart
-        renderTitle={({
-          currentRound,
-          maxRounds,
-          isOver,
-          trackGroupId,
-          onTrackGroupChange,
-          trackGroupWaits,
-        }) => (
-          <div className="mb-3 flex flex-col items-center gap-2 sm:mb-4">
-            {/* For crawlers and screen readers; the round says the rest. */}
-            <h1 className="sr-only">
-              Sopranino: guess the song from a snippet
-            </h1>
-            <ModeNav
-              trackGroupId={trackGroupId}
-              onTrackGroupChange={onTrackGroupChange}
-            />
-            {!isOver && (
-              <p className="text-sm font-medium text-fg/50">
-                Round {Math.min(currentRound + 1, maxRounds)} of {maxRounds}
-              </p>
-            )}
-            {trackGroupWaits && (
-              <p className="text-[11px] text-fg/40">
-                New set from the next song
-              </p>
-            )}
-          </div>
-        )}
+        heading="Sopranino: guess the song from a snippet"
         headerLeading={
           <Link href="/" className="flex shrink-0 items-center gap-2">
             <span className="rounded-lg bg-spotify-green p-1.5">

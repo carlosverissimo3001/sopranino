@@ -11,7 +11,7 @@ import { SNIPPET_STEPS } from '@/lib/snippet-timeline';
 import { SongRevealCard } from './SongRevealCard';
 import { ClaimNamePrompt } from './ClaimNamePrompt';
 import { GameHeader } from './GameHeader';
-import { GameTitle } from './GameTitle';
+import { ShuffleModeNav } from './ShuffleModeNav';
 import { FameTierPicker } from './FameTierPicker';
 import { GameRoundView, type RoundData } from './GameRoundView';
 import { GameScreenError, GameScreenLoading } from './GameScreenStatus';
@@ -42,16 +42,8 @@ interface ShuffleGamePageProps {
   headerLeading?: ReactNode;
   /** In place of the Spotify sign-in, for a page with its own way in. */
   headerTrailing?: ReactNode;
-  /** In place of the title, for a page that heads the round its own way. */
-  renderTitle?: (round: {
-    currentRound: number;
-    maxRounds: number;
-    isOver: boolean;
-    /** The decade or genre picked in place, if any. */
-    trackGroupId?: string;
-    onTrackGroupChange: (groupId: string | undefined) => void;
-    trackGroupWaits: boolean;
-  }) => ReactNode;
+  /** Read by crawlers and screen readers; the round heads itself on screen. */
+  heading?: string;
   /** Under the reveal, once a round is over. */
   afterReveal?: ReactNode;
 }
@@ -65,7 +57,7 @@ export function ShuffleGamePage({
   deferStart = false,
   headerLeading,
   headerTrailing,
-  renderTitle,
+  heading = 'Shuffle: guess the song from a snippet',
   afterReveal,
 }: ShuffleGamePageProps) {
   const { volume, setVolume } = useVolume();
@@ -176,22 +168,24 @@ export function ShuffleGamePage({
       }
       title={
         <>
-          {renderTitle
-            ? renderTitle({
-                currentRound: round.currentRound,
-                maxRounds: round.maxRounds,
-                isOver: !idle && !!isGameOver,
-                trackGroupId,
-                onTrackGroupChange: handleTrackGroupChange,
-                trackGroupWaits,
-              })
-            : (idle || !isGameOver) && (
-                <GameTitle
-                  mode={GameMode.All}
-                  currentRound={round.currentRound}
-                  maxRounds={round.maxRounds}
-                />
-              )}
+          <div className="mb-3 flex flex-col items-center gap-2 sm:mb-4">
+            <h1 className="sr-only">{heading}</h1>
+            <ShuffleModeNav
+              trackGroupId={trackGroupId}
+              onTrackGroupChange={handleTrackGroupChange}
+            />
+            {(idle || !isGameOver) && (
+              <p className="text-sm font-medium text-fg/50">
+                Round {Math.min(round.currentRound + 1, round.maxRounds)} of{' '}
+                {round.maxRounds}
+              </p>
+            )}
+            {trackGroupWaits && (
+              <p className="text-[11px] text-fg/40">
+                New set from the next song
+              </p>
+            )}
+          </div>
           <FameTierPicker
             value={fameTier}
             onChange={handleFameTierChange}
