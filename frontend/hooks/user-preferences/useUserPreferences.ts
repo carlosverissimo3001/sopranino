@@ -8,7 +8,6 @@ import type { UserPreferenceDto } from '@/sdk';
 export const DEFAULT_PREFERENCES: UserPreferenceDto = {
   showAlbumHint: true,
   showTextHints: true,
-  reducedMotion: false,
   showGuessHistory: true,
   showStatsToOthers: false,
   timezone: 'UTC',

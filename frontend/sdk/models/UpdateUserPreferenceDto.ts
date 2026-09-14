@@ -32,12 +32,6 @@ export interface UpdateUserPreferenceDto {
      */
     showTextHints?: boolean;
     /**
-     * Reduce motion and animations
-     * @type {boolean}
-     * @memberof UpdateUserPreferenceDto
-     */
-    reducedMotion?: boolean;
-    /**
      * Show guess history during gameplay
      * @type {boolean}
      * @memberof UpdateUserPreferenceDto
@@ -76,7 +70,6 @@ export function UpdateUserPreferenceDtoFromJSONTyped(json: any, ignoreDiscrimina
         
         'showAlbumHint': json['showAlbumHint'] == null ? undefined : json['showAlbumHint'],
         'showTextHints': json['showTextHints'] == null ? undefined : json['showTextHints'],
-        'reducedMotion': json['reducedMotion'] == null ? undefined : json['reducedMotion'],
         'showGuessHistory': json['showGuessHistory'] == null ? undefined : json['showGuessHistory'],
         'showStatsToOthers': json['showStatsToOthers'] == null ? undefined : json['showStatsToOthers'],
         'timezone': json['timezone'] == null ? undefined : json['timezone'],
@@ -96,7 +89,6 @@ export function UpdateUserPreferenceDtoToJSONTyped(value?: UpdateUserPreferenceD
         
         'showAlbumHint': value['showAlbumHint'],
         'showTextHints': value['showTextHints'],
-        'reducedMotion': value['reducedMotion'],
         'showGuessHistory': value['showGuessHistory'],
         'showStatsToOthers': value['showStatsToOthers'],
         'timezone': value['timezone'],

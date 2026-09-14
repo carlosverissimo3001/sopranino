@@ -21,7 +21,6 @@ export class UserPreferencesRepository {
         UserPreference,
         | 'showAlbumHint'
         | 'showTextHints'
-        | 'reducedMotion'
         | 'showGuessHistory'
         | 'showStatsToOthers'
         | 'timezone'
@@ -46,7 +45,6 @@ export class UserPreferencesRepository {
     return {
       showAlbumHint: true,
       showTextHints: true,
-      reducedMotion: false,
       showGuessHistory: true,
       showStatsToOthers: false,
       timezone: 'UTC',

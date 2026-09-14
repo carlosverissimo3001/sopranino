@@ -242,19 +242,6 @@ export function PreferencesPage({ canSignIn }: { canSignIn: boolean }) {
           <div className="-mx-6 border-t border-fg/10" />
 
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-fg/30 pt-4 pb-1">
-            Accessibility
-          </p>
-
-          <ToggleRow
-            label="Reduced motion"
-            description="Disable background pulse and shake animations"
-            checked={prefs.reducedMotion}
-            onChange={(value) => handleToggle('reducedMotion', value)}
-          />
-
-          <div className="-mx-6 border-t border-fg/10" />
-
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-fg/30 pt-4 pb-1">
             Appearance
           </p>
 

@@ -18,11 +18,6 @@ export class UpdateUserPreferenceDto {
   @IsBoolean()
   showTextHints?: boolean;
 
-  @ApiPropertyOptional({ description: 'Reduce motion and animations' })
-  @IsOptional()
-  @IsBoolean()
-  reducedMotion?: boolean;
-
   @ApiPropertyOptional({ description: 'Show guess history during gameplay' })
   @IsOptional()
   @IsBoolean()

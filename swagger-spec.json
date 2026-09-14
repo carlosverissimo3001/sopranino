@@ -3608,10 +3608,6 @@
             "type": "boolean",
             "description": "Show genre, decade, and other text hints"
           },
-          "reducedMotion": {
-            "type": "boolean",
-            "description": "Reduce motion and animations"
-          },
           "showGuessHistory": {
             "type": "boolean",
             "description": "Show guess history during gameplay"
@@ -3629,7 +3625,6 @@
         "required": [
           "showAlbumHint",
           "showTextHints",
-          "reducedMotion",
           "showGuessHistory",
           "showStatsToOthers",
           "timezone"
@@ -3645,10 +3640,6 @@
           "showTextHints": {
             "type": "boolean",
             "description": "Show genre, decade, and other text hints"
-          },
-          "reducedMotion": {
-            "type": "boolean",
-            "description": "Reduce motion and animations"
           },
           "showGuessHistory": {
             "type": "boolean",

@@ -32,12 +32,6 @@ export interface UserPreferenceDto {
      */
     showTextHints: boolean;
     /**
-     * Reduce motion and animations
-     * @type {boolean}
-     * @memberof UserPreferenceDto
-     */
-    reducedMotion: boolean;
-    /**
      * Show guess history during gameplay
      * @type {boolean}
      * @memberof UserPreferenceDto
@@ -63,7 +57,6 @@ export interface UserPreferenceDto {
 export function instanceOfUserPreferenceDto(value: object): value is UserPreferenceDto {
     if (!('showAlbumHint' in value) || value['showAlbumHint'] === undefined) return false;
     if (!('showTextHints' in value) || value['showTextHints'] === undefined) return false;
-    if (!('reducedMotion' in value) || value['reducedMotion'] === undefined) return false;
     if (!('showGuessHistory' in value) || value['showGuessHistory'] === undefined) return false;
     if (!('showStatsToOthers' in value) || value['showStatsToOthers'] === undefined) return false;
     if (!('timezone' in value) || value['timezone'] === undefined) return false;
@@ -82,7 +75,6 @@ export function UserPreferenceDtoFromJSONTyped(json: any, ignoreDiscriminator: b
         
         'showAlbumHint': json['showAlbumHint'],
         'showTextHints': json['showTextHints'],
-        'reducedMotion': json['reducedMotion'],
         'showGuessHistory': json['showGuessHistory'],
         'showStatsToOthers': json['showStatsToOthers'],
         'timezone': json['timezone'],
@@ -102,7 +94,6 @@ export function UserPreferenceDtoToJSONTyped(value?: UserPreferenceDto | null, i
         
         'showAlbumHint': value['showAlbumHint'],
         'showTextHints': value['showTextHints'],
-        'reducedMotion': value['reducedMotion'],
         'showGuessHistory': value['showGuessHistory'],
         'showStatsToOthers': value['showStatsToOthers'],
         'timezone': value['timezone'],

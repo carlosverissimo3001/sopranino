@@ -8,7 +8,6 @@ Name | Type
 ------------ | -------------
 `showAlbumHint` | boolean
 `showTextHints` | boolean
-`reducedMotion` | boolean
 `showGuessHistory` | boolean
 `showStatsToOthers` | boolean
 `timezone` | string
@@ -22,7 +21,6 @@ import type { UpdateUserPreferenceDto } from ''
 const example = {
   "showAlbumHint": null,
   "showTextHints": null,
-  "reducedMotion": null,
   "showGuessHistory": null,
   "showStatsToOthers": null,
   "timezone": null,
