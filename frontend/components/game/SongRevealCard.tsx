@@ -134,15 +134,19 @@ export function SongRevealCard({
               <button
                 type="button"
                 onClick={onToggleFullSong}
-                aria-label={isFullSongPlaying ? 'Pause' : 'Play'}
-                className="inline-flex h-9 items-center gap-1.5 rounded-full border border-fg/10 bg-fg/10 px-3.5 text-sm font-semibold text-fg transition-colors hover:bg-fg/20"
+                aria-label={
+                  isFullSongPlaying ? 'Pause the song' : 'Play the song'
+                }
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-fg/10 bg-fg/10 text-fg transition-colors hover:bg-fg/20"
               >
                 {isFullSongPlaying ? (
                   <Pause className="h-4 w-4" fill="currentColor" />
                 ) : (
-                  <Play className="h-4 w-4" fill="currentColor" />
+                  <Play
+                    className="h-4 w-4 translate-x-px"
+                    fill="currentColor"
+                  />
                 )}
-                {isFullSongPlaying ? 'Pause' : 'Listen'}
               </button>
             )}
             {shareGameId && (
