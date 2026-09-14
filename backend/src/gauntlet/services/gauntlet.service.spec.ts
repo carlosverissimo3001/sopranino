@@ -286,6 +286,7 @@ describe('GauntletService and the source a run draws from', () => {
     getTrackWithPreview: jest.fn(),
     upsertTrack: jest.fn(),
     resolvePreview: jest.fn(),
+    findMany: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -311,6 +312,7 @@ describe('GauntletService and the source a run draws from', () => {
       previewUrl: 'https://example.test/p.mp3',
     });
     trackService.upsertTrack.mockResolvedValue(undefined);
+    trackService.findMany.mockResolvedValue([]);
     trackService.resolvePreview.mockResolvedValue('https://example.test/p.mp3');
     poolService.pickTrack.mockResolvedValue({
       id: 'pool-track-1',
@@ -521,5 +523,77 @@ describe('GauntletService and the source a run draws from', () => {
 
     expect(result.runOver).toBe(true);
     expect(playlistService.getPlaylistFirstTracks).not.toHaveBeenCalled();
+  });
+
+  describe('the songs a finished run hands back', () => {
+    const song = (id: string) => ({
+      id,
+      name: `Song ${id}`,
+      artistName: 'Artist',
+      albumImageUrl: `https://example.test/${id}.png`,
+    });
+
+    beforeEach(() => {
+      repo.endRun.mockResolvedValue(
+        run({ status: GauntletRunStatus.ENDED, score: 3 }),
+      );
+      // Out of order, as a database returns them.
+      trackService.findMany.mockResolvedValue([
+        song('t3'),
+        song('t1'),
+        song('t4'),
+        song('t2'),
+      ]);
+    });
+
+    // A long run once showed only the last six on its game-over screen.
+    it('lists every song guessed right, oldest first, without the one missed', async () => {
+      repo.findById.mockResolvedValue(
+        run({ trackIds: ['t1', 't2', 't3', 't4'], currentTrackId: 't4' }),
+      );
+
+      const result = await service.submitGuess(SESSION_ID, RUN_ID, {
+        skip: true,
+      });
+
+      expect(result.guessedTracks?.map((t) => t.name)).toEqual([
+        'Song t1',
+        'Song t2',
+        'Song t3',
+      ]);
+      expect(result.guessedTracks?.[0].albumArt).toBe(
+        'https://example.test/t1.png',
+      );
+    });
+
+    it('counts the last song when the run ends for want of another', async () => {
+      repo.findById.mockResolvedValue(
+        run({
+          sourceId: null,
+          trackIds: ['t1', 't2', 't3', 't4'],
+          currentTrackId: 't4',
+          currentTrack: { ...song('t4'), allArtists: ['Artist'] },
+        }),
+      );
+
+      const result = await service.submitGuess(SESSION_ID, RUN_ID, {
+        trackId: 't4',
+      });
+
+      expect(result.correct).toBe(true);
+      expect(result.guessedTracks).toHaveLength(4);
+    });
+
+    it('sends no list while the run goes on', async () => {
+      repo.findById.mockResolvedValue(run({ trackIds: ['track-1'] }));
+      playlistService.getPlaylistFirstTracks.mockResolvedValue([spotifyTrack]);
+
+      const result = await service.submitGuess(SESSION_ID, RUN_ID, {
+        trackId: 'track-1',
+      });
+
+      expect(result.runOver).toBe(false);
+      expect(result.guessedTracks).toBeUndefined();
+    });
   });
 });

@@ -15,6 +15,7 @@ Name | Type
 `nextSnippetDuration` | number
 `isNewPersonalBest` | boolean
 `isNewDailyBest` | boolean
+`guessedTracks` | [Array&lt;ActualTrackDto&gt;](ActualTrackDto.md)
 
 ## Example
 
@@ -32,6 +33,7 @@ const example = {
   "nextSnippetDuration": null,
   "isNewPersonalBest": null,
   "isNewDailyBest": null,
+  "guessedTracks": null,
 } satisfies GauntletGuessResultDto
 
 console.log(example)
