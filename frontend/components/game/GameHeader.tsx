@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { VolumeSlider } from './VolumeSlider';
@@ -14,6 +15,8 @@ interface GameHeaderProps {
   stats?: GameStatsDto | null;
   volume: number;
   onVolumeChange: (v: number) => void;
+  /** Mode-specific controls after the volume, such as shuffle's sign-in. */
+  trailing?: ReactNode;
 }
 
 export function GameHeader({
@@ -22,6 +25,7 @@ export function GameHeader({
   stats,
   volume,
   onVolumeChange,
+  trailing,
 }: GameHeaderProps) {
   const isPlaylist = mode === GameMode.All;
   const isDaily = mode === GameMode.Daily;
@@ -86,6 +90,7 @@ export function GameHeader({
           </Link>
         </div>
       )}
+      {trailing}
     </div>
   );
 }
