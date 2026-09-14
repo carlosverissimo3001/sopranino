@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { GameStateDtoStatusEnum } from '@/sdk/models/GameStateDto';
 import { GuessHistoryDtoResultEnum as GuessResult } from '@/sdk/models/GuessHistoryDto';
@@ -42,6 +42,15 @@ export function usePoolGameOrchestrator({
   const [trackGroupId, setTrackGroupId] = useState(initialTrackGroupId);
   /** The set the open round was drawn from, to say when a change waits. */
   const [roundGroupId, setRoundGroupId] = useState(initialTrackGroupId);
+
+  // The key useGameSession reads: a set's own page opens on the set's.
+  const sessionKey = useMemo(
+    () =>
+      initialTrackGroupId
+        ? queryKeys.game.startedSessionForGroup(initialTrackGroupId)
+        : queryKeys.game.startedSessionForPlaylist(POOL_PLAYLIST_ID),
+    [initialTrackGroupId],
+  );
 
   const {
     sessionId,
@@ -132,11 +141,9 @@ export function usePoolGameOrchestrator({
         });
       }
       // setQueryData rather than removeQueries: useGameSession subscribes to this
-      // key, and removing it would drop that subscription.
-      queryClient.setQueryData(
-        queryKeys.game.startedSessionForPlaylist(POOL_PLAYLIST_ID),
-        null,
-      );
+      // key, and removing it would drop that subscription. Left set, the old
+      // session is refetched and shown until the new one lands.
+      queryClient.setQueryData(sessionKey, null);
 
       startGameMutation.reset();
       setRoundGroupId(groupId);
@@ -149,17 +156,14 @@ export function usePoolGameOrchestrator({
               mode: GameMode.All,
             },
         {
-          // A set's round is cached under the set; this page reads the pool key.
+          // useStartGame caches a round under what it asked for, not what this page reads.
           onSuccess: (data) =>
-            queryClient.setQueryData(
-              queryKeys.game.startedSessionForPlaylist(POOL_PLAYLIST_ID),
-              data.sessionId,
-            ),
+            queryClient.setQueryData(sessionKey, data.sessionId),
           onSettled: () => setIsResetting(false),
         },
       );
     },
-    [gameAudio, gameState, queryClient, startGameMutation],
+    [gameAudio, gameState, queryClient, startGameMutation, sessionKey],
   );
 
   const handlePlayAgain = useCallback(

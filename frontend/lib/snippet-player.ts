@@ -166,6 +166,11 @@ export class SnippetPlayer {
     return Math.min(Math.max(elapsed / this.playingFor, 0), 1);
   }
 
+  /** True from play() until the snippet ends or is stopped. */
+  isPlaying(): boolean {
+    return this.source !== null;
+  }
+
   setVolume(volume: number): void {
     this.volume = volume;
     if (this.gain) {

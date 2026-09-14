@@ -109,9 +109,9 @@ export function useSnippetAudio({
       const follow = () => {
         const value = player.progress();
         progress.set(value);
-        // progress() returns 0 once the source is gone, which is also the
-        // resting state, so the loop ends rather than pinning the bar at full.
-        if (value > 0 && value < 1) {
+        // Not `value > 0`: the audio clock moves in buffer-sized steps, so the
+        // first frame often reads zero and the bar froze for the whole snippet.
+        if (player.isPlaying() && value < 1) {
           frameRef.current = requestAnimationFrame(follow);
         } else {
           frameRef.current = null;
