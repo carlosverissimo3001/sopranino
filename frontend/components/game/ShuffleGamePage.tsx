@@ -16,10 +16,10 @@ import { GameHeader } from './GameHeader';
 import { ShuffleModeNav } from './ShuffleModeNav';
 import { FAME_TIERS } from '@/lib/fame-tier';
 import {
-  guessLine,
   useTrackGroupById,
   useTrackGroupName,
 } from '@/hooks/track-groups/useTrackGroupName';
+import { guessLine } from '@/lib/track-group-labels';
 import { FameTierPicker } from './FameTierPicker';
 import { GameRoundView, type RoundData } from './GameRoundView';
 import { GameScreenError, GameScreenLoading } from './GameScreenStatus';
