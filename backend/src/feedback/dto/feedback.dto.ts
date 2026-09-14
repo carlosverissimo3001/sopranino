@@ -24,6 +24,9 @@ export class FeedbackDto {
   pagePath?: string;
 
   @ApiPropertyOptional()
+  appVersion?: string;
+
+  @ApiPropertyOptional()
   userAgent?: string;
 
   @ApiPropertyOptional()
@@ -43,6 +46,7 @@ export class FeedbackDto {
       userId: entity.userId ?? undefined,
       userDisplayName: entity.user?.displayName ?? undefined,
       pagePath: entity.pagePath ?? undefined,
+      appVersion: entity.appVersion ?? undefined,
       userAgent: entity.userAgent ?? undefined,
       resolvedAt: entity.resolvedAt ?? undefined,
       createdAt: entity.createdAt,

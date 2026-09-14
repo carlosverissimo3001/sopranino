@@ -37,6 +37,12 @@ describe('reportReceivedEmail', () => {
     expect(mail.subject.endsWith('...')).toBe(true);
   });
 
+  it('says which release the report came from', () => {
+    expect(
+      reportReceivedEmail({ ...base, appVersion: '1.2.0' }).text,
+    ).toContain('Version: v1.2.0');
+  });
+
   it('has no reply-to, and says so, when the player left no email', () => {
     const mail = reportReceivedEmail(base);
 

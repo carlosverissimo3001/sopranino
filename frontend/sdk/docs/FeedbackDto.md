@@ -13,6 +13,7 @@ Name | Type
 `userId` | string
 `userDisplayName` | string
 `pagePath` | string
+`appVersion` | string
 `userAgent` | string
 `resolvedAt` | Date
 `createdAt` | Date
@@ -31,6 +32,7 @@ const example = {
   "userId": null,
   "userDisplayName": null,
   "pagePath": null,
+  "appVersion": null,
   "userAgent": null,
   "resolvedAt": null,
   "createdAt": null,

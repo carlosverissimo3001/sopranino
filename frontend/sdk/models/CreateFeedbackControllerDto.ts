@@ -44,6 +44,12 @@ export interface CreateFeedbackControllerDto {
      */
     pagePath?: string;
     /**
+     * The app release the report was sent from
+     * @type {string}
+     * @memberof CreateFeedbackControllerDto
+     */
+    appVersion?: string;
+    /**
      * Left empty by people; a filled one is dropped silently
      * @type {string}
      * @memberof CreateFeedbackControllerDto
@@ -85,6 +91,7 @@ export function CreateFeedbackControllerDtoFromJSONTyped(json: any, ignoreDiscri
         'message': json['message'],
         'email': json['email'] == null ? undefined : json['email'],
         'pagePath': json['pagePath'] == null ? undefined : json['pagePath'],
+        'appVersion': json['appVersion'] == null ? undefined : json['appVersion'],
         'website': json['website'] == null ? undefined : json['website'],
     };
 }
@@ -104,6 +111,7 @@ export function CreateFeedbackControllerDtoToJSONTyped(value?: CreateFeedbackCon
         'message': value['message'],
         'email': value['email'],
         'pagePath': value['pagePath'],
+        'appVersion': value['appVersion'],
         'website': value['website'],
     };
 }

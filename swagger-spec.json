@@ -4076,6 +4076,9 @@
           "pagePath": {
             "type": "string"
           },
+          "appVersion": {
+            "type": "string"
+          },
           "userAgent": {
             "type": "string"
           },
@@ -4147,6 +4150,10 @@
           "pagePath": {
             "type": "string",
             "description": "The page the report was sent from"
+          },
+          "appVersion": {
+            "type": "string",
+            "description": "The app release the report was sent from"
           },
           "website": {
             "type": "string",

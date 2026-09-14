@@ -12,6 +12,7 @@ export interface ReportReceived {
   email?: string;
   senderName?: string;
   pagePath?: string;
+  appVersion?: string;
   userAgent?: string;
   adminUrl: string;
 }
@@ -28,6 +29,7 @@ export function reportReceivedEmail(report: ReportReceived): EmailMessage {
   const details = [
     `From: ${from}${report.email ? ` <${report.email}>` : ''}`,
     report.pagePath && `Page: ${report.pagePath}`,
+    report.appVersion && `Version: v${report.appVersion}`,
     report.userAgent && `Browser: ${report.userAgent}`,
   ].filter((line): line is string => Boolean(line));
 

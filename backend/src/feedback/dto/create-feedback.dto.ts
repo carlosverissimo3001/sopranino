@@ -7,5 +7,6 @@ export interface CreateFeedbackDto {
   email?: string;
   userId?: string;
   pagePath?: string;
+  appVersion?: string;
   userAgent?: string;
 }
