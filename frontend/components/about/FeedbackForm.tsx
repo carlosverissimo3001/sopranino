@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { usePathname } from 'next/navigation';
 import { Check, Loader2 } from 'lucide-react';
 import { useMe } from '@/hooks/auth/useMe';
 import { useSubmitFeedback } from '@/hooks/feedback/useSubmitFeedback';
+import { originPath } from '@/lib/report-origin';
 import { CreateFeedbackControllerDtoKindEnum as Kind } from '@/sdk';
 
 const MESSAGE_MIN = 3;
@@ -17,7 +17,6 @@ const KINDS = [
 
 export function FeedbackForm() {
   const { data: me } = useMe();
-  const pathname = usePathname();
   const submit = useSubmitFeedback();
 
   const [kind, setKind] = useState<Kind>(Kind.Bug);
@@ -55,7 +54,11 @@ export function FeedbackForm() {
           kind,
           message: trimmed,
           email: emailValue.trim() || undefined,
-          pagePath: pathname,
+          // On send: useSearchParams would opt the page out of static rendering.
+          pagePath: originPath(
+            new URLSearchParams(window.location.search).get('from'),
+          ),
+          appVersion: process.env.NEXT_PUBLIC_APP_VERSION || undefined,
           website: website || undefined,
         });
       }}
@@ -131,7 +134,7 @@ export function FeedbackForm() {
 
       <div className="flex items-center justify-between gap-3">
         <p className="text-xs text-fg/40">
-          Sent with the page you are on and your browser, to help reproduce it.
+          Sent with the page you came from, your browser and the app version.
         </p>
         <button
           type="submit"

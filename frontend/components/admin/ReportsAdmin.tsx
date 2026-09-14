@@ -196,6 +196,12 @@ function ReportRow({
             <dd className="font-mono">{report.pagePath}</dd>
           </div>
         )}
+        {report.appVersion && (
+          <div className="flex gap-1">
+            <dt className="sr-only">Version</dt>
+            <dd className="tabular-nums">v{report.appVersion}</dd>
+          </div>
+        )}
         {report.userAgent && (
           <div className="flex min-w-0 max-w-full gap-1">
             <dt className="sr-only">Browser</dt>
