@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, Trophy, RotateCcw, Home } from 'lucide-react';
+import { Check, Flame, Trophy, RotateCcw, Home } from 'lucide-react';
 import { GuessInput } from '@/components/game/GuessInput';
 import { PlaySnippetButton } from '@/components/game/PlaySnippetButton';
 import { useSpotifyTrackSearch } from '@/hooks/spotify/useSpotifyTrackSearch';
@@ -17,6 +17,7 @@ import type {
 import { GameStatsDtoModeEnum as GameMode } from '@/sdk';
 
 const MILESTONES = [5, 10, 15, 20];
+const CORRECT_FLASH_MS = 1600;
 
 function getFireEmojis(score: number): string {
   if (score >= 20) return '🔥🔥🔥🔥';
@@ -64,18 +65,36 @@ export function SpeedRunGameScreen({
     }
   }, [run.score]);
 
+  // Which correct answer to acknowledge; cleared once the flash has shown.
+  const [flashScore, setFlashScore] = useState<number | null>(null);
+  useEffect(() => {
+    if (flashScore === null) return;
+    const timer = setTimeout(() => setFlashScore(null), CORRECT_FLASH_MS);
+    return () => clearTimeout(timer);
+  }, [flashScore]);
+  const lastGuessed = run.recentTracks.at(-1);
+
   const handleSubmit = useCallback(() => {
-    if (!search.selectedTrack) return;
-    run.submitGuess({
-      trackId: search.selectedTrack.id,
-      trackName: search.selectedTrack.name,
-      artistName: search.selectedTrack.artist,
-      isrc: search.selectedTrack.isrc,
-    });
-    search.handleClearSelection();
+    if (!search.selectedTrack || run.isSubmitting) return;
+    // The pick stays until the answer arrives, so Submit reads as busy.
+    run.submitGuess(
+      {
+        trackId: search.selectedTrack.id,
+        trackName: search.selectedTrack.name,
+        artistName: search.selectedTrack.artist,
+        isrc: search.selectedTrack.isrc,
+      },
+      {
+        onSuccess: () => {
+          search.handleClearSelection();
+          setFlashScore(run.score + 1);
+        },
+      },
+    );
   }, [run, search]);
 
   const handleSkip = useCallback(() => {
+    if (run.isSubmitting) return;
     run.submitGuess({ skip: true });
     search.handleClearSelection();
   }, [run, search]);
@@ -143,6 +162,30 @@ export function SpeedRunGameScreen({
             )}
           </AnimatePresence>
 
+          <div className="h-7 mt-2 flex items-center justify-center">
+            <AnimatePresence>
+              {flashScore === run.score && lastGuessed && (
+                <motion.div
+                  key={flashScore}
+                  initial={{ opacity: 0, y: 6, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-spotify-green/30 bg-spotify-green/15 px-3 py-1 text-xs font-semibold text-spotify-green"
+                >
+                  <Check className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate">
+                    {lastGuessed.name}
+                    <span className="font-normal text-spotify-green/70">
+                      {' '}
+                      · {lastGuessed.artistName}
+                    </span>
+                  </span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
           {/* Personal best comparison */}
           {personalBest > 0 && (
             <p className="text-xs text-fg/30 mt-1">
@@ -202,7 +245,7 @@ export function SpeedRunGameScreen({
             isNewBest={isNewBest}
             isNewDailyBest={run.isNewDailyBest}
             gameOverTrack={run.gameOverTrack}
-            recentTracks={run.recentTracks}
+            guessedTracks={run.guessedTracks ?? run.recentTracks}
             onPlayAgain={run.reset}
           />
         )}
@@ -241,7 +284,7 @@ function GameOverPanel({
   isNewBest,
   isNewDailyBest,
   gameOverTrack,
-  recentTracks,
+  guessedTracks,
   onPlayAgain,
 }: {
   score: number;
@@ -249,7 +292,7 @@ function GameOverPanel({
   isNewBest: boolean;
   isNewDailyBest: boolean;
   gameOverTrack: { name: string; artistName: string; albumArt?: string } | null;
-  recentTracks: RecentTrack[];
+  guessedTracks: RecentTrack[];
   onPlayAgain: () => void;
 }) {
   const router = useRouter();
@@ -348,13 +391,13 @@ function GameOverPanel({
       )}
 
       {/* Songs you got right */}
-      {recentTracks.length > 0 && (
+      {guessedTracks.length > 0 && (
         <div className="space-y-2">
           <p className="text-xs font-bold uppercase tracking-widest text-fg/30">
             Songs you got
           </p>
-          <div className="flex flex-col gap-1 max-h-36 overflow-y-auto">
-            {[...recentTracks].reverse().map((t, i) => (
+          <div className="flex flex-col gap-1 max-h-64 overflow-y-auto">
+            {[...guessedTracks].reverse().map((t, i) => (
               <div
                 key={i}
                 className="flex items-center gap-2 text-sm text-fg/60"

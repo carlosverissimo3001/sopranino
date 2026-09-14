@@ -27,6 +27,8 @@ interface GauntletRunState {
   isNewPersonalBest: boolean;
   isNewDailyBest: boolean;
   recentTracks: RecentTrack[];
+  /** Every song guessed right, from the server once the run is over. */
+  guessedTracks: RecentTrack[] | null;
   gameOverTrack: { name: string; artistName: string; albumArt?: string } | null;
 }
 
@@ -40,7 +42,17 @@ const INITIAL_STATE: GauntletRunState = {
   isNewPersonalBest: false,
   isNewDailyBest: false,
   recentTracks: [],
+  guessedTracks: null,
   gameOverTrack: null,
+};
+
+type GuessParams = {
+  trackId?: string;
+  skip?: boolean;
+  trackName?: string;
+  artistName?: string;
+  albumName?: string;
+  isrc?: string;
 };
 
 export function useGauntletRun() {
@@ -69,14 +81,7 @@ export function useGauntletRun() {
   });
 
   const guessMutation = useMutation({
-    mutationFn: async (params: {
-      trackId?: string;
-      skip?: boolean;
-      trackName?: string;
-      artistName?: string;
-      albumName?: string;
-      isrc?: string;
-    }) => {
+    mutationFn: async (params: GuessParams) => {
       if (!state.runId) throw new Error('No active run');
       try {
         return await api.gauntletControllerSubmitGuess({
@@ -102,6 +107,13 @@ export function useGauntletRun() {
           score: result.score,
           isNewPersonalBest: result.isNewPersonalBest ?? false,
           isNewDailyBest: result.isNewDailyBest ?? false,
+          guessedTracks:
+            result.guessedTracks?.map((track, i) => ({
+              name: track.name,
+              artistName: track.artistName,
+              albumArt: track.albumArt ?? undefined,
+              position: i + 1,
+            })) ?? null,
           gameOverTrack: result.actualTrack
             ? {
                 name: result.actualTrack.name,
@@ -158,14 +170,8 @@ export function useGauntletRun() {
   );
 
   const submitGuess = useCallback(
-    (params: {
-      trackId?: string;
-      skip?: boolean;
-      trackName?: string;
-      artistName?: string;
-      albumName?: string;
-      isrc?: string;
-    }) => guessMutation.mutate(params),
+    (params: GuessParams, options?: { onSuccess?: () => void }) =>
+      guessMutation.mutate(params, { onSuccess: options?.onSuccess }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [guessMutation.mutate],
   );

@@ -286,7 +286,7 @@ export function GuessInput({
               : 'bg-fg/10 text-fg/30 border border-fg/[0.12] cursor-not-allowed'
           }`}
         >
-          Submit
+          {submitPending ? 'Checking...' : 'Submit'}
         </motion.button>
         <button
           type="button"
