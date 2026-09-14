@@ -21,11 +21,14 @@ const GRID =
  * drops out, so a kind costs nothing until the pool has any of it.
  */
 function CuratedGroupsComponent({ defaultOpen }: CuratedGroupsProps) {
+  const artists = useTrackGroups(TrackGroupDtoTypeEnum.Artist);
   const decades = useTrackGroups(TrackGroupDtoTypeEnum.Decade);
   const genres = useTrackGroups(TrackGroupDtoTypeEnum.Genre);
   const charts = useTrackGroups(TrackGroupDtoTypeEnum.Chart);
 
+  // Artists lead: a fan comes looking for their artist before a decade.
   const kinds = [
+    { label: 'Artist', query: artists },
     { label: 'Decade', query: decades },
     { label: 'Genre', query: genres },
     { label: 'Chart', query: charts },
@@ -36,7 +39,12 @@ function CuratedGroupsComponent({ defaultOpen }: CuratedGroupsProps) {
 
   // Nothing is rendered from a guess while this loads: a grid that fills with
   // defaults and then rearranges is worse than one that arrives late.
-  if (decades.isPending || genres.isPending || charts.isPending) {
+  if (
+    artists.isPending ||
+    decades.isPending ||
+    genres.isPending ||
+    charts.isPending
+  ) {
     return (
       <CollapsibleSection
         title="Curated"

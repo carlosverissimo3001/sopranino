@@ -19,6 +19,12 @@ interface GameHeaderProps {
   trailing?: ReactNode;
   /** In place of the Back link, for a page that is itself the way in. */
   leading?: ReactNode;
+  /**
+   * Centred over the row rather than in it, so the controls on either side
+   * never move it and it never moves them. From sm up only: a phone has no
+   * room between the logo and sign-in.
+   */
+  center?: ReactNode;
 }
 
 export function GameHeader({
@@ -29,12 +35,18 @@ export function GameHeader({
   onVolumeChange,
   trailing,
   leading,
+  center,
 }: GameHeaderProps) {
   const isPlaylist = mode === GameMode.All;
   const isDaily = mode === GameMode.Daily;
 
   return (
-    <div className="flex items-center justify-between gap-2 sm:gap-4 mb-4 sm:mb-6">
+    <div className="relative flex items-center justify-between gap-2 sm:gap-4 mb-4 sm:mb-6">
+      {center && (
+        <div className="pointer-events-none absolute inset-y-0 left-1/2 hidden max-w-[45%] -translate-x-1/2 items-center sm:flex">
+          <div className="truncate">{center}</div>
+        </div>
+      )}
       {leading ?? (
         <Link
           href="/"

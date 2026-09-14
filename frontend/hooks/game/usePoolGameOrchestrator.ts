@@ -24,10 +24,13 @@ import { currentFameTier } from '@/lib/fame-tier';
 export function usePoolGameOrchestrator({
   volume = 0.8,
   autoStart = true,
+  initialTrackGroupId,
 }: {
   volume?: number;
   /** False to hold the first round until `start`: a page load must not mint a user. */
   autoStart?: boolean;
+  /** The set a set's own page opens on; the player can still change it in place. */
+  initialTrackGroupId?: string;
 } = {}) {
   const queryClient = useQueryClient();
   const [lastGuessResult, setLastGuessResult] = useState<string | null>(null);
@@ -36,9 +39,9 @@ export function usePoolGameOrchestrator({
   const [isResetting, setIsResetting] = useState(false);
   const { fameTier, setFameTier } = useFameTier();
   /** A decade or genre to draw from instead of the whole pool, picked in place. */
-  const [trackGroupId, setTrackGroupId] = useState<string | undefined>();
+  const [trackGroupId, setTrackGroupId] = useState(initialTrackGroupId);
   /** The set the open round was drawn from, to say when a change waits. */
-  const [roundGroupId, setRoundGroupId] = useState<string | undefined>();
+  const [roundGroupId, setRoundGroupId] = useState(initialTrackGroupId);
 
   const {
     sessionId,
@@ -46,7 +49,9 @@ export function usePoolGameOrchestrator({
     error: sessionError,
     startGameMutation,
   } = useGameSession(GameMode.All, {
-    playlistId: POOL_PLAYLIST_ID,
+    ...(initialTrackGroupId
+      ? { trackGroupId: initialTrackGroupId }
+      : { playlistId: POOL_PLAYLIST_ID }),
     fameTier: currentFameTier(),
     enabled: autoStart,
   });

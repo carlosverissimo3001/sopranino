@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { outsideTransaction } from '@transaction/transaction.store';
 import {
   PreviewLookupService,
   parseRef,
@@ -36,16 +37,20 @@ export class TrackService {
       return;
     }
 
-    void this.lastfmService
-      .getTrackInfo(track.name, track.artistName)
-      .then((lastfm) =>
-        lastfm
-          ? this.trackRepository.updateMetadata(track.id, { ...meta, lastfm })
-          : undefined,
-      )
-      .catch((err: Error) =>
-        this.logger.warn(`Enrichment failed for ${track.id}: ${err.message}`),
-      );
+    // A game's start runs in a transaction that commits long before Last.fm
+    // answers; the write has to find the plain client, not that transaction.
+    outsideTransaction(() => {
+      void this.lastfmService
+        .getTrackInfo(track.name, track.artistName)
+        .then((lastfm) =>
+          lastfm
+            ? this.trackRepository.updateMetadata(track.id, { ...meta, lastfm })
+            : undefined,
+        )
+        .catch((err: Error) =>
+          this.logger.warn(`Enrichment failed for ${track.id}: ${err.message}`),
+        );
+    });
   }
 
   async findById(id: string): Promise<TrackEntity | null> {

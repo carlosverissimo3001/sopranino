@@ -6,7 +6,6 @@ import { useWarnOnLeave } from '@/hooks/useWarnOnLeave';
 import { SongRevealCard } from './SongRevealCard';
 import { GameHeader } from './GameHeader';
 import { GameTitle } from './GameTitle';
-import { FameTierPicker } from './FameTierPicker';
 import { GameRoundView } from './GameRoundView';
 import { GameScreenError, GameScreenLoading } from './GameScreenStatus';
 import { GameStatsDtoModeEnum as GameMode } from '../../sdk';
@@ -14,20 +13,9 @@ import { GameStatsDtoModeEnum as GameMode } from '../../sdk';
 interface GamePageProps {
   mode: GameMode;
   playlistId?: string;
-  trackGroupId?: string;
-  /** What a curated set calls itself, in place of the generic heading. */
-  heading?: string;
-  /** Decade and genre sets let the player pick how well-known the songs are. */
-  withFameTier?: boolean;
 }
 
-export function GamePage({
-  mode,
-  playlistId,
-  trackGroupId,
-  heading,
-  withFameTier = false,
-}: GamePageProps) {
+export function GamePage({ mode, playlistId }: GamePageProps) {
   const { volume, setVolume } = useVolume();
 
   const {
@@ -46,14 +34,7 @@ export function GamePage({
     handleSubmit,
     handleSkip,
     handlePlayAgain,
-    fameTier,
-    handleFameTierChange,
-    isStarting,
-  } = useGameOrchestrator(mode, playlistId, {
-    volume,
-    trackGroupId,
-    withFameTier,
-  });
+  } = useGameOrchestrator(mode, playlistId, { volume });
 
   useWarnOnLeave(!!gameState && !isGameOver);
 
@@ -89,24 +70,13 @@ export function GamePage({
         />
       }
       title={
-        <>
-          {!isGameOver && (
-            <GameTitle
-              mode={mode}
-              currentRound={gameState.currentRound}
-              maxRounds={gameState.maxRounds}
-              heading={heading}
-            />
-          )}
-          {fameTier && (
-            <FameTierPicker
-              value={fameTier}
-              onChange={handleFameTierChange}
-              playing={isGameOver ? undefined : gameState.fameTier}
-              disabled={isStarting}
-            />
-          )}
-        </>
+        !isGameOver && (
+          <GameTitle
+            mode={mode}
+            currentRound={gameState.currentRound}
+            maxRounds={gameState.maxRounds}
+          />
+        )
       }
       reveal={
         <SongRevealCard

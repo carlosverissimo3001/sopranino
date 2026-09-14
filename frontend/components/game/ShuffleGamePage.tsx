@@ -15,7 +15,11 @@ import { ClaimNamePrompt } from './ClaimNamePrompt';
 import { GameHeader } from './GameHeader';
 import { ShuffleModeNav } from './ShuffleModeNav';
 import { FAME_TIERS } from '@/lib/fame-tier';
-import { useTrackGroupName } from '@/hooks/track-groups/useTrackGroupName';
+import {
+  guessLine,
+  useTrackGroupById,
+  useTrackGroupName,
+} from '@/hooks/track-groups/useTrackGroupName';
 import { FameTierPicker } from './FameTierPicker';
 import { GameRoundView, type RoundData } from './GameRoundView';
 import { GameScreenError, GameScreenLoading } from './GameScreenStatus';
@@ -48,6 +52,10 @@ interface ShuffleGamePageProps {
   heading?: string;
   /** Under the reveal, once a round is over. */
   afterReveal?: ReactNode;
+  /** A set's own page opens on that set. */
+  initialTrackGroupId?: string;
+  /** False when the opening set is a chart, whose songs are all hits. */
+  initialTiersApply?: boolean;
 }
 
 /**
@@ -60,10 +68,12 @@ export function ShuffleGamePage({
   headerTrailing,
   heading = 'Shuffle: guess the song from a snippet',
   afterReveal,
+  initialTrackGroupId,
+  initialTiersApply = true,
 }: ShuffleGamePageProps) {
   const { volume, setVolume } = useVolume();
   // A chart is all hits, so a tier would promise a difference it cannot make.
-  const [tiersApply, setTiersApply] = useState(true);
+  const [tiersApply, setTiersApply] = useState(initialTiersApply);
   const { data: user } = useMe();
 
   const {
@@ -86,10 +96,15 @@ export function ShuffleGamePage({
     handleTrackGroupChange,
     trackGroupWaits,
     playingTrackGroupId,
-  } = usePoolGameOrchestrator({ volume, autoStart: !deferStart });
+  } = usePoolGameOrchestrator({
+    volume,
+    autoStart: !deferStart,
+    initialTrackGroupId,
+  });
 
   useWarnOnLeave(!!gameState && !isGameOver);
   const queuedSetName = useTrackGroupName(trackGroupId);
+  const playingSet = useTrackGroupById(playingTrackGroupId);
 
   // The tap that started the round asked to hear it, so it plays once ready.
   const playWhenReady = useRef(false);
@@ -154,6 +169,13 @@ export function ShuffleGamePage({
           onVolumeChange={setVolume}
           // The name, not a Back link: this screen is the way in for a new
           // visitor, and the logo is the way home for everyone else.
+          center={
+            playingSet && (
+              <p className="text-sm font-bold tracking-tight text-fg md:text-base">
+                {guessLine(playingSet)}
+              </p>
+            )
+          }
           leading={
             <Link href="/" className="flex shrink-0 items-center gap-2">
               <span className="rounded-lg bg-spotify-green p-1.5">
@@ -193,6 +215,12 @@ export function ShuffleGamePage({
         <>
           <div className="relative mb-5 flex flex-col items-center gap-3 sm:mb-8 sm:gap-4">
             <h1 className="sr-only">{heading}</h1>
+            {/* In the header from sm up; here on a phone, which has no room there. */}
+            {playingSet && (
+              <p className="text-base font-bold tracking-tight text-fg sm:hidden">
+                {guessLine(playingSet)}
+              </p>
+            )}
             <ShuffleModeNav
               trackGroupId={trackGroupId}
               playingTrackGroupId={playingTrackGroupId}
