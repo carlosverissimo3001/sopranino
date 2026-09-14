@@ -6,6 +6,7 @@ import { useWarnOnLeave } from '@/hooks/useWarnOnLeave';
 import { SongRevealCard } from './SongRevealCard';
 import { GameHeader } from './GameHeader';
 import { GameTitle } from './GameTitle';
+import { FameTierPicker } from './FameTierPicker';
 import { GameRoundView } from './GameRoundView';
 import { GameScreenError, GameScreenLoading } from './GameScreenStatus';
 import { GameStatsDtoModeEnum as GameMode } from '../../sdk';
@@ -16,6 +17,8 @@ interface GamePageProps {
   trackGroupId?: string;
   /** What a curated set calls itself, in place of the generic heading. */
   heading?: string;
+  /** Decade and genre sets let the player pick how well-known the songs are. */
+  withFameTier?: boolean;
 }
 
 export function GamePage({
@@ -23,6 +26,7 @@ export function GamePage({
   playlistId,
   trackGroupId,
   heading,
+  withFameTier = false,
 }: GamePageProps) {
   const { volume, setVolume } = useVolume();
 
@@ -42,7 +46,13 @@ export function GamePage({
     handleSubmit,
     handleSkip,
     handlePlayAgain,
-  } = useGameOrchestrator(mode, playlistId, { volume, trackGroupId });
+    fameTier,
+    handleFameTierChange,
+  } = useGameOrchestrator(mode, playlistId, {
+    volume,
+    trackGroupId,
+    withFameTier,
+  });
 
   useWarnOnLeave(!!gameState && !isGameOver);
 
@@ -78,14 +88,23 @@ export function GamePage({
         />
       }
       title={
-        !isGameOver && (
-          <GameTitle
-            mode={mode}
-            currentRound={gameState.currentRound}
-            maxRounds={gameState.maxRounds}
-            heading={heading}
-          />
-        )
+        <>
+          {!isGameOver && (
+            <GameTitle
+              mode={mode}
+              currentRound={gameState.currentRound}
+              maxRounds={gameState.maxRounds}
+              heading={heading}
+            />
+          )}
+          {fameTier && (
+            <FameTierPicker
+              value={fameTier}
+              onChange={handleFameTierChange}
+              playing={isGameOver ? undefined : gameState.fameTier}
+            />
+          )}
+        </>
       }
       reveal={
         <SongRevealCard

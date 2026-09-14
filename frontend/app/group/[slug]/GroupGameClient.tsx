@@ -5,6 +5,7 @@ import { GamePage } from '@/components/game/GamePage';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useTrackGroupBySlug } from '@/hooks/track-groups/useTrackGroups';
 import { GameStatsDtoModeEnum as GameMode } from '@/sdk';
+import { groupHasFameTiers } from '@/lib/fame-tier';
 
 /**
  * The slug is what is shareable; the id is what starts a round. Resolving one
@@ -40,6 +41,11 @@ export function GroupGameClient({ heading }: { heading?: string }) {
   }
 
   return (
-    <GamePage mode={GameMode.All} trackGroupId={group.id} heading={heading} />
+    <GamePage
+      mode={GameMode.All}
+      trackGroupId={group.id}
+      heading={heading}
+      withFameTier={groupHasFameTiers(group.type)}
+    />
   );
 }

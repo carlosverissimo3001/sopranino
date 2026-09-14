@@ -10,6 +10,7 @@ import { SongRevealCard } from './SongRevealCard';
 import { ClaimNamePrompt } from './ClaimNamePrompt';
 import { GameHeader } from './GameHeader';
 import { GameTitle } from './GameTitle';
+import { FameTierPicker } from './FameTierPicker';
 import { GameRoundView } from './GameRoundView';
 import { GameScreenError, GameScreenLoading } from './GameScreenStatus';
 import { GameStatsDtoModeEnum as GameMode } from '../../sdk';
@@ -34,6 +35,8 @@ export function ShuffleGamePage({ canSignIn }: { canSignIn: boolean }) {
     handleSubmit,
     handleSkip,
     handlePlayAgain,
+    fameTier,
+    handleFameTierChange,
   } = usePoolGameOrchestrator({ volume });
 
   useWarnOnLeave(!!gameState && !isGameOver);
@@ -89,13 +92,20 @@ export function ShuffleGamePage({ canSignIn }: { canSignIn: boolean }) {
         />
       }
       title={
-        !isGameOver && (
-          <GameTitle
-            mode={GameMode.All}
-            currentRound={gameState.currentRound}
-            maxRounds={gameState.maxRounds}
+        <>
+          {!isGameOver && (
+            <GameTitle
+              mode={GameMode.All}
+              currentRound={gameState.currentRound}
+              maxRounds={gameState.maxRounds}
+            />
+          )}
+          <FameTierPicker
+            value={fameTier}
+            onChange={handleFameTierChange}
+            playing={isGameOver ? undefined : gameState.fameTier}
           />
-        )
+        </>
       }
       reveal={
         <>

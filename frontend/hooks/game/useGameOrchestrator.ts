@@ -12,6 +12,8 @@ import { useGameAudio } from './useGameAudio';
 import { useGameStats } from './useGameStats';
 import { useSpotifyTrackSearch } from '@/hooks/spotify/useSpotifyTrackSearch';
 import { usePlaylistById } from '@/hooks/playlists/usePlaylistById';
+import { useFameTier } from './useFameTier';
+import type { FameTier } from '../../sdk';
 import { GameStatsDtoModeEnum as GameMode } from '../../sdk';
 
 export function useGameOrchestrator(
@@ -20,7 +22,13 @@ export function useGameOrchestrator(
   {
     volume = 0.8,
     trackGroupId,
-  }: { volume?: number; trackGroupId?: string } = {},
+    withFameTier = false,
+  }: {
+    volume?: number;
+    trackGroupId?: string;
+    /** Only decade and genre sets have tiers worth choosing between. */
+    withFameTier?: boolean;
+  } = {},
 ) {
   const queryClient = useQueryClient();
   const [lastGuessResult, setLastGuessResult] = useState<string | null>(null);
@@ -30,12 +38,19 @@ export function useGameOrchestrator(
   const isDaily = mode === GameMode.Daily;
 
   const { data: playlist } = usePlaylistById(playlistId ?? '');
+  const { fameTier: storedFameTier, setFameTier } = useFameTier();
+  const fameTier = withFameTier ? storedFameTier : undefined;
+
   const {
     sessionId,
     isLoading: sessionLoading,
     error: sessionError,
     startGameMutation,
-  } = useGameSession(mode, playlistId, trackGroupId);
+  } = useGameSession(mode, {
+    playlistId,
+    trackGroupId,
+    fameTier,
+  });
   const {
     data: gameState,
     isLoading: loadingState,
@@ -125,47 +140,72 @@ export function useGameOrchestrator(
     });
   }, [gameState, submitPending, submitGuessMutation, getAudioReport]);
 
-  const handlePlayAgain = useCallback(() => {
-    gameAudio.stopFullSong();
-    setIsResetting(true);
+  const startNewRound = useCallback(
+    (tier: FameTier | undefined) => {
+      gameAudio.stopFullSong();
+      setIsResetting(true);
 
-    if (gameState?.sessionId) {
-      queryClient.setQueryData(queryKeys.game.state(gameState.sessionId), null);
-      queryClient.removeQueries({
-        queryKey: queryKeys.game.state(gameState.sessionId),
-      });
-    }
-    // Whichever key this round was started under, so "play again" does not
-    // read back the session it is replacing.
-    const sessionKey = trackGroupId
-      ? queryKeys.game.startedSessionForGroup(trackGroupId)
-      : playlistId
-        ? queryKeys.game.startedSessionForPlaylist(playlistId)
-        : null;
+      if (gameState?.sessionId) {
+        queryClient.setQueryData(
+          queryKeys.game.state(gameState.sessionId),
+          null,
+        );
+        queryClient.removeQueries({
+          queryKey: queryKeys.game.state(gameState.sessionId),
+        });
+      }
+      // Whichever key this round was started under, so "play again" does not
+      // read back the session it is replacing.
+      const sessionKey = trackGroupId
+        ? queryKeys.game.startedSessionForGroup(trackGroupId)
+        : playlistId
+          ? queryKeys.game.startedSessionForPlaylist(playlistId)
+          : null;
 
-    if (sessionKey) {
-      queryClient.setQueryData(sessionKey, null);
-    }
+      if (sessionKey) {
+        queryClient.setQueryData(sessionKey, null);
+      }
 
-    startGameMutation.reset();
-    if (trackGroupId || playlistId) {
-      startGameMutation.mutate(
-        trackGroupId
-          ? { trackGroupId, mode: GameMode.All }
-          : { playlistId, mode: GameMode.All },
-        { onSettled: () => setIsResetting(false) },
-      );
-    } else {
-      setIsResetting(false);
-    }
-  }, [
-    gameAudio,
-    gameState,
-    queryClient,
-    startGameMutation,
-    playlistId,
-    trackGroupId,
-  ]);
+      startGameMutation.reset();
+      if (trackGroupId || playlistId) {
+        startGameMutation.mutate(
+          trackGroupId
+            ? { trackGroupId, fameTier: tier, mode: GameMode.All }
+            : { playlistId, mode: GameMode.All },
+          { onSettled: () => setIsResetting(false) },
+        );
+      } else {
+        setIsResetting(false);
+      }
+    },
+    [
+      gameAudio,
+      gameState,
+      queryClient,
+      startGameMutation,
+      playlistId,
+      trackGroupId,
+    ],
+  );
+
+  const handlePlayAgain = useCallback(
+    () => startNewRound(fameTier),
+    [startNewRound, fameTier],
+  );
+
+  // Before a guess the song is swapped for one of the new tier; after one,
+  // the round is kept and the tier waits for the next song.
+  const handleFameTierChange = useCallback(
+    (tier: FameTier) => {
+      if (!withFameTier || tier === fameTier) return;
+      setFameTier(tier);
+      const untouched =
+        gameState?.status === GameStateDtoStatusEnum.Playing &&
+        gameState.guesses.length === 0;
+      if (untouched) startNewRound(tier);
+    },
+    [withFameTier, fameTier, setFameTier, gameState, startNewRound],
+  );
 
   const lastGuess = gameState?.guesses?.[gameState.guesses.length - 1];
   const shouldShake = lastGuess?.result === GuessResult.Wrong;
@@ -189,5 +229,7 @@ export function useGameOrchestrator(
     handleSubmit,
     handleSkip,
     handlePlayAgain,
+    fameTier,
+    handleFameTierChange,
   };
 }
