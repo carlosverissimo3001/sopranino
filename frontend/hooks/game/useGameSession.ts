@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queryKeys';
 import { useStartGame } from './useStartGame';
 import { GameStatsDtoModeEnum as GameMode } from '../../sdk';
+import type { FameTier } from '../../sdk';
 
 /**
  * Handles game session initialization: starts playlist or daily game once on mount.
@@ -17,8 +18,11 @@ import { GameStatsDtoModeEnum as GameMode } from '../../sdk';
  */
 export function useGameSession(
   mode: GameMode,
-  playlistId?: string,
-  trackGroupId?: string,
+  {
+    playlistId,
+    trackGroupId,
+    fameTier,
+  }: { playlistId?: string; trackGroupId?: string; fameTier?: FameTier } = {},
 ) {
   const startGameMutation = useStartGame();
   const hasStarted = useRef(false);
@@ -57,9 +61,9 @@ export function useGameSession(
 
     startGameMutation.mutate(
       isPlaylist && trackGroupId
-        ? { trackGroupId, mode }
+        ? { trackGroupId, fameTier, mode }
         : isPlaylist && playlistId
-          ? { playlistId, mode }
+          ? { playlistId, fameTier, mode }
           : { mode },
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps

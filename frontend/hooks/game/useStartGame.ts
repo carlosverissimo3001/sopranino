@@ -19,6 +19,7 @@ export function useStartGame() {
         const startGameDto: StartGameDto = {
           playlistId: params.playlistId,
           trackGroupId: params.trackGroupId,
+          fameTier: params.fameTier,
           mode: params.mode,
         };
         return await api.gameControllerStartGame({ startGameDto });

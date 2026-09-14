@@ -12,6 +12,8 @@ import { useSubmitGuess } from './useSubmitGuess';
 import { useGameAudio } from './useGameAudio';
 import { useSpotifyTrackSearch } from '@/hooks/spotify/useSpotifyTrackSearch';
 import { GameStatsDtoModeEnum as GameMode } from '../../sdk';
+import type { FameTier } from '../../sdk';
+import { useFameTier } from './useFameTier';
 
 /**
  * Rounds drawn from the curated pool, for a player with no Spotify library to
@@ -26,13 +28,17 @@ export function usePoolGameOrchestrator({
   /** True between asking for a new round and getting one, so the finished one
       cannot briefly reappear while the swap happens. */
   const [isResetting, setIsResetting] = useState(false);
+  const { fameTier, setFameTier } = useFameTier();
 
   const {
     sessionId,
     isLoading: sessionLoading,
     error: sessionError,
     startGameMutation,
-  } = useGameSession(GameMode.All, POOL_PLAYLIST_ID);
+  } = useGameSession(GameMode.All, {
+    playlistId: POOL_PLAYLIST_ID,
+    fameTier,
+  });
   const {
     data: gameState,
     isLoading: loadingState,
@@ -98,29 +104,51 @@ export function usePoolGameOrchestrator({
     });
   }, [gameState, submitPending, submitGuessMutation, getAudioReport]);
 
-  const handlePlayAgain = useCallback(() => {
-    gameAudio.stopFullSong();
-    setIsResetting(true);
-    setLastGuessResult(null);
+  const startNewRound = useCallback(
+    (tier: FameTier) => {
+      gameAudio.stopFullSong();
+      setIsResetting(true);
+      setLastGuessResult(null);
 
-    if (gameState?.sessionId) {
-      queryClient.removeQueries({
-        queryKey: queryKeys.game.state(gameState.sessionId),
-      });
-    }
-    // setQueryData rather than removeQueries: useGameSession subscribes to this
-    // key, and removing it would drop that subscription.
-    queryClient.setQueryData(
-      queryKeys.game.startedSessionForPlaylist(POOL_PLAYLIST_ID),
-      null,
-    );
+      if (gameState?.sessionId) {
+        queryClient.removeQueries({
+          queryKey: queryKeys.game.state(gameState.sessionId),
+        });
+      }
+      // setQueryData rather than removeQueries: useGameSession subscribes to this
+      // key, and removing it would drop that subscription.
+      queryClient.setQueryData(
+        queryKeys.game.startedSessionForPlaylist(POOL_PLAYLIST_ID),
+        null,
+      );
 
-    startGameMutation.reset();
-    startGameMutation.mutate(
-      { playlistId: POOL_PLAYLIST_ID, mode: GameMode.All },
-      { onSettled: () => setIsResetting(false) },
-    );
-  }, [gameAudio, gameState, queryClient, startGameMutation]);
+      startGameMutation.reset();
+      startGameMutation.mutate(
+        { playlistId: POOL_PLAYLIST_ID, fameTier: tier, mode: GameMode.All },
+        { onSettled: () => setIsResetting(false) },
+      );
+    },
+    [gameAudio, gameState, queryClient, startGameMutation],
+  );
+
+  const handlePlayAgain = useCallback(
+    () => startNewRound(fameTier),
+    [startNewRound, fameTier],
+  );
+
+  // Before a guess the song is swapped for one of the new tier; after one,
+  // the round is kept and the tier waits for the next song.
+  const handleFameTierChange = useCallback(
+    (tier: FameTier) => {
+      if (tier === fameTier) return;
+      setFameTier(tier);
+      const untouched =
+        gameState?.status === GameStateDtoStatusEnum.Playing &&
+        gameState.guesses.length === 0;
+      if (untouched) startNewRound(tier);
+    },
+    [fameTier, setFameTier, gameState, startNewRound],
+  );
 
   const lastGuess = gameState?.guesses?.[gameState.guesses.length - 1];
   const shouldShake = lastGuess?.result === GuessResult.Wrong;
@@ -137,5 +165,7 @@ export function usePoolGameOrchestrator({
     handleSubmit,
     handleSkip,
     handlePlayAgain,
+    fameTier,
+    handleFameTierChange,
   };
 }
