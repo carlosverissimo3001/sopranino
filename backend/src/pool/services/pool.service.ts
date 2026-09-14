@@ -22,8 +22,7 @@ export class PoolService {
    */
   private cache = new Map<string, { candidates: PoolCandidate[]; at: number }>();
   private cuts: { values: number[]; at: number } | null = null;
-  /** Groups whose tiers are cut from their own songs, not the whole pool's. */
-  private ownScale = new Map<string, boolean>();
+  private groupTypes = new Map<string, TrackGroupType | null>();
 
   constructor(
     private readonly poolTrackRepository: PoolTrackRepository,
@@ -41,7 +40,12 @@ export class PoolService {
   ): Promise<TrackEntity> {
     const candidates = await this.getCandidates(trackGroupId);
     const exclude = new Set(excludeIds);
-    const id = tier
+    // A special set has no difficulty to pick, whatever the device has stored.
+    const tiered =
+      tier &&
+      (!trackGroupId ||
+        this.groupTypes.get(trackGroupId) !== TrackGroupType.SPECIAL);
+    const id = tiered
       ? await this.pickInTier({ candidates, tier, exclude, trackGroupId })
       : weightedPick(candidates, exclude);
     if (!id) {
@@ -76,7 +80,8 @@ export class PoolService {
     // An artist's Easy is their own hits: on the whole pool's scale most of a
     // catalogue is Hard or worse, and Easy would fall back nearly every round.
     const cuts =
-      trackGroupId && this.ownScale.get(trackGroupId)
+      trackGroupId &&
+      this.groupTypes.get(trackGroupId) === TrackGroupType.ARTIST
         ? tierCuts(candidates.map((candidate) => candidate.fame))
         : await this.getCuts();
     for (const fallback of tierFallback(tier)) {
@@ -101,7 +106,7 @@ export class PoolService {
   clearCache(): void {
     this.cache.clear();
     this.cuts = null;
-    this.ownScale.clear();
+    this.groupTypes.clear();
   }
 
   async stats() {
@@ -133,7 +138,7 @@ export class PoolService {
         : Promise.resolve(null),
     ]);
     if (trackGroupId) {
-      this.ownScale.set(trackGroupId, groupType === TrackGroupType.ARTIST);
+      this.groupTypes.set(trackGroupId, groupType);
     }
     this.cache.set(key, { candidates, at: Date.now() });
     return candidates;

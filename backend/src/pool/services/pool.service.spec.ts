@@ -123,6 +123,24 @@ describe('PoolService', () => {
       expect(poolTracks.findAllFame).not.toHaveBeenCalled();
     });
 
+    it('ignores the tier for a special set', async () => {
+      poolTracks.findGroupType.mockResolvedValue('SPECIAL');
+      poolTracks.findCandidates.mockResolvedValue([
+        candidate('dz:10', 10),
+        candidate('dz:100', 100),
+      ]);
+
+      // The bottom of the weighted walk: an Easy pick could never land here.
+      jest.spyOn(Math, 'random').mockReturnValue(0);
+
+      const track = await service.pickTrack([], 'group-special', {
+        tier: FameTier.EASY,
+      });
+
+      expect(track.id).toBe('dz:10');
+      expect(poolTracks.findAllFame).not.toHaveBeenCalled();
+    });
+
     it('draws from the whole list when no tier is asked for', async () => {
       poolTracks.findCandidates.mockResolvedValue([candidate('dz:10', 10)]);
 
