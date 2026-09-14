@@ -19,15 +19,19 @@ interface HintPanelProps {
 export function HintPanel({ hints, currentRound }: HintPanelProps) {
   if (currentRound === 0 && hints.length === 0) {
     return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5, duration: 0.4 }}
-        className="flex items-center justify-center gap-2 mb-3 sm:mb-4 py-2 text-zinc-500 text-sm"
-      >
-        <Lightbulb className="w-3.5 h-3.5" />
-        <span>Every guess or skip unlocks a hint</span>
-      </motion.div>
+      // Said once, then out of the way. It floats in the gap above the guess box
+      // instead of taking a row, so nothing moves as it comes and goes.
+      <div className="relative h-0" aria-hidden>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0, 1, 1, 0] }}
+          transition={{ duration: 5, times: [0, 0.1, 0.8, 1], delay: 0.5 }}
+          className="pointer-events-none absolute inset-x-0 -top-2 flex h-5 items-center justify-center gap-2 text-xs text-zinc-500 sm:-top-7 sm:text-sm md:-top-8"
+        >
+          <Lightbulb className="h-3.5 w-3.5" />
+          <span>Every guess or skip unlocks a hint</span>
+        </motion.div>
+      </div>
     );
   }
 

@@ -170,11 +170,11 @@ export function usePoolGameOrchestrator({
   // new set waits for the next song.
   const handleTrackGroupChange = useCallback(
     (groupId: string | undefined) => {
-      if (groupId === trackGroupId || startGameMutation.isPending) return;
+      if (groupId === trackGroupId || isResetting) return;
       setTrackGroupId(groupId);
       if (untouched) startNewRound(fameTier, groupId);
     },
-    [trackGroupId, startGameMutation, untouched, startNewRound, fameTier],
+    [trackGroupId, isResetting, untouched, startNewRound, fameTier],
   );
   const start = handlePlayAgain;
 
@@ -182,7 +182,7 @@ export function usePoolGameOrchestrator({
   // the round is kept and the tier waits for the next song.
   const handleFameTierChange = useCallback(
     (tier: FameTier) => {
-      if (tier === fameTier || startGameMutation.isPending) return;
+      if (tier === fameTier || isResetting) return;
       setFameTier(tier);
       if (untouched) startNewRound(tier, trackGroupId);
     },
@@ -191,7 +191,7 @@ export function usePoolGameOrchestrator({
       setFameTier,
       untouched,
       startNewRound,
-      startGameMutation,
+      isResetting,
       trackGroupId,
     ],
   );
@@ -214,11 +214,15 @@ export function usePoolGameOrchestrator({
     fameTier,
     handleFameTierChange,
     start,
-    isStarting: startGameMutation.isPending,
+    // Our own flag, not the mutation's: in Strict Mode an orphaned observer
+    // can report pending forever, which locked the pickers for good.
+    isStarting: isResetting,
     trackGroupId,
     handleTrackGroupChange,
     /** A set picked mid-round, which applies from the next song. */
     trackGroupWaits:
       !!gameState && !isGameOver && trackGroupId !== roundGroupId,
+    /** The set the song on screen came from, which a queued pick has not replaced yet. */
+    playingTrackGroupId: gameState && !isGameOver ? roundGroupId : trackGroupId,
   };
 }

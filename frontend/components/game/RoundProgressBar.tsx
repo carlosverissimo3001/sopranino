@@ -105,7 +105,7 @@ export function RoundProgressBar({
 
   return (
     // Same column as the content below, or it reads as a separate element.
-    <div className="mx-auto w-full max-w-xl mb-4 sm:mb-8 md:mb-10">
+    <div className="mx-auto w-full max-w-xl mb-4 sm:mb-9 md:mb-11">
       <div className="relative mb-1 h-3">
         {steps.map((step, index) => {
           const spent = index < currentRound;

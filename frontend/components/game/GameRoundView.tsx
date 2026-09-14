@@ -194,6 +194,7 @@ export function GameRoundView({
             {!isOver && (
               <div className={cover ? 'hidden sm:block' : undefined}>
                 <PlaySnippetButton
+                  className="mb-4 sm:mb-9 md:mb-11"
                   snippetDuration={round.snippetDuration}
                   isPlaying={isPlaying}
                   onPlay={playSnippet}

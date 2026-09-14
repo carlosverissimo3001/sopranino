@@ -198,8 +198,7 @@ export function useGameOrchestrator(
   // the round is kept and the tier waits for the next song.
   const handleFameTierChange = useCallback(
     (tier: FameTier) => {
-      if (!withFameTier || tier === fameTier || startGameMutation.isPending)
-        return;
+      if (!withFameTier || tier === fameTier || isResetting) return;
       setFameTier(tier);
       const untouched =
         gameState?.status === GameStateDtoStatusEnum.Playing &&
@@ -212,7 +211,7 @@ export function useGameOrchestrator(
       setFameTier,
       gameState,
       startNewRound,
-      startGameMutation,
+      isResetting,
     ],
   );
 
@@ -240,6 +239,8 @@ export function useGameOrchestrator(
     handlePlayAgain,
     fameTier,
     handleFameTierChange,
-    isStarting: startGameMutation.isPending,
+    // Our own flag, not the mutation's: in Strict Mode an orphaned observer
+    // can report pending forever, which locked the pickers for good.
+    isStarting: isResetting,
   };
 }

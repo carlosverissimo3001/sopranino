@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Check, Pencil, X } from 'lucide-react';
+import { Pencil } from 'lucide-react';
 import { useMe } from '@/hooks/auth/useMe';
 import { useUpdateProfile } from '@/hooks/auth/useUpdateProfile';
 
@@ -28,93 +28,110 @@ function writeAskedUserId(userId: string) {
 
 /**
  * The first conversion ask, and the only one that costs nothing to say yes to:
- * a name, no password and no email. It opens once, after a round rather than
- * before, when there is already something worth putting a name on. Afterwards
- * it stays as a quiet line, so someone who goes looking still finds it.
+ * a name, no password and no email. The name itself is the control: tap it to
+ * edit in place, Enter saves, Escape leaves it. Until they choose or say not
+ * now, it carries an invitation; after that it is a quiet line.
  */
 export function ClaimNamePrompt() {
   const { data: user } = useMe();
   const { mutate: updateProfile, isPending } = useUpdateProfile();
-
-  // Derived, not initial state: `user` arrives a render later than this mounts.
-  const [override, setOverride] = useState<'open' | 'closed' | null>(null);
-  const [name, setName] = useState('');
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState('');
+  // Asked-or-not is read from storage per render: `user` arrives a render
+  // later than this mounts, so it cannot be initial state.
+  const [dismissed, setDismissed] = useState(false);
+  // Escape unmounts the input, which blurs it; the blur must not save.
+  const cancelled = useRef(false);
 
   // Someone with an account already has a name they chose.
   if (!user || user.hasAccount) {
     return null;
   }
 
-  const asked = readAskedUserId() === user.userId;
-  const expanded = override ? override === 'open' : !asked;
+  const quiet = dismissed || readAskedUserId() === user.userId;
 
-  function close() {
+  function settle() {
     if (user) writeAskedUserId(user.userId);
-    setOverride('closed');
+    setDismissed(true);
+    setEditing(false);
   }
 
-  if (!expanded) {
-    return (
-      <button
-        type="button"
-        onClick={() => setOverride('open')}
-        className="mx-auto flex items-center gap-1.5 text-[11px] font-bold text-fg/35 hover:text-fg/70 transition-colors"
-      >
-        Playing as {user.displayName}
-        <Pencil className="w-3 h-3" />
-      </button>
-    );
+  function save() {
+    if (cancelled.current) {
+      cancelled.current = false;
+      return;
+    }
+    const trimmed = draft.trim();
+    if (!trimmed || trimmed === user?.displayName) {
+      setEditing(false);
+      return;
+    }
+    updateProfile(trimmed, { onSuccess: settle });
   }
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
+      initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
-      className="relative rounded-2xl border border-fg/10 bg-fg/[0.04] p-4"
+      className={`flex flex-wrap items-center justify-center gap-x-3 gap-y-1 sm:justify-start ${quiet ? 'text-[11px]' : 'text-xs'}`}
     >
-      <button
-        type="button"
-        onClick={close}
-        aria-label="Dismiss"
-        className="absolute top-3 right-3 text-fg/30 hover:text-fg/60 transition-colors"
-      >
-        <X className="w-3.5 h-3.5" />
-      </button>
-
-      <p className="text-sm font-black tracking-tight text-fg pr-6">
-        You&apos;re playing as {user.displayName}
-      </p>
-      <p className="mt-0.5 text-xs text-fg/50 tracking-tight">
-        Pick something better. No email, no password.
-      </p>
-
-      <form
-        className="mt-3 flex items-center gap-2"
-        onSubmit={(e) => {
-          e.preventDefault();
-          const trimmed = name.trim();
-          if (!trimmed) return;
-          updateProfile(trimmed, { onSuccess: close });
-        }}
-      >
-        <input
-          autoFocus
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          maxLength={50}
-          placeholder="Your name"
-          aria-label="Your name"
-          className="min-w-0 flex-1 rounded-xl border border-fg/15 bg-fg/5 px-3 py-2 text-sm text-fg placeholder:text-fg/30 focus:outline-none focus:ring-2 focus:ring-spotify-green"
-        />
-        <button
-          type="submit"
-          disabled={isPending || !name.trim()}
-          aria-label="Save name"
-          className="flex items-center justify-center h-9 w-9 shrink-0 rounded-xl bg-spotify-green text-black disabled:opacity-40 active:scale-95 transition-all"
-        >
-          <Check className="w-4 h-4" />
-        </button>
-      </form>
+      <span className="flex min-w-0 items-center gap-1.5 text-fg/50">
+        Playing as
+        {editing ? (
+          <input
+            autoFocus
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            // After the focus settles, or the browser drops the selection again.
+            onFocus={(e) => {
+              const input = e.target;
+              requestAnimationFrame(() => input.select());
+            }}
+            onBlur={save}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') save();
+              if (e.key === 'Escape') {
+                cancelled.current = true;
+                setEditing(false);
+              }
+            }}
+            disabled={isPending}
+            maxLength={50}
+            aria-label="Your name"
+            size={Math.max(draft.length, 8)}
+            className="min-w-0 border-b border-spotify-green bg-transparent font-bold text-fg outline-none"
+          />
+        ) : (
+          <button
+            type="button"
+            onClick={() => {
+              setDraft(user.displayName);
+              setEditing(true);
+            }}
+            aria-label={`Change your name, ${user.displayName}`}
+            className="group inline-flex items-center gap-1 font-bold text-fg underline decoration-fg/25 decoration-dotted underline-offset-4 hover:decoration-spotify-green"
+          >
+            {user.displayName}
+            <Pencil className="h-3 w-3 text-fg/40 group-hover:text-spotify-green" />
+          </button>
+        )}
+      </span>
+      {editing ? (
+        <span className="text-fg/30">Enter to save, Esc to cancel</span>
+      ) : (
+        !quiet && (
+          <>
+            <span className="text-fg/40">Tap it to pick your own.</span>
+            <button
+              type="button"
+              onClick={settle}
+              className="text-fg/35 transition-colors hover:text-fg/60"
+            >
+              Not now
+            </button>
+          </>
+        )
+      )}
     </motion.div>
   );
 }

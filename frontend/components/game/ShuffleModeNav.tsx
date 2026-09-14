@@ -11,6 +11,7 @@ import {
   Users,
 } from 'lucide-react';
 import { useTrackGroups } from '@/hooks/track-groups/useTrackGroups';
+import { useTrackGroupName } from '@/hooks/track-groups/useTrackGroupName';
 import { groupHasFameTiers } from '@/lib/fame-tier';
 import { TrackGroupDtoTypeEnum } from '@/sdk';
 import type { TrackGroupDto } from '@/sdk';
@@ -28,8 +29,10 @@ const LINKED_MODES = [
 ];
 
 interface ShuffleModeNavProps {
-  /** The set the round draws from; none for the whole pool. */
+  /** The set picked; none for the whole pool. */
   trackGroupId?: string;
+  /** The set the song on screen came from, until a pick made mid-round applies. */
+  playingTrackGroupId?: string;
   /** `hasTiers` is false for a set whose songs are all one fame, such as a chart. */
   onTrackGroupChange: (groupId: string | undefined, hasTiers: boolean) => void;
 }
@@ -40,6 +43,7 @@ interface ShuffleModeNavProps {
  */
 export function ShuffleModeNav({
   trackGroupId,
+  playingTrackGroupId,
   onTrackGroupChange,
 }: ShuffleModeNavProps) {
   const [setsOpen, setSetsOpen] = useState(false);
@@ -52,9 +56,8 @@ export function ShuffleModeNav({
     { label: 'Genres', sets: genres },
     { label: 'Charts', sets: charts },
   ].filter((section) => section.sets.length > 0);
-  const chosen = sections
-    .flatMap((section) => section.sets)
-    .find((set) => set.id === trackGroupId);
+  // Green is what is playing; a pick made mid-round is named below the row.
+  const playingName = useTrackGroupName(playingTrackGroupId);
 
   // An overlay, so it closes the way one does: outside it, or with Escape.
   useEffect(() => {
@@ -87,7 +90,7 @@ export function ShuffleModeNav({
         type="button"
         aria-pressed={!trackGroupId}
         onClick={() => pick(undefined)}
-        className={`${PILL} ${trackGroupId ? PILL_IDLE : PILL_ACTIVE}`}
+        className={`${PILL} ${playingTrackGroupId ? PILL_IDLE : PILL_ACTIVE}`}
       >
         <Shuffle className="hidden h-3.5 w-3.5 sm:block" />
         All songs
@@ -99,14 +102,10 @@ export function ShuffleModeNav({
           aria-expanded={setsOpen}
           aria-haspopup="dialog"
           onClick={() => setSetsOpen((open) => !open)}
-          className={`${PILL} ${chosen ? PILL_ACTIVE : PILL_IDLE}`}
+          className={`${PILL} ${playingName ? PILL_ACTIVE : PILL_IDLE}`}
         >
           <Disc3 className="hidden h-3.5 w-3.5 sm:block" />
-          {chosen
-            ? chosen.type === TrackGroupDtoTypeEnum.Chart
-              ? `${chosen.name} chart`
-              : chosen.name
-            : 'Decades, genres & charts'}
+          {playingName ?? 'Decades, genres & charts'}
           <ChevronDown
             className={`h-3 w-3 transition-transform ${setsOpen ? 'rotate-180' : ''}`}
           />

@@ -14,6 +14,8 @@ import { SongRevealCard } from './SongRevealCard';
 import { ClaimNamePrompt } from './ClaimNamePrompt';
 import { GameHeader } from './GameHeader';
 import { ShuffleModeNav } from './ShuffleModeNav';
+import { FAME_TIERS } from '@/lib/fame-tier';
+import { useTrackGroupName } from '@/hooks/track-groups/useTrackGroupName';
 import { FameTierPicker } from './FameTierPicker';
 import { GameRoundView, type RoundData } from './GameRoundView';
 import { GameScreenError, GameScreenLoading } from './GameScreenStatus';
@@ -83,9 +85,11 @@ export function ShuffleGamePage({
     trackGroupId,
     handleTrackGroupChange,
     trackGroupWaits,
+    playingTrackGroupId,
   } = usePoolGameOrchestrator({ volume, autoStart: !deferStart });
 
   useWarnOnLeave(!!gameState && !isGameOver);
+  const queuedSetName = useTrackGroupName(trackGroupId);
 
   // The tap that started the round asked to hear it, so it plays once ready.
   const playWhenReady = useRef(false);
@@ -117,6 +121,13 @@ export function ShuffleGamePage({
     playWhenReady.current = true;
     start();
   };
+
+  const tierWaits =
+    tiersApply &&
+    !idle &&
+    !isGameOver &&
+    !!gameState?.fameTier &&
+    gameState.fameTier !== fameTier;
 
   const round: RoundData = gameState
     ? { ...gameState, answerImageUrl: gameState.answer?.albumImageUrl }
@@ -180,10 +191,11 @@ export function ShuffleGamePage({
       }
       title={
         <>
-          <div className="mb-4 flex flex-col items-center gap-3 sm:mb-8 sm:gap-4">
+          <div className="relative mb-5 flex flex-col items-center gap-3 sm:mb-8 sm:gap-4">
             <h1 className="sr-only">{heading}</h1>
             <ShuffleModeNav
               trackGroupId={trackGroupId}
+              playingTrackGroupId={playingTrackGroupId}
               onTrackGroupChange={(groupId, hasTiers) => {
                 setTiersApply(hasTiers);
                 handleTrackGroupChange(groupId);
@@ -200,6 +212,7 @@ export function ShuffleGamePage({
               {tiersApply && (
                 <FameTierPicker
                   className=""
+                  showWaitNote={false}
                   value={fameTier}
                   onChange={handleFameTierChange}
                   playing={isGameOver || idle ? undefined : gameState?.fameTier}
@@ -207,9 +220,17 @@ export function ShuffleGamePage({
                 />
               )}
             </div>
-            {trackGroupWaits && (
-              <p className="text-[11px] text-fg/40">
-                New set from the next song
+            {(trackGroupWaits || tierWaits) && (
+              // In the gap below, taking no room: queuing a change moves nothing.
+              <p className="absolute inset-x-0 top-full mt-0.5 text-center text-[11px] text-amber-300/80 sm:mt-2">
+                Next song:{' '}
+                {[
+                  trackGroupWaits && (queuedSetName ?? 'All songs'),
+                  tierWaits &&
+                    FAME_TIERS.find((t) => t.value === fameTier)?.label,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
               </p>
             )}
           </div>
@@ -226,10 +247,9 @@ export function ShuffleGamePage({
               onPlayAgain={handlePlayAgain}
               isFullSongPlaying={gameAudio.isFullSongPlaying}
               onToggleFullSong={gameAudio.toggleFullSong}
+              tries={gameState.guesses.length}
+              footer={<ClaimNamePrompt />}
             />
-            <div className="mt-4 flex flex-col">
-              <ClaimNamePrompt />
-            </div>
             {afterReveal}
           </>
         )
