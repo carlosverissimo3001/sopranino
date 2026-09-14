@@ -42,6 +42,8 @@ export function useStartGame() {
           ? queryKeys.game.startedSessionForPlaylist(variables.playlistId)
           : queryKeys.game.startedSessionForDaily;
       queryClient.setQueryData(sessionKey, data.sessionId);
+      // A first round mints the guest, so "who is this" has a new answer.
+      void queryClient.invalidateQueries({ queryKey: queryKeys.auth.me });
       // Invalidate related queries
       void queryClient.invalidateQueries({
         queryKey: queryKeys.game.session(data.sessionId),

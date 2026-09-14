@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Pause, Play } from 'lucide-react';
+import { Music, Pause, Play } from 'lucide-react';
 
 /**
  * Tuned against the rendered box, which is ~96px. Past about a quarter of that
@@ -42,6 +42,8 @@ interface AlbumArtRevealProps {
   isPlaying?: boolean;
   onPlay?: () => void;
   onPause?: () => void;
+  /** No round yet: a still cover, not a loading one. */
+  idle?: boolean;
 }
 
 export function AlbumArtReveal({
@@ -51,6 +53,7 @@ export function AlbumArtReveal({
   isPlaying = false,
   onPlay,
   onPause,
+  idle = false,
 }: AlbumArtRevealProps) {
   const blur = blurForRound(currentRound, maxRounds);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -79,8 +82,14 @@ export function AlbumArtReveal({
             className="relative h-[min(100cqw,100cqh)] w-[min(100cqw,100cqh)] overflow-hidden rounded-2xl bg-fg/10 sm:h-28 sm:w-28 sm:rounded-xl"
             style={blurVars}
           >
-            {(!albumImageUrl || !imageLoaded) && (
-              <div className="absolute inset-0 animate-pulse bg-fg/10" />
+            {idle ? (
+              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-spotify-green/25 via-fg/5 to-fg/10">
+                <Music className="hidden h-8 w-8 text-fg/40 sm:block" />
+              </div>
+            ) : (
+              (!albumImageUrl || !imageLoaded) && (
+                <div className="absolute inset-0 animate-pulse bg-fg/10" />
+              )
             )}
             {albumImageUrl && (
               // Its own container, so the blur can measure the cover; the cover

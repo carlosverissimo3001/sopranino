@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useSyncExternalStore, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import Image from 'next/image';
 import { usePoolGameOrchestrator } from '@/hooks/game/usePoolGameOrchestrator';
 import { useMe } from '@/hooks/auth/useMe';
@@ -31,8 +31,6 @@ const IDLE_ROUND: RoundData = {
   hints: [],
 };
 
-const noSubscribe = () => () => {};
-
 interface ShuffleGamePageProps {
   canSignIn: boolean;
   /**
@@ -48,6 +46,7 @@ interface ShuffleGamePageProps {
   renderTitle?: (round: {
     currentRound: number;
     maxRounds: number;
+    isOver: boolean;
   }) => ReactNode;
   /** Under the reveal, once a round is over. */
   afterReveal?: ReactNode;
@@ -67,13 +66,6 @@ export function ShuffleGamePage({
 }: ShuffleGamePageProps) {
   const { volume, setVolume } = useVolume();
   const { data: user } = useMe();
-  // The stored tier is read on the client; before hydration the picker would
-  // disagree with the server's HTML, so a server-rendered page waits for it.
-  const hydrated = useSyncExternalStore(
-    noSubscribe,
-    () => true,
-    () => false,
-  );
 
   const {
     gameState,
@@ -135,11 +127,8 @@ export function ShuffleGamePage({
       round={round}
       isOver={!!isGameOver && !idle}
       shouldShake={shouldShake}
-      audio={
-        idle
-          ? { ...gameAudio, playSnippet: startFromTap, isPlaying: isStarting }
-          : gameAudio
-      }
+      idle={idle}
+      audio={idle ? { ...gameAudio, playSnippet: startFromTap } : gameAudio}
       guess={{
         search: spotifySearch,
         onSubmit: handleSubmit,
@@ -180,23 +169,21 @@ export function ShuffleGamePage({
       }
       title={
         <>
-          {(idle || !isGameOver) &&
-            (renderTitle ? (
-              renderTitle(round)
-            ) : (
-              <GameTitle
-                mode={GameMode.All}
-                currentRound={round.currentRound}
-                maxRounds={round.maxRounds}
-              />
-            ))}
-          {hydrated && (
-            <FameTierPicker
-              value={fameTier}
-              onChange={handleFameTierChange}
-              playing={isGameOver || idle ? undefined : gameState?.fameTier}
-            />
-          )}
+          {renderTitle
+            ? renderTitle({ ...round, isOver: !idle && !!isGameOver })
+            : (idle || !isGameOver) && (
+                <GameTitle
+                  mode={GameMode.All}
+                  currentRound={round.currentRound}
+                  maxRounds={round.maxRounds}
+                />
+              )}
+          <FameTierPicker
+            value={fameTier}
+            onChange={handleFameTierChange}
+            playing={isGameOver || idle ? undefined : gameState?.fameTier}
+            disabled={isStarting}
+          />
         </>
       }
       reveal={

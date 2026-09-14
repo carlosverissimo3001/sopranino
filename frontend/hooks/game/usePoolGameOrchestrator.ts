@@ -14,6 +14,7 @@ import { useSpotifyTrackSearch } from '@/hooks/spotify/useSpotifyTrackSearch';
 import { GameStatsDtoModeEnum as GameMode } from '../../sdk';
 import type { FameTier } from '../../sdk';
 import { useFameTier } from './useFameTier';
+import { currentFameTier } from '@/lib/fame-tier';
 
 /**
  * Rounds drawn from the curated pool, for a player with no Spotify library to
@@ -42,7 +43,7 @@ export function usePoolGameOrchestrator({
     startGameMutation,
   } = useGameSession(GameMode.All, {
     playlistId: POOL_PLAYLIST_ID,
-    fameTier,
+    fameTier: currentFameTier(),
     enabled: autoStart,
   });
   const {
@@ -147,14 +148,14 @@ export function usePoolGameOrchestrator({
   // the round is kept and the tier waits for the next song.
   const handleFameTierChange = useCallback(
     (tier: FameTier) => {
-      if (tier === fameTier) return;
+      if (tier === fameTier || startGameMutation.isPending) return;
       setFameTier(tier);
       const untouched =
         gameState?.status === GameStateDtoStatusEnum.Playing &&
         gameState.guesses.length === 0;
       if (untouched) startNewRound(tier);
     },
-    [fameTier, setFameTier, gameState, startNewRound],
+    [fameTier, setFameTier, gameState, startNewRound, startGameMutation],
   );
 
   const lastGuess = gameState?.guesses?.[gameState.guesses.length - 1];

@@ -42,6 +42,8 @@ interface GuessInputProps {
   choices?: TrackOptionDto[];
   /** Pinned to the bottom on a phone, so results open upwards there. */
   pinned?: boolean;
+  /** Before a round exists there is nothing to guess or skip. */
+  disabled?: boolean;
 }
 
 interface TrackRowProps {
@@ -97,6 +99,7 @@ export function GuessInput({
   nextSnippetDuration,
   choices,
   pinned = false,
+  disabled = false,
 }: GuessInputProps) {
   const isBelowSm = useIsBelowSm();
   const givesUp = gameMode === GameMode.Gauntlet || !nextSnippetDuration;
@@ -205,7 +208,10 @@ export function GuessInput({
                       setShowDropdown(true);
                     }}
                     onFocus={() => setShowDropdown(true)}
-                    placeholder="Search for a song..."
+                    disabled={disabled}
+                    placeholder={
+                      disabled ? 'Press play to start' : 'Search for a song...'
+                    }
                     // Ring colour is set unconditionally and only the width
                     // changes on focus: transitioning the colour too animates it
                     // up from Tailwind's default, which flashes pale blue first.
@@ -277,11 +283,11 @@ export function GuessInput({
           type="button"
           onClick={onSubmit}
           aria-label="Submit guess"
-          disabled={!selectedTrack || submitPending}
+          disabled={!selectedTrack || submitPending || disabled}
           whileHover={selectedTrack && !submitPending ? { scale: 1.02 } : {}}
           whileTap={selectedTrack && !submitPending ? { scale: 0.98 } : {}}
           className={`flex-1 py-2.5 sm:py-3.5 rounded-xl font-semibold text-sm sm:text-base transition-all min-h-[44px] sm:min-h-[48px] touch-manipulation ${
-            selectedTrack && !submitPending
+            selectedTrack && !submitPending && !disabled
               ? 'bg-[#1DB954] hover:bg-[#1ed760] text-black shadow-lg shadow-[#1DB954]/20 active:scale-95'
               : 'bg-fg/10 text-fg/30 border border-fg/[0.12] cursor-not-allowed'
           }`}
@@ -291,7 +297,7 @@ export function GuessInput({
         <button
           type="button"
           onClick={onSkip}
-          disabled={submitPending}
+          disabled={submitPending || disabled}
           aria-label={givesUp ? 'Give up' : 'Skip this round'}
           className="shrink-0 px-5 sm:px-6 rounded-xl border border-fg/15 text-fg/50 hover:text-fg/80 hover:border-fg/25 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors touch-manipulation"
         >

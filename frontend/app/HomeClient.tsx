@@ -87,7 +87,8 @@ export function HomeClient({
   // not turn into the home grid under a player halfway through it. A cookie
   // for a session that no longer exists lands here too.
   const [isLanding, setIsLanding] = useState(!hasSession);
-  const sessionIsGone = hasSession && !isLoadingUser && !user;
+  // null is the server saying nobody; undefined is a request that failed.
+  const sessionIsGone = hasSession && user === null;
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- a one-way latch
     if (sessionIsGone) setIsLanding(true);

@@ -13,6 +13,7 @@ import { useGameStats } from './useGameStats';
 import { useSpotifyTrackSearch } from '@/hooks/spotify/useSpotifyTrackSearch';
 import { usePlaylistById } from '@/hooks/playlists/usePlaylistById';
 import { useFameTier } from './useFameTier';
+import { currentFameTier } from '@/lib/fame-tier';
 import type { FameTier } from '../../sdk';
 import { GameStatsDtoModeEnum as GameMode } from '../../sdk';
 
@@ -49,7 +50,7 @@ export function useGameOrchestrator(
   } = useGameSession(mode, {
     playlistId,
     trackGroupId,
-    fameTier,
+    fameTier: withFameTier ? currentFameTier() : undefined,
   });
   const {
     data: gameState,
@@ -197,14 +198,22 @@ export function useGameOrchestrator(
   // the round is kept and the tier waits for the next song.
   const handleFameTierChange = useCallback(
     (tier: FameTier) => {
-      if (!withFameTier || tier === fameTier) return;
+      if (!withFameTier || tier === fameTier || startGameMutation.isPending)
+        return;
       setFameTier(tier);
       const untouched =
         gameState?.status === GameStateDtoStatusEnum.Playing &&
         gameState.guesses.length === 0;
       if (untouched) startNewRound(tier);
     },
-    [withFameTier, fameTier, setFameTier, gameState, startNewRound],
+    [
+      withFameTier,
+      fameTier,
+      setFameTier,
+      gameState,
+      startNewRound,
+      startGameMutation,
+    ],
   );
 
   const lastGuess = gameState?.guesses?.[gameState.guesses.length - 1];
@@ -231,5 +240,6 @@ export function useGameOrchestrator(
     handlePlayAgain,
     fameTier,
     handleFameTierChange,
+    isStarting: startGameMutation.isPending,
   };
 }

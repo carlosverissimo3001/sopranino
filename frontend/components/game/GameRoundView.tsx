@@ -69,6 +69,8 @@ interface GameRoundViewProps {
   roundKey?: string | number;
   /** Multiplayer sends no cover mid-round, so it gets the play button. */
   showCover?: boolean;
+  /** No round has been started yet: play starts one, and there is nothing to guess. */
+  idle?: boolean;
 }
 
 /**
@@ -86,6 +88,7 @@ export function GameRoundView({
   reveal,
   roundKey = 0,
   showCover = true,
+  idle = false,
 }: GameRoundViewProps) {
   const { data: preferences } = useUserPreferences();
   const cover = showCover && (preferences?.showAlbumHint ?? true);
@@ -184,6 +187,7 @@ export function GameRoundView({
                 isPlaying={isPlaying}
                 onPlay={playSnippet}
                 onPause={pauseSnippet}
+                idle={idle}
               />
             )}
 
@@ -233,6 +237,7 @@ export function GameRoundView({
                   }
                   choices={round.choices}
                   gameMode={guess.gameMode}
+                  disabled={idle}
                 />
               </div>
             )}

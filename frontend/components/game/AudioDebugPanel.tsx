@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import { getAudioContext } from '@/lib/audio-context';
 import {
   audioDebugEnabled,
@@ -8,8 +8,16 @@ import {
   subscribeAudioLog,
 } from '@/lib/audio-debug';
 
+const noSubscribe = () => () => {};
+
 /** Only with ?debug=audio, and only to read a phone that has no console. */
 export function AudioDebugPanel() {
+  // Read after hydration: the server has no query string to answer from.
+  const enabled = useSyncExternalStore(
+    noSubscribe,
+    audioDebugEnabled,
+    () => false,
+  );
   const [, bump] = useState(0);
   const [live, setLive] = useState('');
 
@@ -32,7 +40,7 @@ export function AudioDebugPanel() {
     };
   }, []);
 
-  if (!audioDebugEnabled()) return null;
+  if (!enabled) return null;
 
   return (
     <div

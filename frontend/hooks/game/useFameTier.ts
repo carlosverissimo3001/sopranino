@@ -1,17 +1,25 @@
 'use client';
 
-import { useCallback, useState } from 'react';
-import type { FameTier } from '@/sdk';
-import { readFameTier, saveFameTier } from '@/lib/fame-tier';
+import { useCallback, useSyncExternalStore } from 'react';
+import { FameTier } from '@/sdk';
+import {
+  currentFameTier,
+  saveFameTier,
+  subscribeFameTier,
+} from '@/lib/fame-tier';
 
-/** Read on first render, not after mount: the round starts from it straight away. */
+/**
+ * Easy in the server's HTML, the stored tier straight after hydration: the
+ * picker keeps its place instead of appearing late. A round started while
+ * hydrating reads `currentFameTier()` itself rather than this value.
+ */
 export function useFameTier() {
-  const [fameTier, setFameTierState] = useState<FameTier>(readFameTier);
-
-  const setFameTier = useCallback((tier: FameTier) => {
-    setFameTierState(tier);
-    saveFameTier(tier);
-  }, []);
+  const fameTier = useSyncExternalStore(
+    subscribeFameTier,
+    currentFameTier,
+    () => FameTier.Easy,
+  );
+  const setFameTier = useCallback((tier: FameTier) => saveFameTier(tier), []);
 
   return { fameTier, setFameTier };
 }
