@@ -2,6 +2,8 @@
 
 import { memo } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { reportBugHref } from '@/lib/report-origin';
 
 const DEEZER = 'https://www.deezer.com';
 const SPOTIFY = 'https://www.spotify.com';
@@ -11,6 +13,8 @@ const VERSION = process.env.NEXT_PUBLIC_APP_VERSION;
 const COMMIT = process.env.NEXT_PUBLIC_COMMIT_SHA;
 
 function AppFooterComponent() {
+  const pathname = usePathname();
+
   return (
     <footer className="relative z-10 border-t border-fg/5 px-4 py-5 text-xs text-fg/45 sm:px-6">
       <div className="mx-auto flex max-w-5xl flex-col items-center gap-2 text-center sm:flex-row sm:justify-between sm:gap-6 sm:text-left">
@@ -19,7 +23,7 @@ function AppFooterComponent() {
             About
           </Link>
           <External href={SOURCE}>Source</External>
-          <Link href="/about#feedback" className={linkClass}>
+          <Link href={reportBugHref(pathname)} className={linkClass}>
             Report a bug
           </Link>
         </nav>
