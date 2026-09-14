@@ -178,7 +178,7 @@ function UnauthenticatedViewComponent({ canSignIn }: { canSignIn: boolean }) {
                 onClick={() => setShowInvite(true)}
                 className="cursor-pointer rounded-full border border-fg/15 px-5 py-2.5 text-sm font-semibold text-fg/70 transition-colors hover:border-fg/30 hover:bg-fg/5 hover:text-fg"
               >
-                Played here before? Enter your secret word
+                Invited? Enter your secret word
               </button>
             ))}
         </div>
