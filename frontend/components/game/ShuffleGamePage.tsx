@@ -47,6 +47,10 @@ interface ShuffleGamePageProps {
     currentRound: number;
     maxRounds: number;
     isOver: boolean;
+    /** The decade or genre picked in place, if any. */
+    trackGroupId?: string;
+    onTrackGroupChange: (groupId: string | undefined) => void;
+    trackGroupWaits: boolean;
   }) => ReactNode;
   /** Under the reveal, once a round is over. */
   afterReveal?: ReactNode;
@@ -83,6 +87,9 @@ export function ShuffleGamePage({
     handleFameTierChange,
     start,
     isStarting,
+    trackGroupId,
+    handleTrackGroupChange,
+    trackGroupWaits,
   } = usePoolGameOrchestrator({ volume, autoStart: !deferStart });
 
   useWarnOnLeave(!!gameState && !isGameOver);
@@ -170,7 +177,14 @@ export function ShuffleGamePage({
       title={
         <>
           {renderTitle
-            ? renderTitle({ ...round, isOver: !idle && !!isGameOver })
+            ? renderTitle({
+                currentRound: round.currentRound,
+                maxRounds: round.maxRounds,
+                isOver: !idle && !!isGameOver,
+                trackGroupId,
+                onTrackGroupChange: handleTrackGroupChange,
+                trackGroupWaits,
+              })
             : (idle || !isGameOver) && (
                 <GameTitle
                   mode={GameMode.All}

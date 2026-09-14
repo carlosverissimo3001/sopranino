@@ -35,6 +35,10 @@ export function usePoolGameOrchestrator({
       cannot briefly reappear while the swap happens. */
   const [isResetting, setIsResetting] = useState(false);
   const { fameTier, setFameTier } = useFameTier();
+  /** A decade or genre to draw from instead of the whole pool, picked in place. */
+  const [trackGroupId, setTrackGroupId] = useState<string | undefined>();
+  /** The set the open round was drawn from, to say when a change waits. */
+  const [roundGroupId, setRoundGroupId] = useState<string | undefined>();
 
   const {
     sessionId,
@@ -112,7 +116,7 @@ export function usePoolGameOrchestrator({
   }, [gameState, submitPending, submitGuessMutation, getAudioReport]);
 
   const startNewRound = useCallback(
-    (tier: FameTier) => {
+    (tier: FameTier, groupId: string | undefined) => {
       gameAudio.stopFullSong();
       setIsResetting(true);
       setLastGuessResult(null);
@@ -130,17 +134,47 @@ export function usePoolGameOrchestrator({
       );
 
       startGameMutation.reset();
+      setRoundGroupId(groupId);
       startGameMutation.mutate(
-        { playlistId: POOL_PLAYLIST_ID, fameTier: tier, mode: GameMode.All },
-        { onSettled: () => setIsResetting(false) },
+        groupId
+          ? { trackGroupId: groupId, fameTier: tier, mode: GameMode.All }
+          : {
+              playlistId: POOL_PLAYLIST_ID,
+              fameTier: tier,
+              mode: GameMode.All,
+            },
+        {
+          // A set's round is cached under the set; this page reads the pool key.
+          onSuccess: (data) =>
+            queryClient.setQueryData(
+              queryKeys.game.startedSessionForPlaylist(POOL_PLAYLIST_ID),
+              data.sessionId,
+            ),
+          onSettled: () => setIsResetting(false),
+        },
       );
     },
     [gameAudio, gameState, queryClient, startGameMutation],
   );
 
   const handlePlayAgain = useCallback(
-    () => startNewRound(fameTier),
-    [startNewRound, fameTier],
+    () => startNewRound(fameTier, trackGroupId),
+    [startNewRound, fameTier, trackGroupId],
+  );
+
+  const untouched =
+    gameState?.status === GameStateDtoStatusEnum.Playing &&
+    gameState.guesses.length === 0;
+
+  // Same rule as the tier: before a guess the song is swapped, after one the
+  // new set waits for the next song.
+  const handleTrackGroupChange = useCallback(
+    (groupId: string | undefined) => {
+      if (groupId === trackGroupId || startGameMutation.isPending) return;
+      setTrackGroupId(groupId);
+      if (untouched) startNewRound(fameTier, groupId);
+    },
+    [trackGroupId, startGameMutation, untouched, startNewRound, fameTier],
   );
   const start = handlePlayAgain;
 
@@ -150,12 +184,16 @@ export function usePoolGameOrchestrator({
     (tier: FameTier) => {
       if (tier === fameTier || startGameMutation.isPending) return;
       setFameTier(tier);
-      const untouched =
-        gameState?.status === GameStateDtoStatusEnum.Playing &&
-        gameState.guesses.length === 0;
-      if (untouched) startNewRound(tier);
+      if (untouched) startNewRound(tier, trackGroupId);
     },
-    [fameTier, setFameTier, gameState, startNewRound, startGameMutation],
+    [
+      fameTier,
+      setFameTier,
+      untouched,
+      startNewRound,
+      startGameMutation,
+      trackGroupId,
+    ],
   );
 
   const lastGuess = gameState?.guesses?.[gameState.guesses.length - 1];
@@ -177,5 +215,10 @@ export function usePoolGameOrchestrator({
     handleFameTierChange,
     start,
     isStarting: startGameMutation.isPending,
+    trackGroupId,
+    handleTrackGroupChange,
+    /** A set picked mid-round, which applies from the next song. */
+    trackGroupWaits:
+      !!gameState && !isGameOver && trackGroupId !== roundGroupId,
   };
 }
