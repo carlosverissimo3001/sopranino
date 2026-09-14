@@ -14,7 +14,7 @@ import { useTrackGroups } from '@/hooks/track-groups/useTrackGroups';
 import { TrackGroupDtoTypeEnum } from '@/sdk';
 
 const PILL =
-  'flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors';
+  'flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors';
 const PILL_IDLE = 'border-fg/10 text-fg/60 hover:border-fg/25 hover:text-fg';
 const PILL_ACTIVE =
   'border-spotify-green/30 bg-spotify-green/15 text-spotify-green';

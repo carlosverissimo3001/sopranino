@@ -22,6 +22,9 @@ const MIN_BLUR = 4;
  */
 const CURVE = 1.6;
 
+/** The desktop cover grew from 112px to 160px; the blur grows with it. */
+const DESKTOP_SCALE = 160 / 112;
+
 function blurForRound(currentRound: number, maxRounds: number): number {
   if (maxRounds <= 1) {
     return currentRound <= 0 ? MAX_BLUR : MIN_BLUR;
@@ -62,15 +65,15 @@ export function AlbumArtReveal({
   // height is free, the blur is a share of the cover's width instead.
   const blurVars = {
     '--blur': blur / 0.96,
-    '--blur-px': blur,
+    '--blur-px': blur * DESKTOP_SCALE,
     '--bleed': MAX_BLUR / 0.96,
-    '--bleed-px': MAX_BLUR,
+    '--bleed-px': MAX_BLUR * DESKTOP_SCALE,
   } as React.CSSProperties;
 
   return (
     <AnimatePresence>
       <motion.div
-        className="relative mb-3 flex min-h-40 w-full flex-1 justify-center sm:mb-4 sm:min-h-0 sm:flex-none"
+        className="relative mb-3 flex min-h-40 w-full flex-1 justify-center sm:mb-6 sm:min-h-0 sm:flex-none"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
@@ -79,7 +82,7 @@ export function AlbumArtReveal({
             in container units, and a flexed one is not. */}
         <div className="absolute inset-0 flex items-center justify-center [container-type:size] sm:static sm:[container-type:normal]">
           <div
-            className="relative h-[min(100cqw,100cqh)] w-[min(100cqw,100cqh)] overflow-hidden rounded-2xl bg-fg/10 sm:h-28 sm:w-28 sm:rounded-xl"
+            className="relative h-[min(100cqw,100cqh)] w-[min(100cqw,100cqh)] overflow-hidden rounded-2xl bg-fg/10 sm:h-40 sm:w-40 sm:rounded-2xl"
             style={blurVars}
           >
             {idle ? (

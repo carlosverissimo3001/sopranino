@@ -215,7 +215,7 @@ export function GuessInput({
                     // Ring colour is set unconditionally and only the width
                     // changes on focus: transitioning the colour too animates it
                     // up from Tailwind's default, which flashes pale blue first.
-                    className="w-full pl-12 pr-4 py-3.5 sm:py-4 rounded-xl text-base text-fg placeholder-[#535353] outline-none ring-0 ring-[#1DB954]/50 focus:ring-2 transition-[box-shadow,border-color] duration-200 min-h-[48px] touch-manipulation"
+                    className="w-full pl-12 pr-4 py-3 rounded-xl text-base sm:text-sm text-fg placeholder-[#535353] outline-none ring-0 ring-[#1DB954]/50 focus:ring-2 transition-[box-shadow,border-color] duration-200 min-h-[44px] touch-manipulation"
                     style={{
                       background: 'rgb(var(--fg) / 0.06)',
                       border: '1px solid rgb(var(--fg) / 0.08)',
@@ -286,7 +286,7 @@ export function GuessInput({
           disabled={!selectedTrack || submitPending || disabled}
           whileHover={selectedTrack && !submitPending ? { scale: 1.02 } : {}}
           whileTap={selectedTrack && !submitPending ? { scale: 0.98 } : {}}
-          className={`flex-1 py-2.5 sm:py-3.5 rounded-xl font-semibold text-sm sm:text-base transition-all min-h-[44px] sm:min-h-[48px] touch-manipulation ${
+          className={`flex-1 py-2.5 rounded-xl font-semibold text-sm transition-all min-h-[44px] touch-manipulation ${
             selectedTrack && !submitPending && !disabled
               ? 'bg-[#1DB954] hover:bg-[#1ed760] text-black shadow-lg shadow-[#1DB954]/20 active:scale-95'
               : 'bg-fg/10 text-fg/30 border border-fg/[0.12] cursor-not-allowed'

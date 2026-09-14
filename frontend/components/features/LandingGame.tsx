@@ -38,7 +38,7 @@ export function LandingGame({ canSignIn }: { canSignIn: boolean }) {
             </a>
           ) : (
             <Link
-              href="/signin"
+              href="/signin?from=landing"
               className="shrink-0 rounded-full border border-fg/15 px-4 py-2 text-xs font-semibold text-fg/70 transition-colors hover:border-fg/30 hover:text-fg"
             >
               Sign in

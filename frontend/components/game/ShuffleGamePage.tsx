@@ -178,30 +178,34 @@ export function ShuffleGamePage({
       }
       title={
         <>
-          <div className="mb-3 flex flex-col items-center gap-2 sm:mb-4">
+          <div className="mb-4 flex flex-col items-center gap-3 sm:mb-8 sm:gap-4">
             <h1 className="sr-only">{heading}</h1>
             <ShuffleModeNav
               trackGroupId={trackGroupId}
               onTrackGroupChange={handleTrackGroupChange}
             />
-            {(idle || !isGameOver) && (
-              <p className="text-sm font-medium text-fg/50">
-                Round {Math.min(round.currentRound + 1, round.maxRounds)} of{' '}
-                {round.maxRounds}
-              </p>
-            )}
+            {/* One line for where the round stands and how hard it is. */}
+            <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
+              {(idle || !isGameOver) && (
+                <p className="text-xs font-medium text-fg/50">
+                  Round {Math.min(round.currentRound + 1, round.maxRounds)} of{' '}
+                  {round.maxRounds}
+                </p>
+              )}
+              <FameTierPicker
+                className=""
+                value={fameTier}
+                onChange={handleFameTierChange}
+                playing={isGameOver || idle ? undefined : gameState?.fameTier}
+                disabled={isStarting}
+              />
+            </div>
             {trackGroupWaits && (
               <p className="text-[11px] text-fg/40">
                 New set from the next song
               </p>
             )}
           </div>
-          <FameTierPicker
-            value={fameTier}
-            onChange={handleFameTierChange}
-            playing={isGameOver || idle ? undefined : gameState?.fameTier}
-            disabled={isStarting}
-          />
         </>
       }
       reveal={
