@@ -66,6 +66,37 @@ describe('TrackGroupService', () => {
     expect(group).not.toHaveProperty('createdAt');
   });
 
+  // A set that small repeats songs within a few games.
+  it('lists only artists with enough playable songs', async () => {
+    const artist = (name: string, trackCount: number) => ({
+      ...EIGHTIES,
+      id: name,
+      type: TrackGroupType.ARTIST,
+      name,
+      slug: name.toLowerCase(),
+      trackCount,
+    });
+    mockRepository.listWithCounts.mockResolvedValue([
+      artist('Big', 300),
+      artist('Edge', 40),
+      artist('Thin', 39),
+    ]);
+    const service = await build();
+
+    const groups = await service.list(TrackGroupType.ARTIST);
+
+    expect(groups.map((group) => group.name)).toEqual(['Big', 'Edge']);
+  });
+
+  it('keeps the minimum to artists', async () => {
+    mockRepository.listWithCounts.mockResolvedValue([
+      { ...EIGHTIES, trackCount: 10 },
+    ]);
+    const service = await build();
+
+    expect(await service.list(TrackGroupType.DECADE)).toHaveLength(1);
+  });
+
   describe('the chart a player sees first', () => {
     beforeEach(() => mockRepository.listWithCounts.mockResolvedValue(CHARTS));
 

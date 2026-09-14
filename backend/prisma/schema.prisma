@@ -376,6 +376,7 @@ enum TrackGroupType {
   FAME
   CHART
   SPECIAL
+  ARTIST
 }
 
 model TrackGroup {

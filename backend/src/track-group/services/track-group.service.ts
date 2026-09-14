@@ -1,3 +1,4 @@
+import { ARTIST_SET_MIN_TRACKS } from '../../consts';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { TrackGroup, TrackGroupType } from '@prisma/client';
 import { TrackGroupRepository } from '../repositories/track-group.repository';
@@ -22,8 +23,11 @@ export class TrackGroupService {
   }
 
   async list(type: TrackGroupType, country?: string): Promise<TrackGroupDto[]> {
+    const listed = await this.repository.listWithCounts(type);
     const groups = this.homeChartFirst(
-      await this.repository.listWithCounts(type),
+      type === TrackGroupType.ARTIST
+        ? listed.filter((group) => group.trackCount >= ARTIST_SET_MIN_TRACKS)
+        : listed,
       type,
       country,
     );
