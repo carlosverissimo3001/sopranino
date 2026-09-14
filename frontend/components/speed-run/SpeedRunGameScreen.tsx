@@ -4,8 +4,9 @@ import { useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Pause, Flame, Trophy, RotateCcw, Home } from 'lucide-react';
+import { Flame, Trophy, RotateCcw, Home } from 'lucide-react';
 import { GuessInput } from '@/components/game/GuessInput';
+import { PlaySnippetButton } from '@/components/game/PlaySnippetButton';
 import { useSpotifyTrackSearch } from '@/hooks/spotify/useSpotifyTrackSearch';
 import { useGauntletAudio } from '@/hooks/speed-run/useSpeedRunAudio';
 import { VolumeSlider } from '@/components/game/VolumeSlider';
@@ -78,14 +79,6 @@ export function SpeedRunGameScreen({
     run.submitGuess({ skip: true });
     search.handleClearSelection();
   }, [run, search]);
-
-  const handlePlayPause = useCallback(() => {
-    if (isPlaying) {
-      pauseSnippet();
-    } else {
-      playSnippet();
-    }
-  }, [isPlaying, pauseSnippet, playSnippet]);
 
   const isEnded = run.phase === 'ENDED';
   const fires = getFireEmojis(run.score);
@@ -166,23 +159,15 @@ export function SpeedRunGameScreen({
       {/* ── Audio player ── */}
       {!isEnded && (
         <div className="flex flex-col items-center gap-3">
-          <motion.button
-            onClick={handlePlayPause}
-            disabled={!run.previewUrl || isEnded}
-            whileHover={{ scale: 1.06 }}
-            whileTap={{ scale: 0.94 }}
-            className={`w-16 h-16 rounded-full flex items-center justify-center shadow-xl transition-all ${
-              isPlaying
-                ? 'bg-orange-500 shadow-orange-500/30'
-                : 'bg-fg/10 hover:bg-fg/15 border border-fg/10'
-            }`}
-          >
-            {isPlaying ? (
-              <Pause className="w-7 h-7" fill="white" color="white" />
-            ) : (
-              <Play className="w-7 h-7 ml-0.5" fill="currentColor" />
-            )}
-          </motion.button>
+          <PlaySnippetButton
+            tone="orange"
+            className=""
+            snippetDuration={run.snippetDuration}
+            isPlaying={isPlaying}
+            onPlay={playSnippet}
+            onPause={pauseSnippet}
+            disabled={!run.previewUrl}
+          />
 
           <p className="text-xs text-fg/30 font-medium">
             {run.snippetDuration}s snippet
