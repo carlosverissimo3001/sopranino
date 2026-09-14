@@ -416,8 +416,9 @@ model Feedback {
   userId String? @map("user_id")
   user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
 
-  pagePath  String? @map("page_path")
-  userAgent String? @map("user_agent")
+  pagePath   String? @map("page_path")
+  userAgent  String? @map("user_agent")
+  appVersion String? @map("app_version")
 
   resolvedAt DateTime? @map("resolved_at")
   createdAt  DateTime  @default(now()) @map("created_at")

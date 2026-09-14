@@ -43,6 +43,14 @@ export class CreateFeedbackControllerDto {
   pagePath?: string;
 
   @ApiPropertyOptional({
+    description: 'The app release the report was sent from',
+  })
+  @IsNotNullableOptional()
+  @IsString()
+  @MaxLength(32)
+  appVersion?: string;
+
+  @ApiPropertyOptional({
     description: 'Left empty by people; a filled one is dropped silently',
   })
   @IsNotNullableOptional()

@@ -10,6 +10,7 @@ Name | Type
 `message` | string
 `email` | string
 `pagePath` | string
+`appVersion` | string
 `website` | string
 
 ## Example
@@ -23,6 +24,7 @@ const example = {
   "message": null,
   "email": null,
   "pagePath": null,
+  "appVersion": null,
   "website": null,
 } satisfies CreateFeedbackControllerDto
 

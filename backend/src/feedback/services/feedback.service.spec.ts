@@ -80,12 +80,17 @@ describe('FeedbackService', () => {
   describe('submit', () => {
     it('stores the report with what the server knows about it', async () => {
       await service.submit({
-        body: body({ email: 'ana@example.com', pagePath: '/shuffle' }),
+        body: body({
+          email: 'ana@example.com',
+          pagePath: '/shuffle',
+          appVersion: '1.2.0',
+        }),
         sessionId: 'session-1',
         userAgent: 'iPhone',
       });
 
       expect(repository.create).toHaveBeenCalledWith({
+        appVersion: '1.2.0',
         kind: FeedbackKind.BUG,
         message: 'The snippet plays silence',
         email: 'ana@example.com',

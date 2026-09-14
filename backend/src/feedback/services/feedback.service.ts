@@ -53,6 +53,7 @@ export class FeedbackService {
       message: body.message,
       email: body.email,
       pagePath: body.pagePath,
+      appVersion: body.appVersion,
       userAgent: userAgent?.slice(0, 512),
     };
     await this.feedbackRepository.create({ ...report, userId: user?.id });

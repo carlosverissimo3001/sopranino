@@ -66,6 +66,12 @@ export interface FeedbackDto {
      * @type {string}
      * @memberof FeedbackDto
      */
+    appVersion?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FeedbackDto
+     */
     userAgent?: string;
     /**
      * 
@@ -120,6 +126,7 @@ export function FeedbackDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean
         'userId': json['userId'] == null ? undefined : json['userId'],
         'userDisplayName': json['userDisplayName'] == null ? undefined : json['userDisplayName'],
         'pagePath': json['pagePath'] == null ? undefined : json['pagePath'],
+        'appVersion': json['appVersion'] == null ? undefined : json['appVersion'],
         'userAgent': json['userAgent'] == null ? undefined : json['userAgent'],
         'resolvedAt': json['resolvedAt'] == null ? undefined : (new Date(json['resolvedAt'])),
         'createdAt': (new Date(json['createdAt'])),
@@ -144,6 +151,7 @@ export function FeedbackDtoToJSONTyped(value?: FeedbackDto | null, ignoreDiscrim
         'userId': value['userId'],
         'userDisplayName': value['userDisplayName'],
         'pagePath': value['pagePath'],
+        'appVersion': value['appVersion'],
         'userAgent': value['userAgent'],
         'resolvedAt': value['resolvedAt'] == null ? value['resolvedAt'] : value['resolvedAt'].toISOString(),
         'createdAt': value['createdAt'].toISOString(),
