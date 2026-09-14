@@ -44,7 +44,10 @@ export class EmailService {
    */
   async send(message: EmailMessage): Promise<boolean> {
     try {
-      await this.transport.send(message, this.sender);
+      await this.transport.send(message, {
+        ...this.sender,
+        ...(message.replyTo && { replyTo: message.replyTo }),
+      });
       return true;
     } catch (err) {
       // The address is deliberately absent: a log that lists who was mailed is
