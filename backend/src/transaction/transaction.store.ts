@@ -14,6 +14,15 @@ export interface TransactionStore {
 
 export const transactionStorage = new AsyncLocalStorage<TransactionStore>();
 
+/**
+ * Runs work that outlives the current request, such as a fire-and-forget
+ * write, outside any transaction. Left inside, its queries reach for a
+ * transaction that has committed by the time they run.
+ */
+export function outsideTransaction<T>(fn: () => T): T {
+  return transactionStorage.exit(fn);
+}
+
 /** Base Prisma client (set at app bootstrap by TransactionModule). Used by decorator and proxy. */
 let basePrismaClient: PrismaClient | null = null;
 

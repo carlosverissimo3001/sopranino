@@ -1,7 +1,11 @@
 import 'reflect-metadata';
 import { Prisma } from '@prisma/client';
 import { Transactional } from './transactional.decorator';
-import { setBasePrismaClient, transactionStorage } from './transaction.store';
+import {
+  outsideTransaction,
+  setBasePrismaClient,
+  transactionStorage,
+} from './transaction.store';
 
 describe('@Transactional', () => {
   const opened: (Prisma.TransactionIsolationLevel | undefined)[] = [];
@@ -77,5 +81,16 @@ describe('@Transactional', () => {
   // throwing is running at the weaker one and saying nothing.
   it('refuses an inner method that asks for a different level', async () => {
     await expect(svc.outerDefault()).rejects.toThrow(/Isolation cannot change/);
+  });
+});
+
+describe('outsideTransaction', () => {
+  // A fire-and-forget write started inside a transaction used to reach it after
+  // it had committed: "Transaction already closed".
+  it('runs its work with no transaction in scope', () => {
+    const seen = transactionStorage.run({ tx: {} as never }, () =>
+      outsideTransaction(() => transactionStorage.getStore()),
+    );
+    expect(seen).toBeUndefined();
   });
 });
