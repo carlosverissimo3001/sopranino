@@ -22,7 +22,12 @@ import { useFameTier } from './useFameTier';
  */
 export function usePoolGameOrchestrator({
   volume = 0.8,
-}: { volume?: number } = {}) {
+  autoStart = true,
+}: {
+  volume?: number;
+  /** False to hold the first round until `start`: a page load must not mint a user. */
+  autoStart?: boolean;
+} = {}) {
   const queryClient = useQueryClient();
   const [lastGuessResult, setLastGuessResult] = useState<string | null>(null);
   /** True between asking for a new round and getting one, so the finished one
@@ -38,6 +43,7 @@ export function usePoolGameOrchestrator({
   } = useGameSession(GameMode.All, {
     playlistId: POOL_PLAYLIST_ID,
     fameTier,
+    enabled: autoStart,
   });
   const {
     data: gameState,
@@ -135,6 +141,7 @@ export function usePoolGameOrchestrator({
     () => startNewRound(fameTier),
     [startNewRound, fameTier],
   );
+  const start = handlePlayAgain;
 
   // Before a guess the song is swapped for one of the new tier; after one,
   // the round is kept and the tier waits for the next song.
@@ -167,5 +174,7 @@ export function usePoolGameOrchestrator({
     handlePlayAgain,
     fameTier,
     handleFameTierChange,
+    start,
+    isStarting: startGameMutation.isPending,
   };
 }

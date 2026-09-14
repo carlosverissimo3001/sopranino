@@ -22,7 +22,14 @@ export function useGameSession(
     playlistId,
     trackGroupId,
     fameTier,
-  }: { playlistId?: string; trackGroupId?: string; fameTier?: FameTier } = {},
+    enabled = true,
+  }: {
+    playlistId?: string;
+    trackGroupId?: string;
+    fameTier?: FameTier;
+    /** False to wait for the caller to start a round, as the landing does. */
+    enabled?: boolean;
+  } = {},
 ) {
   const startGameMutation = useStartGame();
   const hasStarted = useRef(false);
@@ -30,7 +37,7 @@ export function useGameSession(
   const isPlaylist = mode === GameMode.All;
   const isDaily = mode === GameMode.Daily;
   const shouldStart =
-    (isPlaylist && (!!playlistId || !!trackGroupId)) || isDaily;
+    enabled && ((isPlaylist && (!!playlistId || !!trackGroupId)) || isDaily);
 
   // Predictable cache key — known before the mutation completes
   const sessionCacheKey =

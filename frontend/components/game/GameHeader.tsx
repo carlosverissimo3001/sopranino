@@ -17,6 +17,8 @@ interface GameHeaderProps {
   onVolumeChange: (v: number) => void;
   /** Mode-specific controls after the volume, such as shuffle's sign-in. */
   trailing?: ReactNode;
+  /** In place of the Back link, for a page that is itself the way in. */
+  leading?: ReactNode;
 }
 
 export function GameHeader({
@@ -26,19 +28,22 @@ export function GameHeader({
   volume,
   onVolumeChange,
   trailing,
+  leading,
 }: GameHeaderProps) {
   const isPlaylist = mode === GameMode.All;
   const isDaily = mode === GameMode.Daily;
 
   return (
     <div className="flex items-center justify-between gap-2 sm:gap-4 mb-4 sm:mb-6">
-      <Link
-        href="/"
-        className="inline-flex items-center gap-2 text-fg/60 hover:text-fg transition-colors text-sm font-semibold shrink-0"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Back
-      </Link>
+      {leading ?? (
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 text-fg/60 hover:text-fg transition-colors text-sm font-semibold shrink-0"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back
+        </Link>
+      )}
       {isPlaylist && playlist && (
         <div className="flex items-center gap-2.5 ml-2 min-w-0">
           <div className="relative w-8 h-8 rounded-md overflow-hidden bg-fg/10 flex-shrink-0">

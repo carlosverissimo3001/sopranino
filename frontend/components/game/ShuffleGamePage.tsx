@@ -1,27 +1,79 @@
 'use client';
 
+import { useEffect, useRef, useSyncExternalStore, type ReactNode } from 'react';
 import Image from 'next/image';
 import { usePoolGameOrchestrator } from '@/hooks/game/usePoolGameOrchestrator';
 import { useMe } from '@/hooks/auth/useMe';
 import { useVolume } from '@/hooks/game/useVolume';
 import { useWarnOnLeave } from '@/hooks/useWarnOnLeave';
 import { Button } from '@/components/ui/button';
+import { SNIPPET_STEPS } from '@/lib/snippet-timeline';
 import { SongRevealCard } from './SongRevealCard';
 import { ClaimNamePrompt } from './ClaimNamePrompt';
 import { GameHeader } from './GameHeader';
 import { GameTitle } from './GameTitle';
 import { FameTierPicker } from './FameTierPicker';
-import { GameRoundView } from './GameRoundView';
+import { GameRoundView, type RoundData } from './GameRoundView';
 import { GameScreenError, GameScreenLoading } from './GameScreenStatus';
 import { GameStatsDtoModeEnum as GameMode } from '../../sdk';
+
+/** A decoded track can take a moment; past this the element path is tried. */
+const AUTOPLAY_WAIT_MS = 2500;
+
+const IDLE_ROUND: RoundData = {
+  previewUrl: null,
+  albumImageUrl: null,
+  currentRound: 0,
+  maxRounds: SNIPPET_STEPS.length,
+  guesses: [],
+  snippetSteps: [...SNIPPET_STEPS],
+  snippetDuration: SNIPPET_STEPS[0],
+  hints: [],
+};
+
+const noSubscribe = () => () => {};
+
+interface ShuffleGamePageProps {
+  canSignIn: boolean;
+  /**
+   * Waits for a tap before starting, then plays the snippet from it. The
+   * landing needs this: `/` is crawled, and a page load must not mint a user.
+   */
+  deferStart?: boolean;
+  /** In place of the Back link, for a page that is itself the way in. */
+  headerLeading?: ReactNode;
+  /** In place of the Spotify sign-in, for a page with its own way in. */
+  headerTrailing?: ReactNode;
+  /** In place of the title, for a page that heads the round its own way. */
+  renderTitle?: (round: {
+    currentRound: number;
+    maxRounds: number;
+  }) => ReactNode;
+  /** Under the reveal, once a round is over. */
+  afterReveal?: ReactNode;
+}
 
 /**
  * A round drawn from the curated pool rather than a playlist. Open to anyone:
  * for a signed-out visitor, starting one is also what mints their account.
  */
-export function ShuffleGamePage({ canSignIn }: { canSignIn: boolean }) {
+export function ShuffleGamePage({
+  canSignIn,
+  deferStart = false,
+  headerLeading,
+  headerTrailing,
+  renderTitle,
+  afterReveal,
+}: ShuffleGamePageProps) {
   const { volume, setVolume } = useVolume();
   const { data: user } = useMe();
+  // The stored tier is read on the client; before hydration the picker would
+  // disagree with the server's HTML, so a server-rendered page waits for it.
+  const hydrated = useSyncExternalStore(
+    noSubscribe,
+    () => true,
+    () => false,
+  );
 
   const {
     gameState,
@@ -37,27 +89,61 @@ export function ShuffleGamePage({ canSignIn }: { canSignIn: boolean }) {
     handlePlayAgain,
     fameTier,
     handleFameTierChange,
-  } = usePoolGameOrchestrator({ volume });
+    start,
+    isStarting,
+  } = usePoolGameOrchestrator({ volume, autoStart: !deferStart });
 
   useWarnOnLeave(!!gameState && !isGameOver);
 
-  if (isLoading) return <GameScreenLoading />;
+  // The tap that started the round asked to hear it, so it plays once ready.
+  const playWhenReady = useRef(false);
+  const { playSnippet, snippetPeaks } = gameAudio;
+  const previewUrl = gameState?.previewUrl;
+  useEffect(() => {
+    if (!playWhenReady.current || !previewUrl) return;
+    const play = () => {
+      if (!playWhenReady.current) return;
+      playWhenReady.current = false;
+      playSnippet();
+    };
+    if (snippetPeaks.length > 0) {
+      play();
+      return;
+    }
+    const timer = setTimeout(play, AUTOPLAY_WAIT_MS);
+    return () => clearTimeout(timer);
+  }, [previewUrl, snippetPeaks, playSnippet]);
+
+  const idle = deferStart && !gameState;
+
+  if (!idle && isLoading) return <GameScreenLoading />;
   if (error) return <GameScreenError error={error} />;
-  if (!gameState) return null;
+  if (!idle && !gameState) return null;
+
+  const startFromTap = () => {
+    if (isStarting) return;
+    playWhenReady.current = true;
+    start();
+  };
+
+  const round: RoundData = gameState
+    ? { ...gameState, answerImageUrl: gameState.answer?.albumImageUrl }
+    : IDLE_ROUND;
 
   return (
     <GameRoundView
-      round={{
-        ...gameState,
-        answerImageUrl: gameState.answer?.albumImageUrl,
-      }}
-      isOver={!!isGameOver}
+      round={round}
+      isOver={!!isGameOver && !idle}
       shouldShake={shouldShake}
-      audio={gameAudio}
+      audio={
+        idle
+          ? { ...gameAudio, playSnippet: startFromTap, isPlaying: isStarting }
+          : gameAudio
+      }
       guess={{
         search: spotifySearch,
         onSubmit: handleSubmit,
-        onSkip: handleSkip,
+        onSkip: idle ? startFromTap : handleSkip,
         submitPending,
         gameMode: GameMode.All,
       }}
@@ -66,11 +152,12 @@ export function ShuffleGamePage({ canSignIn }: { canSignIn: boolean }) {
           mode={GameMode.All}
           volume={volume}
           onVolumeChange={setVolume}
+          leading={headerLeading}
           trailing={
+            headerTrailing ??
             // Nothing at all while the site is gated: /api/auth/login is
             // blocked without the access cookie, so offering it is a dead end.
-            canSignIn &&
-            !user?.hasAccount && (
+            (canSignIn && !user?.hasAccount && (
               <a href="/api/auth/login" className="shrink-0">
                 <Button
                   variant="outline"
@@ -87,41 +174,49 @@ export function ShuffleGamePage({ canSignIn }: { canSignIn: boolean }) {
                   Sign in
                 </Button>
               </a>
-            )
+            ))
           }
         />
       }
       title={
         <>
-          {!isGameOver && (
-            <GameTitle
-              mode={GameMode.All}
-              currentRound={gameState.currentRound}
-              maxRounds={gameState.maxRounds}
+          {(idle || !isGameOver) &&
+            (renderTitle ? (
+              renderTitle(round)
+            ) : (
+              <GameTitle
+                mode={GameMode.All}
+                currentRound={round.currentRound}
+                maxRounds={round.maxRounds}
+              />
+            ))}
+          {hydrated && (
+            <FameTierPicker
+              value={fameTier}
+              onChange={handleFameTierChange}
+              playing={isGameOver || idle ? undefined : gameState?.fameTier}
             />
           )}
-          <FameTierPicker
-            value={fameTier}
-            onChange={handleFameTierChange}
-            playing={isGameOver ? undefined : gameState.fameTier}
-          />
         </>
       }
       reveal={
-        <>
-          <SongRevealCard
-            status={gameState.status}
-            answer={gameState.answer}
-            previewUrl={gameState.previewUrl}
-            showPlayAgain
-            onPlayAgain={handlePlayAgain}
-            isFullSongPlaying={gameAudio.isFullSongPlaying}
-            onToggleFullSong={gameAudio.toggleFullSong}
-          />
-          <div className="mt-4 flex flex-col">
-            <ClaimNamePrompt />
-          </div>
-        </>
+        gameState && (
+          <>
+            <SongRevealCard
+              status={gameState.status}
+              answer={gameState.answer}
+              previewUrl={gameState.previewUrl}
+              showPlayAgain
+              onPlayAgain={handlePlayAgain}
+              isFullSongPlaying={gameAudio.isFullSongPlaying}
+              onToggleFullSong={gameAudio.toggleFullSong}
+            />
+            <div className="mt-4 flex flex-col">
+              <ClaimNamePrompt />
+            </div>
+            {afterReveal}
+          </>
+        )
       }
     />
   );

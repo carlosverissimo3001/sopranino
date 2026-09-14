@@ -14,7 +14,7 @@ import { AppHeader } from '@/components/features/AppHeader';
 import { GameModesGallery } from '@/components/features/GameModesGallery';
 import { PlaylistFilters } from '@/components/features/playlist/PlaylistFilters';
 import { PlaylistGrid } from '@/components/features/playlist/PlaylistGrid';
-import { UnauthenticatedView } from '@/components/features/UnauthenticatedView';
+import { LandingGame } from '@/components/features/LandingGame';
 import { AppFooter } from '@/components/features/AppFooter';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useTimezoneSync } from '@/hooks/user-preferences/useTimezoneSync';
@@ -83,15 +83,33 @@ export function HomeClient({
 
   const playlists = playlistsResponse?.items || [];
 
+  // Latched for the visit: the first round mints a session, and the page must
+  // not turn into the home grid under a player halfway through it. A cookie
+  // for a session that no longer exists lands here too.
+  const [isLanding, setIsLanding] = useState(!hasSession);
+  const sessionIsGone = hasSession && !isLoadingUser && !user;
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- a one-way latch
+    if (sessionIsGone) setIsLanding(true);
+  }, [sessionIsGone]);
+
   // Suppress homepage flash when we know a returnTo redirect is queued.
   // Renders a black full-bleed div until the redirect effect above fires.
   if (hasPendingReturn) {
     return <main aria-hidden="true" className="min-h-screen bg-black" />;
   }
 
-  // Only wait when there is someone to wait for. Without a session cookie the
-  // answer is already known, so the landing renders on the server rather than
-  // behind a spinner that a crawler would index instead of the page.
+  // Without a session cookie the answer is already known, so the landing
+  // renders on the server rather than behind a spinner a crawler would index.
+  if (isLanding) {
+    return (
+      <main className="min-h-screen text-fg">
+        <LandingGame canSignIn={canSignIn} />
+        <AppFooter />
+      </main>
+    );
+  }
+
   if (isLoadingUser && hasSession) {
     return (
       <main className="min-h-screen flex items-center justify-center">
@@ -183,9 +201,7 @@ export function HomeClient({
 
               <CuratedGroups defaultOpen={!hasSpotify} />
             </motion.div>
-          ) : (
-            <UnauthenticatedView canSignIn={canSignIn} />
-          )}
+          ) : null}
         </div>
       </div>
 
