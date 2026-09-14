@@ -5,6 +5,7 @@ import {
   listPublicTrackGroups,
 } from '@/lib/track-groups-server';
 import { GroupGameClient } from './GroupGameClient';
+import { SITE_URL } from '@/lib/site-url';
 
 interface GroupPageProps {
   params: Promise<{ slug: string }>;
@@ -25,6 +26,12 @@ function describe(group: TrackGroupDto): {
   const tracks = `${group.trackCount} songs`;
 
   switch (group.type) {
+    // Phrased the way fans search: "<artist> song quiz", "guess the <artist> song".
+    case 'ARTIST':
+      return {
+        title: `${group.name} song quiz: guess the song from 0.1 seconds`,
+        description: `How well do you know ${group.name}? Hear a tenth of a second of one of ${tracks}, from the hits to the deep cuts, and name it. Six tries, a longer snippet after every miss. Free, no account needed.`,
+      };
     case 'DECADE':
       return {
         title: `Guess ${group.name} songs`,
@@ -83,5 +90,31 @@ export default async function GroupGamePage({ params }: GroupPageProps) {
 
   // The heading goes through the game rather than above it: a banner over the
   // game's own chrome belonged to nothing on the page.
-  return <GroupGameClient heading={describe(group).title} />;
+  const { title, description } = describe(group);
+  // A quiz about this set, in the terms a search engine reads. Rendered here,
+  // on the server, or it never reaches the HTML a crawler sees.
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'Quiz',
+    name: title,
+    description,
+    url: `${SITE_URL}/group/${group.slug}`,
+    ...(group.imageUrl && { image: group.imageUrl }),
+    ...(group.type === 'ARTIST' && {
+      about: { '@type': 'MusicGroup', name: group.name },
+    }),
+    isAccessibleForFree: true,
+    provider: { '@type': 'Organization', name: 'Sopranino', url: SITE_URL },
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        // The payload is ours, not user input, and JSON.stringify escapes it.
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <GroupGameClient heading={title} />
+    </>
+  );
 }

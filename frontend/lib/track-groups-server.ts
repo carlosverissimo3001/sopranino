@@ -7,7 +7,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
  * the server only shows it to a trusted linked account, and it must never
  * reach a sitemap or a generated route.
  */
-const PUBLIC_TYPES = ['DECADE', 'GENRE', 'CHART'] as const;
+const PUBLIC_TYPES = ['ARTIST', 'DECADE', 'GENRE', 'CHART'] as const;
 
 /** Groups are reseeded rarely, so a build-time list with a daily revalidate. */
 const REVALIDATE_SECONDS = 60 * 60 * 24;
