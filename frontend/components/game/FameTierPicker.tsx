@@ -9,6 +9,7 @@ interface FameTierPickerProps {
   /** The tier the open round was drawn from, when a change waits for the next song. */
   playing?: FameTier;
   disabled?: boolean;
+  className?: string;
 }
 
 export function FameTierPicker({
@@ -16,11 +17,12 @@ export function FameTierPicker({
   onChange,
   playing,
   disabled = false,
+  className = 'mb-3 sm:mb-5',
 }: FameTierPickerProps) {
   const waits = !!playing && playing !== value;
 
   return (
-    <div className="mb-3 flex flex-col items-center gap-1.5 sm:mb-5">
+    <div className={`flex flex-col items-center gap-1.5 ${className}`}>
       <div
         role="radiogroup"
         aria-label="How well-known the songs are"
@@ -34,7 +36,7 @@ export function FameTierPicker({
             aria-checked={value === tier.value}
             disabled={disabled}
             onClick={() => onChange(tier.value)}
-            className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold transition-colors disabled:opacity-50 sm:px-3 sm:text-xs ${
+            className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-bold transition-colors disabled:opacity-50 sm:py-1 ${
               value === tier.value ? tier.accent : 'text-fg/40 hover:text-fg/70'
             }`}
           >

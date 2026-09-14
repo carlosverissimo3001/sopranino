@@ -3,6 +3,7 @@
 import { memo, useEffect, useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useEnsureSession } from '@/hooks/auth/useEnsureSession';
 import { CredentialsForm } from '@/components/auth/CredentialsForm';
@@ -58,6 +59,7 @@ function UnauthenticatedViewComponent({ canSignIn }: { canSignIn: boolean }) {
   // useMe's cache is updated by the mutation, so the home page re-renders
   // into the signed-in shell without a navigation.
   const ensureSession = useEnsureSession();
+  const router = useRouter();
 
   return (
     <div className="relative flex-1 flex flex-col items-center justify-center min-h-[80vh] overflow-visible">
@@ -124,7 +126,11 @@ function UnauthenticatedViewComponent({ canSignIn }: { canSignIn: boolean }) {
                   <div className="absolute -inset-1 bg-spotify-green/10 rounded-full blur-md opacity-0 group-hover:opacity-100 transition duration-500" />
                   <Button
                     variant="spotify"
-                    onClick={() => ensureSession.mutate()}
+                    onClick={() =>
+                      ensureSession.mutate(undefined, {
+                        onSuccess: () => router.push('/'),
+                      })
+                    }
                     disabled={ensureSession.isPending}
                     className="relative !h-12 sm:!h-14 w-full !rounded-full text-base font-bold transition-all duration-500 shadow-xl"
                   >

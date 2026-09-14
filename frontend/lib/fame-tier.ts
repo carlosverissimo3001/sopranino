@@ -50,10 +50,25 @@ export function readFameTier(): FameTier {
   }
 }
 
+const listeners = new Set<() => void>();
+let unsaved: FameTier | null = null;
+
+export function subscribeFameTier(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+/** The stored choice, or the one made this visit when storage refused it. */
+export function currentFameTier(): FameTier {
+  return unsaved ?? readFameTier();
+}
+
 export function saveFameTier(tier: FameTier): void {
   try {
     localStorage.setItem(STORAGE_KEY, tier);
+    unsaved = null;
   } catch {
-    // The choice still holds for this visit.
+    unsaved = tier;
   }
+  listeners.forEach((listener) => listener());
 }

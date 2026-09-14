@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CredentialsForm } from '@/components/auth/CredentialsForm';
@@ -23,6 +23,7 @@ import { useMe } from '@/hooks/auth/useMe';
  */
 export function SignInClient({ canSignIn }: { canSignIn: boolean }) {
   const router = useRouter();
+  const cameFromLanding = useSearchParams().get('from') === 'landing';
   const { data: user } = useMe();
   const [showInvite, setShowInvite] = useState(false);
 
@@ -30,6 +31,15 @@ export function SignInClient({ canSignIn }: { canSignIn: boolean }) {
     <main className="flex min-h-screen flex-col items-center justify-center gap-8 px-6">
       <Link
         href="/"
+        onClick={(e) => {
+          // Back to the landing as it was. A fresh load of "/" answers from
+          // the session a landing round has since minted, and shows the home
+          // menu instead of the round they left.
+          if (cameFromLanding) {
+            e.preventDefault();
+            router.back();
+          }
+        }}
         className="absolute left-4 top-4 inline-flex items-center gap-2 text-sm font-semibold text-fg/60 transition-colors hover:text-fg sm:left-6 sm:top-6"
       >
         <ArrowLeft className="h-4 w-4" />

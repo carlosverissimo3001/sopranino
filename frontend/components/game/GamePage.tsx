@@ -48,6 +48,7 @@ export function GamePage({
     handlePlayAgain,
     fameTier,
     handleFameTierChange,
+    isStarting,
   } = useGameOrchestrator(mode, playlistId, {
     volume,
     trackGroupId,
@@ -102,6 +103,7 @@ export function GamePage({
               value={fameTier}
               onChange={handleFameTierChange}
               playing={isGameOver ? undefined : gameState.fameTier}
+              disabled={isStarting}
             />
           )}
         </>
