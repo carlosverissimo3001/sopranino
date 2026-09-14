@@ -64,4 +64,11 @@ export class GauntletGuessResultDto {
     type: Boolean,
   })
   isNewDailyBest?: boolean;
+
+  @ApiPropertyOptional({
+    description:
+      'Every track guessed right this run, oldest first (set when run ends)',
+    type: [ActualTrackDto],
+  })
+  guessedTracks?: ActualTrackDto[];
 }

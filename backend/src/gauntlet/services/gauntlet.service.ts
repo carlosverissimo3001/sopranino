@@ -29,7 +29,10 @@ import {
 } from '../consts';
 import { StartRunDto } from '../dto/start-run.dto';
 import { GauntletRunStateDto } from '../dto/gauntlet-run-state.dto';
-import { GauntletGuessResultDto } from '../dto/gauntlet-guess-result.dto';
+import {
+  ActualTrackDto,
+  GauntletGuessResultDto,
+} from '../dto/gauntlet-guess-result.dto';
 import { GauntletLeaderboardDto } from '../dto/gauntlet-leaderboard.dto';
 import { SubmitGauntletGuessDto } from '../dto/submit-gauntlet-guess.dto';
 import { PersonalBestDto } from '../dto/personal-best.dto';
@@ -211,6 +214,9 @@ export class GauntletService {
         actualTrack,
         isNewPersonalBest: ended.score > prevPersonalBest,
         isNewDailyBest: ended.score > prevDailyBest,
+        guessedTracks: await this.guessedTracks(
+          run.trackIds.filter((id) => id !== run.currentTrackId),
+        ),
       };
     }
 
@@ -256,8 +262,26 @@ export class GauntletService {
         actualTrack,
         isNewPersonalBest: ended.score > prevPersonalBest,
         isNewDailyBest: ended.score > prevDailyBest,
+        guessedTracks: await this.guessedTracks(run.trackIds),
       };
     }
+  }
+
+  private async guessedTracks(trackIds: string[]): Promise<ActualTrackDto[]> {
+    const tracks = await this.trackService.findMany(trackIds);
+    const byId = new Map(tracks.map((track) => [track.id, track]));
+    return trackIds.flatMap((id) => {
+      const track = byId.get(id);
+      return track
+        ? [
+            {
+              name: track.name,
+              artistName: track.artistName,
+              albumArt: track.albumImageUrl,
+            },
+          ]
+        : [];
+    });
   }
 
   async endRun(sessionId: string, runId: string): Promise<GauntletRunStateDto> {

@@ -4819,6 +4819,13 @@
           "isNewDailyBest": {
             "type": "boolean",
             "description": "Whether this score is a new daily best (set when run ends)"
+          },
+          "guessedTracks": {
+            "description": "Every track guessed right this run, oldest first (set when run ends)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ActualTrackDto"
+            }
           }
         },
         "required": [

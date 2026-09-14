@@ -81,6 +81,12 @@ export interface GauntletGuessResultDto {
      * @memberof GauntletGuessResultDto
      */
     isNewDailyBest?: boolean;
+    /**
+     * Every track guessed right this run, oldest first (set when run ends)
+     * @type {Array<ActualTrackDto>}
+     * @memberof GauntletGuessResultDto
+     */
+    guessedTracks?: Array<ActualTrackDto>;
 }
 
 
@@ -124,6 +130,7 @@ export function GauntletGuessResultDtoFromJSONTyped(json: any, ignoreDiscriminat
         'nextSnippetDuration': json['nextSnippetDuration'] == null ? undefined : json['nextSnippetDuration'],
         'isNewPersonalBest': json['isNewPersonalBest'] == null ? undefined : json['isNewPersonalBest'],
         'isNewDailyBest': json['isNewDailyBest'] == null ? undefined : json['isNewDailyBest'],
+        'guessedTracks': json['guessedTracks'] == null ? undefined : ((json['guessedTracks'] as Array<any>).map(ActualTrackDtoFromJSON)),
     };
 }
 
@@ -147,6 +154,7 @@ export function GauntletGuessResultDtoToJSONTyped(value?: GauntletGuessResultDto
         'nextSnippetDuration': value['nextSnippetDuration'],
         'isNewPersonalBest': value['isNewPersonalBest'],
         'isNewDailyBest': value['isNewDailyBest'],
+        'guessedTracks': value['guessedTracks'] == null ? undefined : ((value['guessedTracks'] as Array<any>).map(ActualTrackDtoToJSON)),
     };
 }
 
