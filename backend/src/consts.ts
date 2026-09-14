@@ -65,6 +65,9 @@ export const GAME_MAX_ROUNDS = 6;
 /** The track pool only changes when it is reseeded, so this can be long. */
 export const POOL_CANDIDATE_CACHE_MS = 10 * 60 * 1000;
 
+/** Fewer playable songs than this and an artist set repeats itself too soon to list. */
+export const ARTIST_SET_MIN_TRACKS = 40;
+
 /** Selection weight multiplies by this for every decade after the pivot. */
 export const RECENCY_PER_DECADE = 1.8;
 export const RECENCY_PIVOT_YEAR = 2005;

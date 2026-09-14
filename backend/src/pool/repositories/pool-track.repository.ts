@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { TrackGroupType } from '@prisma/client';
 import { PrismaService } from '@prisma/prisma.service';
 
 export interface PoolCandidate {
@@ -45,12 +46,24 @@ export class PoolTrackRepository {
     });
   }
 
-  /** Every pool song's fame, group-only ones included, for the tier scale. */
+  /**
+   * The shuffle pool's fame, for the tier scale. Group-only songs stay out: an
+   * artist's B-sides or this week's charts would otherwise move every set's cuts.
+   */
   async findAllFame(): Promise<number[]> {
     const rows = await this.prisma.poolTrack.findMany({
+      where: { groupOnly: false },
       select: { fame: true },
     });
     return rows.map((row) => row.fame);
+  }
+
+  async findGroupType(trackGroupId: string): Promise<TrackGroupType | null> {
+    const group = await this.prisma.trackGroup.findUnique({
+      where: { id: trackGroupId },
+      select: { type: true },
+    });
+    return group?.type ?? null;
   }
 
   async count(): Promise<number> {

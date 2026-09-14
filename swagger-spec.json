@@ -1039,7 +1039,8 @@
                 "GENRE",
                 "FAME",
                 "CHART",
-                "SPECIAL"
+                "SPECIAL",
+                "ARTIST"
               ],
               "type": "string"
             }
@@ -3850,7 +3851,8 @@
               "GENRE",
               "FAME",
               "CHART",
-              "SPECIAL"
+              "SPECIAL",
+              "ARTIST"
             ],
             "description": "Which axis this groups by"
           },

@@ -2981,6 +2981,7 @@ export const TrackGroupControllerListTypeEnum = {
     Genre: 'GENRE',
     Fame: 'FAME',
     Chart: 'CHART',
-    Special: 'SPECIAL'
+    Special: 'SPECIAL',
+    Artist: 'ARTIST'
 } as const;
 export type TrackGroupControllerListTypeEnum = typeof TrackGroupControllerListTypeEnum[keyof typeof TrackGroupControllerListTypeEnum];

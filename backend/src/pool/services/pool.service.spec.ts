@@ -17,6 +17,7 @@ describe('PoolService', () => {
   let poolTracks: {
     findCandidates: jest.Mock;
     findAllFame: jest.Mock;
+    findGroupType: jest.Mock;
     count: jest.Mock;
     stats: jest.Mock;
   };
@@ -26,6 +27,7 @@ describe('PoolService', () => {
     poolTracks = {
       findCandidates: jest.fn().mockResolvedValue([candidate('dz:1', 500)]),
       findAllFame: jest.fn().mockResolvedValue([500]),
+      findGroupType: jest.fn().mockResolvedValue('DECADE'),
       count: jest.fn().mockResolvedValue(1),
       stats: jest.fn(),
     };
@@ -100,6 +102,25 @@ describe('PoolService', () => {
       });
 
       expect(track.id).toBe('dz:60');
+    });
+
+    // On the whole pool's scale these would all be Impossible, and Easy would
+    // never be anything but a fallback.
+    it("cuts an artist's tiers from the artist's own songs", async () => {
+      poolTracks.findGroupType.mockResolvedValue('ARTIST');
+      poolTracks.findCandidates.mockResolvedValue(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((fame) =>
+          candidate(`dz:a${fame}`, fame),
+        ),
+      );
+
+      for (let i = 0; i < 20; i++) {
+        const track = await service.pickTrack([], 'group-artist', {
+          tier: FameTier.EASY,
+        });
+        expect(['dz:a9', 'dz:a10']).toContain(track.id);
+      }
+      expect(poolTracks.findAllFame).not.toHaveBeenCalled();
     });
 
     it('draws from the whole list when no tier is asked for', async () => {

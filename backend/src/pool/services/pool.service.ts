@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { FameTier } from '@prisma/client';
+import { FameTier, TrackGroupType } from '@prisma/client';
 import { TrackEntity } from '../../track/entities/track.entity';
 import { TrackRepository } from '../../track/repositories/track.repository';
 import {
@@ -22,6 +22,8 @@ export class PoolService {
    */
   private cache = new Map<string, { candidates: PoolCandidate[]; at: number }>();
   private cuts: { values: number[]; at: number } | null = null;
+  /** Groups whose tiers are cut from their own songs, not the whole pool's. */
+  private ownScale = new Map<string, boolean>();
 
   constructor(
     private readonly poolTrackRepository: PoolTrackRepository,
@@ -40,7 +42,7 @@ export class PoolService {
     const candidates = await this.getCandidates(trackGroupId);
     const exclude = new Set(excludeIds);
     const id = tier
-      ? await this.pickInTier(candidates, tier, exclude)
+      ? await this.pickInTier({ candidates, tier, exclude, trackGroupId })
       : weightedPick(candidates, exclude);
     if (!id) {
       throw new NotFoundException(
@@ -60,12 +62,23 @@ export class PoolService {
   }
 
   /** A set can run out of a tier, so the nearest one stands in rather than failing. */
-  private async pickInTier(
-    candidates: PoolCandidate[],
-    tier: FameTier,
-    exclude: ReadonlySet<string>,
-  ): Promise<string | null> {
-    const cuts = await this.getCuts();
+  private async pickInTier({
+    candidates,
+    tier,
+    exclude,
+    trackGroupId,
+  }: {
+    candidates: PoolCandidate[];
+    tier: FameTier;
+    exclude: ReadonlySet<string>;
+    trackGroupId?: string;
+  }): Promise<string | null> {
+    // An artist's Easy is their own hits: on the whole pool's scale most of a
+    // catalogue is Hard or worse, and Easy would fall back nearly every round.
+    const cuts =
+      trackGroupId && this.ownScale.get(trackGroupId)
+        ? tierCuts(candidates.map((candidate) => candidate.fame))
+        : await this.getCuts();
     for (const fallback of tierFallback(tier)) {
       const id = weightedPick(
         candidates.filter((c) => tierOf(c.fame, cuts) === fallback),
@@ -88,6 +101,7 @@ export class PoolService {
   clearCache(): void {
     this.cache.clear();
     this.cuts = null;
+    this.ownScale.clear();
   }
 
   async stats() {
@@ -112,10 +126,15 @@ export class PoolService {
       return cached.candidates;
     }
 
-    const candidates = await this.poolTrackRepository.findCandidates(
-      [],
-      trackGroupId,
-    );
+    const [candidates, groupType] = await Promise.all([
+      this.poolTrackRepository.findCandidates([], trackGroupId),
+      trackGroupId
+        ? this.poolTrackRepository.findGroupType(trackGroupId)
+        : Promise.resolve(null),
+    ]);
+    if (trackGroupId) {
+      this.ownScale.set(trackGroupId, groupType === TrackGroupType.ARTIST);
+    }
     this.cache.set(key, { candidates, at: Date.now() });
     return candidates;
   }
