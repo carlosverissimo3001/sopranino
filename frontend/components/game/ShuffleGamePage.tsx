@@ -276,7 +276,9 @@ export function ShuffleGamePage({
               isFullSongPlaying={gameAudio.isFullSongPlaying}
               onToggleFullSong={gameAudio.toggleFullSong}
               tries={gameState.guesses.length}
-              footer={<ClaimNamePrompt />}
+              // The prompt renders nothing for an account, and the card would
+              // still draw its strip.
+              footer={user && !user.hasAccount && <ClaimNamePrompt />}
             />
             {afterReveal}
           </>
