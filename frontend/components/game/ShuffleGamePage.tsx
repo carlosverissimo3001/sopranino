@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Zap } from 'lucide-react';
@@ -60,6 +60,8 @@ export function ShuffleGamePage({
   afterReveal,
 }: ShuffleGamePageProps) {
   const { volume, setVolume } = useVolume();
+  // A chart is all hits, so a tier would promise a difference it cannot make.
+  const [tiersApply, setTiersApply] = useState(true);
   const { data: user } = useMe();
 
   const {
@@ -182,7 +184,10 @@ export function ShuffleGamePage({
             <h1 className="sr-only">{heading}</h1>
             <ShuffleModeNav
               trackGroupId={trackGroupId}
-              onTrackGroupChange={handleTrackGroupChange}
+              onTrackGroupChange={(groupId, hasTiers) => {
+                setTiersApply(hasTiers);
+                handleTrackGroupChange(groupId);
+              }}
             />
             {/* One line for where the round stands and how hard it is. */}
             <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
@@ -192,13 +197,15 @@ export function ShuffleGamePage({
                   {round.maxRounds}
                 </p>
               )}
-              <FameTierPicker
-                className=""
-                value={fameTier}
-                onChange={handleFameTierChange}
-                playing={isGameOver || idle ? undefined : gameState?.fameTier}
-                disabled={isStarting}
-              />
+              {tiersApply && (
+                <FameTierPicker
+                  className=""
+                  value={fameTier}
+                  onChange={handleFameTierChange}
+                  playing={isGameOver || idle ? undefined : gameState?.fameTier}
+                  disabled={isStarting}
+                />
+              )}
             </div>
             {trackGroupWaits && (
               <p className="text-[11px] text-fg/40">
