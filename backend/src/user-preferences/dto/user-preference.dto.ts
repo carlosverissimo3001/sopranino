@@ -7,9 +7,6 @@ export class UserPreferenceDto {
   @ApiProperty({ description: 'Show genre, decade, and other text hints' })
   showTextHints: boolean;
 
-  @ApiProperty({ description: 'Reduce motion and animations' })
-  reducedMotion: boolean;
-
   @ApiProperty({ description: 'Show guess history during gameplay' })
   showGuessHistory: boolean;
 

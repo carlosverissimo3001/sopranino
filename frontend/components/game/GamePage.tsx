@@ -47,7 +47,6 @@ export function GamePage({
   const { data: preferences } = useUserPreferences();
   const showAlbumHint = preferences?.showAlbumHint ?? true;
   const showTextHints = preferences?.showTextHints ?? true;
-  const reducedMotion = preferences?.reducedMotion ?? false;
   const showGuessHistory = preferences?.showGuessHistory ?? true;
 
   const {
@@ -155,7 +154,7 @@ export function GamePage({
 
       <motion.div
         variants={SHAKE_VARIANTS}
-        animate={shouldShake && !reducedMotion ? 'shake' : ''}
+        animate={shouldShake ? 'shake' : ''}
         className="p-3 sm:p-6 md:p-8 lg:p-10 relative z-10 flex flex-col min-h-screen min-h-[100dvh] safe-area-inset"
       >
         <div className="max-w-2xl mx-auto w-full flex-1 flex flex-col">
