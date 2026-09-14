@@ -16,6 +16,7 @@ export * from './DemoOptionDto';
 export * from './DemoPlaylistDto';
 export * from './DemoRoundDto';
 export * from './EmailVerificationResultDto';
+export * from './FameTier';
 export * from './FeedbackDto';
 export * from './FeedbackPageDto';
 export * from './GameHistoryDto';

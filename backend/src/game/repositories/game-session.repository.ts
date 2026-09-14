@@ -154,17 +154,6 @@ export class GameSessionRepository {
     return sessions.map((session) => mapTrack(session.track));
   }
 
-  async hasFinishedGame(userId: string): Promise<boolean> {
-    const finished = await this.prisma.gameSession.findFirst({
-      where: {
-        userId,
-        status: { in: [GameStatus.WON, GameStatus.LOST] },
-      },
-      select: { id: true },
-    });
-    return finished !== null;
-  }
-
   async findActiveSession(
     userId: string,
     mode: GameMode,

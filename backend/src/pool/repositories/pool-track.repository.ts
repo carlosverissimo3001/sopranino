@@ -45,6 +45,14 @@ export class PoolTrackRepository {
     });
   }
 
+  /** Every pool song's fame, group-only ones included, for the tier scale. */
+  async findAllFame(): Promise<number[]> {
+    const rows = await this.prisma.poolTrack.findMany({
+      select: { fame: true },
+    });
+    return rows.map((row) => row.fame);
+  }
+
   async count(): Promise<number> {
     return this.prisma.poolTrack.count();
   }

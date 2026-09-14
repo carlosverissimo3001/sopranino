@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
 import { IsNotNullableOptional } from '@utils/decorators/notNullableOptional.decorator';
-import { GameMode } from '@prisma/client';
+import { FameTier, GameMode } from '@prisma/client';
 
 export class StartGameDto {
   @ApiPropertyOptional({
@@ -20,6 +20,16 @@ export class StartGameDto {
   @IsString()
   @IsNotEmpty()
   trackGroupId?: string;
+
+  @ApiPropertyOptional({
+    description:
+      'How well-known the songs should be, for a pool or group game. Easy when absent.',
+    enum: FameTier,
+    enumName: 'FameTier',
+  })
+  @IsNotNullableOptional()
+  @IsEnum(FameTier)
+  fameTier?: FameTier;
 
   @ApiProperty({
     description: 'The game mode to start (all or daily)',

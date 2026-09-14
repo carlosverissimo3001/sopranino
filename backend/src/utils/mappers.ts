@@ -178,6 +178,7 @@ export function mapGameSession(
     score: computeScore(data.status, data.currentRound),
     guesses: mapGuesses(data.guesses),
     trackGroupId: toUndefinedIfNull(data.trackGroupId),
+    fameTier: toUndefinedIfNull(data.fameTier),
     choiceTrackIds: data.choiceTrackIds ?? [],
     ...incMap(data, 'track', mapTrack),
   };

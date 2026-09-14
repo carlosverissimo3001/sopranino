@@ -58,6 +58,14 @@ enum GameStatus {
   ABANDONED
 }
 
+enum FameTier {
+  EASY
+  MEDIUM
+  HARD
+  EXPERT
+  IMPOSSIBLE
+}
+
 model GameSession {
   id String @id @default(uuid())
 
@@ -65,8 +73,9 @@ model GameSession {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   playlistId   String   @map("playlist_id")
-  trackGroupId String?  @map("track_group_id")
-  mode         GameMode @default(ALL)
+  trackGroupId String?   @map("track_group_id")
+  fameTier     FameTier? @map("fame_tier")
+  mode         GameMode  @default(ALL)
 
   trackId String @map("track_id")
   track   Track  @relation(fields: [trackId], references: [id])

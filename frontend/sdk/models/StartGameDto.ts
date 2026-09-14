@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
+import type { FameTier } from './FameTier';
+import {
+    FameTierFromJSON,
+    FameTierFromJSONTyped,
+    FameTierToJSON,
+    FameTierToJSONTyped,
+} from './FameTier';
+
 /**
  * 
  * @export
@@ -31,6 +39,12 @@ export interface StartGameDto {
      * @memberof StartGameDto
      */
     trackGroupId?: string;
+    /**
+     * How well-known the songs should be, for a pool or group game. Easy when absent.
+     * @type {FameTier}
+     * @memberof StartGameDto
+     */
+    fameTier?: FameTier;
     /**
      * The game mode to start (all or daily)
      * @type {string}
@@ -72,6 +86,7 @@ export function StartGameDtoFromJSONTyped(json: any, ignoreDiscriminator: boolea
         
         'playlistId': json['playlistId'] == null ? undefined : json['playlistId'],
         'trackGroupId': json['trackGroupId'] == null ? undefined : json['trackGroupId'],
+        'fameTier': json['fameTier'] == null ? undefined : FameTierFromJSON(json['fameTier']),
         'mode': json['mode'],
     };
 }
@@ -89,6 +104,7 @@ export function StartGameDtoToJSONTyped(value?: StartGameDto | null, ignoreDiscr
         
         'playlistId': value['playlistId'],
         'trackGroupId': value['trackGroupId'],
+        'fameTier': FameTierToJSON(value['fameTier']),
         'mode': value['mode'],
     };
 }
