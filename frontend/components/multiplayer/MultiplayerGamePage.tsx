@@ -1,16 +1,14 @@
 'use client';
 
-import { motion, AnimatePresence, Variants } from 'framer-motion';
-import { useImageColor } from '@/hooks/misc/useImageColor';
+import { motion, AnimatePresence } from 'framer-motion';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { RoundProgressBar } from '@/components/game/RoundProgressBar';
-import { PlaySnippetButton } from '@/components/game/PlaySnippetButton';
 import { VolumeSlider } from '@/components/game/VolumeSlider';
 import { SongRevealCard } from '@/components/game/SongRevealCard';
-import { GuessHistoryList } from '@/components/game/GuessHistoryList';
-import { GuessInput } from '@/components/game/GuessInput';
-import { HintPanel } from '@/components/game/HintPanel';
-import { useUserPreferences } from '@/hooks/user-preferences/useUserPreferences';
+import { GameRoundView } from '@/components/game/GameRoundView';
+import {
+  GameScreenError,
+  GameScreenLoading,
+} from '@/components/game/GameScreenStatus';
 import { useGameAudio } from '@/hooks/game/useGameAudio';
 import { useVolume } from '@/hooks/game/useVolume';
 import { useSpotifyTrackSearch } from '@/hooks/spotify/useSpotifyTrackSearch';
@@ -20,7 +18,6 @@ import { useMultiplayerSocket } from '@/hooks/multiplayer/useMultiplayerSocket';
 import { useSubmitMultiplayerGuess } from '@/hooks/multiplayer/useSubmitMultiplayerGuess';
 import { useRoom } from '@/hooks/multiplayer/useRoom';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -35,13 +32,6 @@ import { ChevronRight } from 'lucide-react';
 import { GLASS_STYLE } from '@/lib/styles';
 import { useWarnOnLeave } from '@/hooks/useWarnOnLeave';
 import { HostDisconnectedBanner } from './HostDisconnectedBanner';
-
-const SHAKE_VARIANTS: Variants = {
-  shake: {
-    x: [0, -12, 12, -12, 12, -6, 6, 0],
-    transition: { duration: 0.5, ease: 'easeOut' },
-  },
-};
 
 interface MultiplayerGamePageProps {
   roomId: string;
@@ -150,8 +140,6 @@ export function MultiplayerGamePage({ roomId }: MultiplayerGamePageProps) {
   const submitGuessMutation = useSubmitMultiplayerGuess();
   const spotifySearch = useSpotifyTrackSearch();
   const { data: me } = useMe();
-  const { data: preferences } = useUserPreferences();
-  const showTextHints = preferences?.showTextHints ?? true;
 
   // Socket must come before useRoom so `connected` is available
   const currentUserIdRef = useRef<string | undefined>(undefined);
@@ -235,22 +223,6 @@ export function MultiplayerGamePage({ roomId }: MultiplayerGamePageProps) {
   });
   const { getAudioReport } = gameAudio;
 
-  const {
-    audioRef,
-    fullAudioRef,
-    isPlaying,
-    playSnippet,
-    pauseSnippet,
-    snippetProgress,
-    snippetPeaks,
-  } = gameAudio;
-
-  const albumArtColor = useImageColor(
-    isRoundComplete && roundState?.answer?.albumImageUrl
-      ? roundState.answer.albumImageUrl
-      : null,
-  );
-
   const handleSubmit = useCallback(() => {
     if (!roundState || submitGuessMutation.isPending) return;
     if (!spotifySearch.selectedTrack) return;
@@ -285,88 +257,56 @@ export function MultiplayerGamePage({ roomId }: MultiplayerGamePageProps) {
     advanceRound();
   }, [advanceRound]);
 
-  if (isLoading) {
-    return (
-      <div
-        className="h-screen h-[100dvh] flex items-center justify-center"
-        style={{ background: 'rgb(var(--bg))' }}
-      >
-        <LoadingSpinner size="lg" />
-      </div>
-    );
-  }
-
+  if (isLoading) return <GameScreenLoading />;
   if (error || !roundState) {
     return (
-      <div
-        className="h-screen h-[100dvh] flex items-center justify-center p-4 sm:p-6"
-        style={{ background: 'rgb(var(--bg))' }}
-      >
-        <div className="text-center max-w-md">
-          <p className="text-red-400 mb-4">
-            {error instanceof Error ? error.message : 'Failed to load game'}
-          </p>
-          <Link
-            href={`/multiplayer/${roomId}`}
-            className="text-[#1DB954] hover:underline text-sm"
-          >
-            Back to Lobby
-          </Link>
-        </div>
-      </div>
+      <GameScreenError
+        error={error}
+        fallbackMessage="Failed to load game"
+        backHref={`/multiplayer/${roomId}`}
+        backLabel="Back to Lobby"
+      />
     );
   }
 
   return (
-    <div
-      className="min-h-screen min-h-[100dvh] overflow-y-auto"
-      style={{ background: 'rgb(var(--bg))' }}
-    >
-      <motion.div
-        className="fixed inset-0 -z-10 pointer-events-none"
-        animate={{
-          opacity: [0.6, 1, 0.6],
-          background: [
-            `radial-gradient(ellipse 120% 80% at 50% 0%, ${albumArtColor} 0%, transparent 50%),
-             radial-gradient(ellipse 80% 120% at 80% 100%, rgba(29, 185, 84, 0.08) 0%, transparent 50%),
-             radial-gradient(ellipse 80% 80% at 20% 80%, rgba(29, 185, 84, 0.05) 0%, transparent 45%)`,
-            `radial-gradient(ellipse 130% 90% at 50% 0%, ${albumArtColor} 0%, transparent 50%),
-             radial-gradient(ellipse 90% 130% at 80% 100%, rgba(29, 185, 84, 0.12) 0%, transparent 50%),
-             radial-gradient(ellipse 90% 90% at 20% 80%, rgba(29, 185, 84, 0.08) 0%, transparent 45%)`,
-            `radial-gradient(ellipse 120% 80% at 50% 0%, ${albumArtColor} 0%, transparent 50%),
-             radial-gradient(ellipse 80% 120% at 80% 100%, rgba(29, 185, 84, 0.08) 0%, transparent 50%),
-             radial-gradient(ellipse 80% 80% at 20% 80%, rgba(29, 185, 84, 0.05) 0%, transparent 45%)`,
-          ],
-        }}
-        transition={{
-          duration: 4,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      />
-
-      <motion.div
-        variants={SHAKE_VARIANTS}
-        animate={false}
-        className="p-3 sm:p-6 md:p-8 lg:p-10 relative z-10 flex flex-col min-h-screen min-h-[100dvh] safe-area-inset"
-      >
-        <div className="max-w-2xl mx-auto w-full flex-1 flex flex-col gap-3 sm:gap-0">
-          {/* Host disconnected warning */}
+    <GameRoundView
+      round={{
+        previewUrl: roundState.previewUrl,
+        answerImageUrl: roundState.answer?.albumImageUrl,
+        currentRound: roundState.currentGuess,
+        maxRounds: roundState.maxGuessesPerSong,
+        guesses: roundState.guesses,
+        snippetSteps: roundState.snippetSteps,
+        snippetDuration: roundState.snippetDuration,
+        hints: roundState.hints,
+      }}
+      isOver={!!isRoundComplete}
+      audio={gameAudio}
+      showCover={false}
+      roundKey={transitionKey}
+      guess={{
+        search: spotifySearch,
+        onSubmit: handleSubmit,
+        onSkip: handleSkip,
+        submitPending: submitGuessMutation.isPending,
+        gameMode: GameMode.Multiplayer,
+      }}
+      header={
+        <>
           <AnimatePresence>
             {hostDisconnected && currentUserId !== room?.hostId && (
               <HostDisconnectedBanner />
             )}
           </AnimatePresence>
-
-          {/* Chrome, not part of the round: kept out of the play area. */}
           <div className="mb-2 flex justify-end">
             <VolumeSlider volume={volume} onVolumeChange={setVolume} />
           </div>
-
-          {/* Round dots */}
+        </>
+      }
+      title={
+        <>
           <RoundDots roundState={roundState} pastResults={pastResults} />
-
-          {/* Round title */}
           <div className="mb-6 text-center">
             <h2 className="text-2xl sm:text-3xl font-bold text-fg">
               Round {roundState.roundIndex + 1}{' '}
@@ -375,136 +315,46 @@ export function MultiplayerGamePage({ roomId }: MultiplayerGamePageProps) {
               </span>
             </h2>
           </div>
-
-          {/* The results page is the destination; this only covers the hop. */}
-          {isGameOver && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex flex-col items-center gap-3 py-16"
-            >
-              <LoadingSpinner size="md" />
-              <p className="text-sm text-fg/50">Taking you to the results...</p>
-            </motion.div>
-          )}
-
-          <audio
-            ref={audioRef}
-            // `||`, not `??`: the API sends '' when no audio could be minted,
-            // and an empty src makes the browser refetch the page.
-            src={roundState.previewUrl || undefined}
-            preload="auto"
-            crossOrigin="anonymous"
-          />
-          {isRoundComplete && roundState.previewUrl && (
-            <audio
-              ref={fullAudioRef}
-              src={roundState.previewUrl}
-              preload="auto"
-              loop={false}
+        </>
+      }
+      reveal={
+        isGameOver ? (
+          // The results page is the destination; this only covers the hop.
+          <div className="flex flex-col items-center gap-3 py-16">
+            <LoadingSpinner size="md" />
+            <p className="text-sm text-fg/50">Taking you to the results...</p>
+          </div>
+        ) : (
+          <>
+            <SongRevealCard
+              status={roundState.status}
+              answer={roundState.answer}
+              previewUrl={roundState.previewUrl}
+              shareGameId={null}
+              showViewStats={false}
+              showPlayAgain={false}
+              isFullSongPlaying={gameAudio.isFullSongPlaying}
+              onToggleFullSong={gameAudio.toggleFullSong}
             />
-          )}
-
-          {!isRoundComplete && (
-            <RoundProgressBar
-              currentRound={roundState.currentGuess}
-              guesses={roundState.guesses}
-              totalRounds={roundState.maxGuessesPerSong}
-              snippetSteps={roundState.snippetSteps}
-              progress={snippetProgress}
-              peaks={snippetPeaks}
-              isPlaying={isPlaying}
+            <RoundScoreSummary
+              roomId={roomId}
+              roundIndex={roundState.roundIndex}
+              myUserId={currentUserId}
             />
-          )}
-
-          {!isRoundComplete && (
-            <PlaySnippetButton
-              snippetDuration={roundState.snippetDuration}
-              isPlaying={isPlaying}
-              onPlay={playSnippet}
-              onPause={pauseSnippet}
-            />
-          )}
-
-          {!isRoundComplete && showTextHints && (
-            <HintPanel
-              hints={roundState.hints ?? []}
-              currentRound={roundState.currentGuess}
-            />
-          )}
-
-          <AnimatePresence mode="wait">
-            {isGameOver ? null : isRoundComplete ? (
-              <motion.div
-                key={`reveal-${transitionKey}`}
-                initial={{ opacity: 0, scale: 0.96, y: 12 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.96, y: -12 }}
-                transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-                className="flex-1"
+            <div className="mt-6 flex justify-center">
+              <motion.button
+                onClick={handleNextRound}
+                className="group flex items-center gap-2 px-8 py-3 bg-[#1DB954] text-black font-bold rounded-full hover:bg-[#1ed760] transition-colors"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
               >
-                <SongRevealCard
-                  status={roundState.status}
-                  answer={roundState.answer}
-                  previewUrl={roundState.previewUrl}
-                  shareGameId={null}
-                  showViewStats={false}
-                  showPlayAgain={false}
-                  isFullSongPlaying={gameAudio.isFullSongPlaying}
-                  onToggleFullSong={gameAudio.toggleFullSong}
-                />
-
-                {/* Player's own score for this round */}
-                <RoundScoreSummary
-                  roomId={roomId}
-                  roundIndex={roundState.roundIndex}
-                  myUserId={currentUserId}
-                />
-
-                {/* Next Round */}
-                {!isGameOver && (
-                  <div className="mt-6 flex justify-center">
-                    <motion.button
-                      onClick={handleNextRound}
-                      className="group flex items-center gap-2 px-8 py-3 bg-[#1DB954] text-black font-bold rounded-full hover:bg-[#1ed760] transition-colors"
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
-                    >
-                      Next Round
-                      <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                    </motion.button>
-                  </div>
-                )}
-              </motion.div>
-            ) : (
-              <motion.div
-                key={`guess-${transitionKey}`}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -12 }}
-                transition={{ duration: 0.3 }}
-                className="flex-1"
-              >
-                <GuessInput
-                  search={spotifySearch}
-                  onSubmit={handleSubmit}
-                  onSkip={handleSkip}
-                  submitPending={submitGuessMutation.isPending}
-                  nextSnippetDuration={
-                    roundState.snippetSteps[roundState.currentGuess + 1]
-                  }
-                  gameMode={GameMode.Multiplayer}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <GuessHistoryList
-            guesses={roundState.guesses}
-            isGameOver={!!isRoundComplete}
-          />
-        </div>
-      </motion.div>
-    </div>
+                Next Round
+                <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              </motion.button>
+            </div>
+          </>
+        )
+      }
+    />
   );
 }
