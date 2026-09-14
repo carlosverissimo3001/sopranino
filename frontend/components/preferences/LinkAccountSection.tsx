@@ -26,6 +26,13 @@ export function LinkAccountSection({ canSignIn }: { canSignIn: boolean }) {
 
       <CredentialsForm />
 
+      {!canSignIn && (
+        <p className="text-[11px] text-fg/40 leading-relaxed">
+          Linking Spotify to play your own playlists is invite-only: Spotify
+          limits apps like this one to a handful of accounts.
+        </p>
+      )}
+
       {canSignIn && (
         <>
           <div className="flex items-center gap-3">

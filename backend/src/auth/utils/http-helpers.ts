@@ -1,4 +1,5 @@
 import { CookieOptions } from 'express';
+import { SpotifyNotAllowlistedError } from '../errors/spotify-not-allowlisted.error';
 
 export interface SessionCookieConfig {
   sessionMaxAge: number;
@@ -44,6 +45,16 @@ export function getClearCookieOptions(): CookieOptions {
  * @param error - Error code or message
  * @returns Complete redirect URL with error parameter
  */
+/** The error codes the frontend knows how to explain. */
+export const AUTH_FAILED = 'auth_failed';
+export const SPOTIFY_INVITE_ONLY = 'spotify_invite_only';
+
+export function callbackErrorCode(err: unknown): string {
+  return err instanceof SpotifyNotAllowlistedError
+    ? SPOTIFY_INVITE_ONLY
+    : AUTH_FAILED;
+}
+
 export function buildErrorRedirect(frontendUrl: string, error: string): string {
   return `${frontendUrl}?error=${encodeURIComponent(error)}`;
 }

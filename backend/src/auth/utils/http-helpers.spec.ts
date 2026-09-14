@@ -1,4 +1,11 @@
-import { getClearCookieOptions, getCookieOptions } from './http-helpers';
+import { SpotifyNotAllowlistedError } from '../errors/spotify-not-allowlisted.error';
+import {
+  AUTH_FAILED,
+  SPOTIFY_INVITE_ONLY,
+  callbackErrorCode,
+  getClearCookieOptions,
+  getCookieOptions,
+} from './http-helpers';
 
 describe('cookie options', () => {
   const env = process.env.COOKIE_DOMAIN;
@@ -46,5 +53,19 @@ describe('cookie options', () => {
     process.env.COOKIE_DOMAIN = '';
 
     expect(getCookieOptions({ sessionMaxAge: 60 }).domain).toBeUndefined();
+  });
+});
+
+describe('callbackErrorCode', () => {
+  it('names the allowlist refusal, so the player is told why', () => {
+    expect(callbackErrorCode(new SpotifyNotAllowlistedError())).toBe(
+      SPOTIFY_INVITE_ONLY,
+    );
+  });
+
+  it('keeps every other failure generic', () => {
+    expect(callbackErrorCode(new Error('token exchange failed'))).toBe(
+      AUTH_FAILED,
+    );
   });
 });
