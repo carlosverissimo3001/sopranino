@@ -261,7 +261,12 @@ export function GuessInput({
                   tracks: filteredTracks,
                   onSelect: handleSelectTrack,
                 }}
-                style={{ height: listHeight, overscrollBehavior: 'contain' }}
+                style={{
+                  // Never past the edge of the window: the list scrolls inside
+                  // itself rather than making the page scroll to reach it.
+                  height: `min(${listHeight}px, calc(var(--radix-popover-content-available-height) - 12px))`,
+                  overscrollBehavior: 'contain',
+                }}
               />
             ) : (
               <div className="p-4 text-[#b3b3b3] text-center text-sm">
