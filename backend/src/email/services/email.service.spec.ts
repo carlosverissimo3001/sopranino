@@ -47,6 +47,19 @@ describe('EmailService', () => {
     }));
   });
 
+  it('lets a message choose its own reply-to over the configured one', async () => {
+    send.mockResolvedValue(undefined);
+    const service = await buildService({
+      [RESEND_API_KEY]: 'a-sending-key',
+      [EMAIL_FROM]: 'sopranino <sopranino@example.com>',
+      [EMAIL_REPLY_TO]: 'carlos@example.com',
+    });
+
+    await service.send({ ...MESSAGE, replyTo: 'player@example.com' });
+
+    expect(send.mock.calls[0][1].replyTo).toBe('player@example.com');
+  });
+
   it('writes to the log when there is no provider to send with', async () => {
     const service = await buildService({});
 
