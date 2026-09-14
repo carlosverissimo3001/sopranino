@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { authErrorMessage } from '@/lib/auth-errors';
 
 /**
  * Hook to handle URL-based error parameters and error state
@@ -14,7 +15,7 @@ export function useAuthError() {
     const urlError = params.get('error');
     if (urlError) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- One-time initialization from URL parameter
-      setError(urlError === 'auth_failed' ? 'Authentication failed' : urlError);
+      setError(authErrorMessage(urlError));
       window.history.replaceState({}, '', '/');
     }
   }, []);

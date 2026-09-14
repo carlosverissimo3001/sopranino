@@ -195,7 +195,7 @@ function UnauthenticatedViewComponent({ canSignIn }: { canSignIn: boolean }) {
                 <span className="text-xs text-fg/45">
                   {canSignIn
                     ? 'Play your own library'
-                    : 'Needs your secret word'}
+                    : "Invite-only, by Spotify's limits"}
                 </span>
               </div>
             )}

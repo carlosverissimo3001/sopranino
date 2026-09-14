@@ -54,6 +54,7 @@ import {
 import { SpotifyOAuthCallbackDto } from '../dto/spotify/spotify-oauth-callback.dto';
 import {
   buildErrorRedirect,
+  callbackErrorCode,
   getClearCookieOptions,
   getCookieOptions,
 } from '../utils/http-helpers';
@@ -142,7 +143,9 @@ export class AuthController {
       res.redirect(this.frontendUrl);
     } catch (err) {
       this.logger.error('OAuth callback error:', err);
-      res.redirect(buildErrorRedirect(this.frontendUrl, 'auth_failed'));
+      res.redirect(
+        buildErrorRedirect(this.frontendUrl, callbackErrorCode(err)),
+      );
     }
   }
 

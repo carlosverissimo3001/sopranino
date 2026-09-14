@@ -13,6 +13,7 @@ import { SpotifyTokenResponseDto } from '../dto/spotify/spotify-token-response.d
 import { SpotifyTokenDto } from '../dto/spotify/spotify-token.dto';
 import { SpotifyUserProfileResponseDto } from '../dto/spotify/spotify-user-profile-response.dto';
 import { SCOPES } from '../consts';
+import { SpotifyNotAllowlistedError } from '../errors/spotify-not-allowlisted.error';
 import { AppLoggerService } from '../../logger/logger.service';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
@@ -207,6 +208,12 @@ export class SpotifyService {
     if (!response.ok) {
       if (response.status === HttpStatus.UNAUTHORIZED) {
         throw new UnauthorizedException('Spotify token is invalid or expired');
+      }
+
+      // Consent succeeds for anyone; the profile is refused to accounts off
+      // the Development Mode allowlist.
+      if (response.status === HttpStatus.FORBIDDEN) {
+        throw new SpotifyNotAllowlistedError();
       }
 
       if (response.status === HttpStatus.TOO_MANY_REQUESTS) {
