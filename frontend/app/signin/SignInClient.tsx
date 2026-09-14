@@ -1,11 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CredentialsForm } from '@/components/auth/CredentialsForm';
+import { InviteForm } from '@/components/auth/InviteForm';
 import { useMe } from '@/hooks/auth/useMe';
 
 /**
@@ -22,6 +24,7 @@ import { useMe } from '@/hooks/auth/useMe';
 export function SignInClient({ canSignIn }: { canSignIn: boolean }) {
   const router = useRouter();
   const { data: user } = useMe();
+  const [showInvite, setShowInvite] = useState(false);
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-8 px-6">
@@ -47,34 +50,63 @@ export function SignInClient({ canSignIn }: { canSignIn: boolean }) {
 
         <CredentialsForm initialMode="login" onDone={() => router.push('/')} />
 
-        {canSignIn && (
-          <>
-            <div className="flex items-center gap-3">
-              <span className="h-px flex-1 bg-fg/10" />
-              <span className="text-[10px] uppercase tracking-widest text-fg/30">
-                or
-              </span>
-              <span className="h-px flex-1 bg-fg/10" />
-            </div>
+        <div className="flex items-center gap-3">
+          <span className="h-px flex-1 bg-fg/10" />
+          <span className="text-[10px] uppercase tracking-widest text-fg/30">
+            or
+          </span>
+          <span className="h-px flex-1 bg-fg/10" />
+        </div>
 
-            <a href="/api/auth/login" className="block">
-              <Button
-                variant="spotify"
-                className="!h-11 w-full !rounded-full text-sm font-black"
-              >
-                <Image
-                  src="/spotify-icon.svg"
-                  alt=""
-                  width={16}
-                  height={16}
-                  className="mr-2.5 shrink-0"
-                />
-                Continue with Spotify
-              </Button>
+        {/* Shown even when closed, as on the home page: a missing button reads
+            as a broken page, a disabled one says why. */}
+        <div className="flex flex-col items-center gap-2">
+          {canSignIn ? (
+            <a href="/api/auth/login" className="block w-full">
+              <SpotifyButton />
             </a>
-          </>
-        )}
+          ) : (
+            <SpotifyButton disabled />
+          )}
+          {!canSignIn && (
+            <span className="text-xs text-fg/45">
+              Invite-only, by Spotify&apos;s limits
+            </span>
+          )}
+        </div>
+
+        {!canSignIn &&
+          (showInvite ? (
+            <InviteForm />
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowInvite(true)}
+              className="cursor-pointer self-center rounded-full border border-fg/15 px-5 py-2.5 text-sm font-semibold text-fg/70 transition-colors hover:border-fg/30 hover:bg-fg/5 hover:text-fg"
+            >
+              Invited? Enter your secret word
+            </button>
+          ))}
       </div>
     </main>
+  );
+}
+
+function SpotifyButton({ disabled = false }: { disabled?: boolean }) {
+  return (
+    <Button
+      variant="spotify"
+      disabled={disabled}
+      className="!h-11 w-full !rounded-full text-sm font-black"
+    >
+      <Image
+        src="/spotify-icon.svg"
+        alt=""
+        width={16}
+        height={16}
+        className="mr-2.5 shrink-0"
+      />
+      Continue with Spotify
+    </Button>
   );
 }
