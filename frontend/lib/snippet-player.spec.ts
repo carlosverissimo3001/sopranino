@@ -298,6 +298,18 @@ describe('SnippetPlayer', () => {
       expect(p.progress()).toBe(1);
     });
 
+    it('is playing from the first moment, before the clock has moved', async () => {
+      const p = player();
+      await p.load('https://cdn/preview.mp3');
+
+      p.play(4);
+
+      expect(p.progress()).toBe(0);
+      expect(p.isPlaying()).toBe(true);
+      p.stop();
+      expect(p.isPlaying()).toBe(false);
+    });
+
     it('returns to zero once stopped', async () => {
       const p = player();
       await p.load('https://cdn/preview.mp3');
