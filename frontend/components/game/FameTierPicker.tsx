@@ -10,6 +10,8 @@ interface FameTierPickerProps {
   playing?: FameTier;
   disabled?: boolean;
   className?: string;
+  /** Off where the page says it next to other notes, outside the picker's row. */
+  showWaitNote?: boolean;
 }
 
 export function FameTierPicker({
@@ -18,6 +20,7 @@ export function FameTierPicker({
   playing,
   disabled = false,
   className = 'mb-3 sm:mb-5',
+  showWaitNote = true,
 }: FameTierPickerProps) {
   const waits = !!playing && playing !== value;
 
@@ -37,14 +40,23 @@ export function FameTierPicker({
             disabled={disabled}
             onClick={() => onChange(tier.value)}
             className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-bold transition-colors disabled:opacity-50 sm:py-1 ${
-              value === tier.value ? tier.accent : 'text-fg/40 hover:text-fg/70'
+              waits && playing === tier.value
+                ? // The song on screen keeps its colour; the queued pick is amber.
+                  tier.accent
+                : waits && value === tier.value
+                  ? 'text-amber-300 ring-1 ring-inset ring-amber-400/60'
+                  : !waits && value === tier.value
+                    ? tier.accent
+                    : 'text-fg/40 hover:text-fg/70'
             }`}
           >
             {tier.label}
           </button>
         ))}
       </div>
-      {waits && <p className="text-[11px] text-fg/40">From the next song</p>}
+      {waits && showWaitNote && (
+        <p className="text-[11px] text-amber-300/80">From the next song</p>
+      )}
     </div>
   );
 }
