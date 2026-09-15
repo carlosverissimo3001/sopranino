@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { queryKeys } from '@/lib/queryKeys';
 import { getApiErrorMessage } from '@/lib/api-error';
 import { api } from '@/sdk/client';
@@ -13,13 +13,21 @@ export function useMultiplayerRound(
   socketConnected = false,
 ) {
   const queryClient = useQueryClient();
+  // The round on screen, asked for by index: the server's own idea of the
+  // current round moves on the moment a song ends, before its answer is seen.
+  const shownRound = useRef<number | undefined>(undefined);
 
   const query = useQuery<MultiplayerRoundStateDto>({
     queryKey: queryKeys.multiplayer.round(roomId!),
     // Unwrapped, or the page shows the SDK's generic error text.
     queryFn: async () => {
       try {
-        return await api.multiplayerControllerGetRoundState({ id: roomId! });
+        const state = await api.multiplayerControllerGetRoundState({
+          id: roomId!,
+          roundIndex: shownRound.current,
+        });
+        shownRound.current = state.roundIndex;
+        return state;
       } catch (e) {
         throw new Error(await getApiErrorMessage(e));
       }
@@ -43,6 +51,10 @@ export function useMultiplayerRound(
 
   const advanceRound = useCallback(() => {
     if (!roomId) return;
+    const shown = queryClient.getQueryData<MultiplayerRoundStateDto>(
+      queryKeys.multiplayer.round(roomId),
+    )?.roundIndex;
+    shownRound.current = shown === undefined ? undefined : shown + 1;
     void queryClient.invalidateQueries({
       queryKey: queryKeys.multiplayer.round(roomId),
     });
