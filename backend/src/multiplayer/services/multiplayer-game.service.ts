@@ -140,7 +140,11 @@ export class MultiplayerGameService {
       // hints for everyone.
       hints: isComplete
         ? undefined
-        : buildHintsForRound(track, currentSession.currentRound),
+        : buildHintsForRound(
+            track,
+            currentSession.currentRound,
+            room.trackGroup ?? undefined,
+          ),
       answer: isComplete
         ? {
             id: track.id,
@@ -254,7 +258,11 @@ export class MultiplayerGameService {
       maxRounds: MAX_ROUNDS,
       hints: gameOver
         ? undefined
-        : buildHintsForRound(mapTrack(activeSession.track), nextRound),
+        : buildHintsForRound(
+            mapTrack(activeSession.track),
+            nextRound,
+            room.trackGroup ?? undefined,
+          ),
     };
   }
 

@@ -4,7 +4,7 @@ import {
   BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
-import { GameStatus, RoomStatus } from '@prisma/client';
+import { GameStatus, RoomStatus, TrackGroupType } from '@prisma/client';
 import { MultiplayerGameService } from './multiplayer-game.service';
 import { RoomRepository } from '../repositories/room.repository';
 import { MultiplayerGameSessionRepository } from '../repositories/multiplayer-game-session.repository';
@@ -179,6 +179,29 @@ describe('MultiplayerGameService', () => {
       expect(result.previewUrl).toBe(mockTrack.previewUrl);
       expect(result.status).toBe(GameStatus.PLAYING);
       expect(result.answer).toBeUndefined();
+    });
+
+    it("hints the year, not the decade, in a decade set's room", async () => {
+      mockAuthService.getUserBySessionId.mockResolvedValue({
+        id: HOST_USER_ID,
+      });
+      mockRoomRepository.findById.mockResolvedValue(
+        makeRoom({
+          trackGroup: { name: '2020s', type: TrackGroupType.DECADE },
+        }),
+      );
+      mockGameSessionRepository.findPlayerSessions.mockResolvedValue([
+        makeSession({
+          currentRound: 2,
+          track: { ...mockTrack, allArtists: ['Test Artist'] },
+        }),
+      ]);
+
+      const result = await service.getRoundState(HOST_SESSION, ROOM_ID);
+
+      expect(result.hints).toContainEqual(
+        expect.objectContaining({ label: 'Year', value: '2024' }),
+      );
     });
 
     it('should advance to next round after completing one', async () => {
