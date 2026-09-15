@@ -13,8 +13,10 @@ export function useTrackGroupById(
   const { data: decades = [] } = useTrackGroups(TrackGroupDtoTypeEnum.Decade);
   const { data: genres = [] } = useTrackGroups(TrackGroupDtoTypeEnum.Genre);
   const { data: charts = [] } = useTrackGroups(TrackGroupDtoTypeEnum.Chart);
+  // Empty for anyone a special set is not for, so this reveals nothing.
+  const { data: special = [] } = useTrackGroups(TrackGroupDtoTypeEnum.Special);
 
-  return [...artists, ...decades, ...genres, ...charts].find(
+  return [...artists, ...decades, ...genres, ...charts, ...special].find(
     (group) => group.id === trackGroupId,
   );
 }
