@@ -47,7 +47,7 @@ export function ShuffleModeNav({
   onTrackGroupChange,
 }: ShuffleModeNavProps) {
   const [setsOpen, setSetsOpen] = useState(false);
-  const panelRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLElement>(null);
   const { data: artists = [] } = useTrackGroups(TrackGroupDtoTypeEnum.Artist);
   const { data: decades = [] } = useTrackGroups(TrackGroupDtoTypeEnum.Decade);
   const { data: genres = [] } = useTrackGroups(TrackGroupDtoTypeEnum.Genre);
@@ -84,23 +84,20 @@ export function ShuffleModeNav({
   };
 
   return (
-    <nav
-      aria-label="Game modes"
-      className="relative flex flex-wrap justify-center gap-1.5"
-    >
-      <button
-        type="button"
-        aria-pressed={!trackGroupId}
-        onClick={() => pick(undefined)}
-        className={`${PILL} ${playingTrackGroupId ? PILL_IDLE : PILL_ACTIVE}`}
-      >
-        <Shuffle className="hidden h-3.5 w-3.5 sm:block" />
-        All songs
-      </button>
+    <nav ref={panelRef} aria-label="Game modes" className="relative">
+      {/* One row that scrolls on a phone: two rows of pills cost the cover
+          its height. The panel stays outside, or the scroll would clip it. */}
+      <div className="mx-auto flex w-fit max-w-full gap-1.5 overflow-x-auto [scrollbar-width:none] sm:flex-wrap sm:justify-center sm:overflow-visible">
+        <button
+          type="button"
+          aria-pressed={!trackGroupId}
+          onClick={() => pick(undefined)}
+          className={`${PILL} ${playingTrackGroupId ? PILL_IDLE : PILL_ACTIVE}`}
+        >
+          <Shuffle className="hidden h-3.5 w-3.5 sm:block" />
+          All songs
+        </button>
 
-      {/* Not relative: the panel hangs from the whole row, since centred on a
-          pill left of centre it ran off the edge of a phone. */}
-      <div ref={panelRef}>
         <button
           type="button"
           aria-expanded={setsOpen}
@@ -115,48 +112,50 @@ export function ShuffleModeNav({
           />
         </button>
 
-        {setsOpen && (
-          <div
-            role="dialog"
-            aria-label="Pick a set"
-            className="absolute inset-x-0 top-full z-40 mx-auto mt-2 w-full max-w-[22rem] space-y-3 rounded-2xl border border-fg/10 bg-[rgb(var(--surface))] p-3 text-left shadow-2xl shadow-black/50"
-          >
-            {sections.map((section) => (
-              <div key={section.label}>
-                <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-fg/35">
-                  {section.label}
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {section.sets.map((set) => (
-                    <button
-                      key={set.id}
-                      type="button"
-                      aria-pressed={trackGroupId === set.id}
-                      onClick={() =>
-                        pick(trackGroupId === set.id ? undefined : set)
-                      }
-                      className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors sm:px-2.5 sm:py-1 sm:text-[11px] ${
-                        trackGroupId === set.id
-                          ? 'bg-spotify-green/20 text-spotify-green'
-                          : 'bg-fg/5 text-fg/70 hover:bg-fg/10 hover:text-fg'
-                      }`}
-                    >
-                      {set.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        {LINKED_MODES.map(({ href, icon: Icon, label }) => (
+          <Link key={href} href={href} className={`${PILL} ${PILL_IDLE}`}>
+            <Icon className="hidden h-3.5 w-3.5 sm:block" />
+            {label}
+          </Link>
+        ))}
       </div>
 
-      {LINKED_MODES.map(({ href, icon: Icon, label }) => (
-        <Link key={href} href={href} className={`${PILL} ${PILL_IDLE}`}>
-          <Icon className="hidden h-3.5 w-3.5 sm:block" />
-          {label}
-        </Link>
-      ))}
+      {/* Hangs from the whole row: centred on a pill left of centre, it ran off
+          the edge of a phone. */}
+      {setsOpen && (
+        <div
+          role="dialog"
+          aria-label="Pick a set"
+          className="absolute inset-x-0 top-full z-40 mx-auto mt-2 w-full max-w-[22rem] space-y-3 rounded-2xl border border-fg/10 bg-[rgb(var(--surface))] p-3 text-left shadow-2xl shadow-black/50"
+        >
+          {sections.map((section) => (
+            <div key={section.label}>
+              <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-fg/35">
+                {section.label}
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {section.sets.map((set) => (
+                  <button
+                    key={set.id}
+                    type="button"
+                    aria-pressed={trackGroupId === set.id}
+                    onClick={() =>
+                      pick(trackGroupId === set.id ? undefined : set)
+                    }
+                    className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors sm:px-2.5 sm:py-1 sm:text-[11px] ${
+                      trackGroupId === set.id
+                        ? 'bg-spotify-green/20 text-spotify-green'
+                        : 'bg-fg/5 text-fg/70 hover:bg-fg/10 hover:text-fg'
+                    }`}
+                  >
+                    {set.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </nav>
   );
 }

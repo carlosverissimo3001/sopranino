@@ -151,7 +151,7 @@ export function GuessInput({
                     : 'border border-fg/[0.08] bg-fg/[0.06] text-fg hover:bg-fg/10'
                 }`}
               >
-                <p className="line-clamp-2 text-sm font-semibold leading-tight sm:line-clamp-none sm:truncate sm:text-base sm:leading-normal">
+                <p className="truncate text-sm font-semibold sm:text-base">
                   {choice.name}
                 </p>
                 <p
