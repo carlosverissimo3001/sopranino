@@ -4,13 +4,14 @@ import { GameStateDto } from '../dto/game-state.dto';
 import { GameSessionEntity } from '../entities/game-session.entity';
 import { normalizeText } from '../../utils/text';
 import { GuessHistoryDto } from '../dto/guess/guess-history.dto';
-import { buildHintsForRound } from './hint-builder';
+import { buildHintsForRound, HintSet } from './hint-builder';
 import { TrackEntity } from '../../track/entities/track.entity';
 import { catalogueTrackUrl } from '../../utils/utils';
 
 export function mapToGameStateDto(
   game: GameSessionEntity,
   track: TrackEntity,
+  set?: HintSet,
 ): GameStateDto {
   const guesses = game.guesses as unknown as GuessHistoryDto[];
 
@@ -45,7 +46,7 @@ export function mapToGameStateDto(
         : undefined,
     hints:
       game.status === GameStatus.PLAYING
-        ? buildHintsForRound(track, game.currentRound)
+        ? buildHintsForRound(track, game.currentRound, set)
         : undefined,
   };
 }

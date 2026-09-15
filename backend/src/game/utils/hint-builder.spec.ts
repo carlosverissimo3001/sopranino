@@ -1,3 +1,4 @@
+import { TrackGroupType } from '@prisma/client';
 import { TrackEntity } from '../../track/entities/track.entity';
 import { HintType } from '../types';
 import { buildHintsForRound } from './hint-builder';
@@ -114,6 +115,64 @@ describe('buildHintsForRound', () => {
     it('offers nothing rather than an empty hint', () => {
       // Every tag was a giveaway, so the pill would have rendered blank.
       expect(genreValue(['Rihanna'])).toBeUndefined();
+    });
+  });
+
+  describe('in a set, hints do not repeat what the set says', () => {
+    const tagged = (tags: string[]) =>
+      track({
+        albumName: 'Talk That Talk',
+        metadata: { lastfm: { tags, playcount: 5_000 } },
+      } as Partial<TrackEntity>);
+    const hint = (
+      entity: TrackEntity,
+      type: HintType,
+      set?: { type: TrackGroupType; name: string },
+    ) => buildHintsForRound(entity, 5, set).find((h) => h.type === type);
+
+    it('gives the year rather than the decade in a decade set', () => {
+      const set = { type: TrackGroupType.DECADE, name: '2010s' };
+      expect(hint(track(), HintType.DECADE, set)).toMatchObject({
+        label: 'Year',
+        value: '2011',
+      });
+    });
+
+    it('keeps the decade outside a decade set', () => {
+      expect(hint(track(), HintType.DECADE)?.value).toBe('2010s');
+    });
+
+    it("drops the set's own genre from the tags", () => {
+      const set = { type: TrackGroupType.GENRE, name: 'Pop' };
+      expect(
+        hint(tagged(['pop', 'dance pop', 'electropop']), HintType.GENRE, set)
+          ?.value,
+      ).toBe('dance pop, electropop');
+    });
+
+    it('matches a genre set however the tag is spelled', () => {
+      const hipHop = { type: TrackGroupType.GENRE, name: 'Hip hop' };
+      expect(
+        hint(tagged(['Hip-Hop', 'rap', 'trap']), HintType.GENRE, hipHop)?.value,
+      ).toBe('trap');
+
+      const rnb = { type: TrackGroupType.GENRE, name: 'R&B & soul' };
+      expect(
+        hint(tagged(['rnb', 'soul', 'neo soul']), HintType.GENRE, rnb)?.value,
+      ).toBe('neo soul');
+    });
+
+    it('moves the next hint up when the genre is all the set already said', () => {
+      const set = { type: TrackGroupType.GENRE, name: 'Pop' };
+      const [first] = buildHintsForRound(tagged(['pop']), 1, set);
+      expect(first.type).toBe(HintType.DECADE);
+    });
+
+    it('leaves genre tags alone in other sets', () => {
+      const set = { type: TrackGroupType.ARTIST, name: 'Rihanna' };
+      expect(hint(tagged(['pop', 'dance']), HintType.GENRE, set)?.value).toBe(
+        'pop, dance',
+      );
     });
   });
 });

@@ -1,3 +1,4 @@
+import { TrackGroupType } from '@prisma/client';
 import { TrackMetadataVo } from '../../track/vo/track-metadata.vo';
 import { TrackEntity } from '../../track/entities/track.entity';
 import { getDecade } from 'date-fns';
@@ -6,12 +7,43 @@ import { HintDto } from '../dto/hint/hint.dto';
 import { HintType } from '../types';
 import { isDescriptiveTag } from '../../track/utils/lastfm-tags';
 
+/** The set a round is drawn from, when it is one. */
+export interface HintSet {
+  type: TrackGroupType;
+  name: string;
+}
+
 type HintProducer = (
   track: TrackEntity,
   metadata: TrackMetadataVo,
+  set?: HintSet,
 ) => Omit<HintDto, 'round'> | null;
 
-const genreHint: HintProducer = (track, metadata) => {
+const squash = (value: string) =>
+  normalizeTrackNameForMatch(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '');
+
+/** Tags that only say a genre set's name back, spelled the ways Last.fm spells them. */
+const GENRE_ALIASES: Record<string, string[]> = {
+  hiphop: ['rap'],
+  rb: ['rnb'],
+  soundtracks: ['soundtrack', 'ost', 'score'],
+  electronic: ['electronica'],
+};
+
+function genreSetTerms(name: string): Set<string> {
+  // Split on a spaced "&" only, so "R&B & soul" is "R&B" and "soul".
+  const terms = name
+    .split(/\s+&\s+|,|\s+and\s+/i)
+    .map(squash)
+    .filter(Boolean);
+  return new Set(
+    terms.flatMap((term) => [term, ...(GENRE_ALIASES[term] ?? [])]),
+  );
+}
+
+const genreHint: HintProducer = (track, metadata, set) => {
   const rawTags = metadata.lastfm?.tags;
   if (!rawTags?.length) {
     return null;
@@ -25,12 +57,15 @@ const genreHint: HintProducer = (track, metadata) => {
       normalizeTrackNameForMatch(v).toLowerCase(),
     ),
   );
+  const setTerms =
+    set?.type === TrackGroupType.GENRE ? genreSetTerms(set.name) : null;
   // Filtered here as well as on the way in, because tags are cached on the
   // track and the ones already stored were never checked.
   const tags = rawTags.filter(
     (t) =>
       isDescriptiveTag(t) &&
-      !forbidden.has(normalizeTrackNameForMatch(t).toLowerCase()),
+      !forbidden.has(normalizeTrackNameForMatch(t).toLowerCase()) &&
+      !setTerms?.has(squash(t)),
   );
 
   // Every tag was a giveaway, so there is no hint to give.
@@ -41,9 +76,17 @@ const genreHint: HintProducer = (track, metadata) => {
   return { type: HintType.GENRE, label: 'Genre', value: tags.join(', ') };
 };
 
-const decadeHint: HintProducer = (track) => {
+const decadeHint: HintProducer = (track, _metadata, set) => {
   if (!track.releaseYear) {
     return null;
+  }
+  // The player picked the decade, so the year is the part still worth knowing.
+  if (set?.type === TrackGroupType.DECADE) {
+    return {
+      type: HintType.DECADE,
+      label: 'Year',
+      value: `${track.releaseYear}`,
+    };
   }
   const decade = getDecade(new Date(track.releaseYear, 0, 1));
   return { type: HintType.DECADE, label: 'Decade', value: `${decade}s` };
@@ -99,6 +142,7 @@ const HINT_PRODUCERS: HintProducer[] = [
 export function buildHintsForRound(
   track: TrackEntity,
   currentRound: number,
+  set?: HintSet,
 ): HintDto[] {
   if (currentRound <= 0) {
     return [];
@@ -113,7 +157,7 @@ export function buildHintsForRound(
       break;
     }
 
-    const result = producer(track, metadata);
+    const result = producer(track, metadata, set);
     if (result) {
       revealedCount++;
       hints.push({ round: revealedCount, ...result });

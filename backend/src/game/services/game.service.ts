@@ -52,7 +52,7 @@ import {
   calculateNextState,
   evaluateGuess,
 } from '../utils/guess-evaluator';
-import { buildHintsForRound } from '../utils/hint-builder';
+import { buildHintsForRound, HintSet } from '../utils/hint-builder';
 import { buildShareText, guessToEmoji } from '../utils/share.utils';
 import {
   formatUtcDay,
@@ -436,7 +436,11 @@ export class GameService {
       throw new NotFoundException('Track not found or no preview URL');
     }
 
-    const state = mapToGameStateDto(game, { ...game.track, previewUrl });
+    const state = mapToGameStateDto(
+      game,
+      { ...game.track, previewUrl },
+      await this.hintSet(game.trackGroupId),
+    );
     const onLastRound =
       game.status === GameStatus.PLAYING &&
       game.currentRound === MAX_ROUNDS - 1;
@@ -515,7 +519,11 @@ export class GameService {
 
     const hints =
       !gameOver && game.track.previewUrl
-        ? buildHintsForRound(game.track, nextRound)
+        ? buildHintsForRound(
+            game.track,
+            nextRound,
+            await this.hintSet(game.trackGroupId),
+          )
         : undefined;
 
     return {
@@ -535,6 +543,14 @@ export class GameService {
   /**
    * Returns existing metadata if fresh (<30 days), otherwise fetches from Last.fm.
    */
+  /** The set a game draws from, for hints that should not repeat it. */
+  private async hintSet(trackGroupId?: string): Promise<HintSet | undefined> {
+    if (!trackGroupId) return undefined;
+    const { type, name } =
+      await this.trackGroupService.requireById(trackGroupId);
+    return { type, name };
+  }
+
   private async fetchOrReuseMetadata(
     trackId: string,
     trackName: string,

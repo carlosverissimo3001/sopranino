@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
-import { FameTier, GameMode, GameStatus } from '@prisma/client';
+import { FameTier, GameMode, GameStatus, TrackGroupType } from '@prisma/client';
 import { GameService } from './game.service';
 import { ChoiceService } from './choice.service';
 import { GuessResult, MAX_ROUNDS } from '../consts';
@@ -195,6 +195,31 @@ describe('GameService', () => {
       expect(result.sessionId).toBe(GAME_ID);
       expect(result.status).toBe(GameStatus.PLAYING);
       expect(result.previewUrl).toBe(mockTrack.previewUrl);
+    });
+
+    it("hints the year, not the decade, in a decade set's round", async () => {
+      mockAuthService.getUserBySessionId.mockResolvedValue({
+        id: OWNER_USER_ID,
+        isTrusted: false,
+      });
+      mockGameSessionRepository.findByIdWithTrack.mockResolvedValue({
+        ...makeGameSession({ currentRound: 2, trackGroupId: 'group-2020s' }),
+        track: { ...mockTrack, releaseYear: 2024, allArtists: ['Test Artist'] },
+      });
+      mockTrackGroupService.requireById.mockResolvedValue({
+        id: 'group-2020s',
+        type: TrackGroupType.DECADE,
+        name: '2020s',
+      });
+
+      const result = await service.getGameState(OWNER_SESSION_ID, GAME_ID);
+
+      expect(mockTrackGroupService.requireById).toHaveBeenCalledWith(
+        'group-2020s',
+      );
+      expect(result.hints).toContainEqual(
+        expect.objectContaining({ label: 'Year', value: '2024' }),
+      );
     });
 
     it('should fetch user and game+track in parallel', async () => {
