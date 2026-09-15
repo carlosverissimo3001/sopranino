@@ -129,6 +129,8 @@ export function SpeedRunSetup({
   ].filter((kind) => kind.groups?.length);
   const [kindLabel, setKindLabel] = useState<string | null>(null);
   const kind = kinds.find((k) => k.label === kindLabel) ?? kinds[0];
+  const wholePool =
+    selected?.source === StartRunDtoSourceEnum.Curated && !selected.id;
 
   const isRanked = selected?.source === StartRunDtoSourceEnum.Curated;
   const canStart = !!selected && !isStarting;
@@ -284,9 +286,13 @@ export function SpeedRunSetup({
                 kinds.map((k) => (
                   <button
                     key={k.label}
-                    onClick={() => setKindLabel(k.label)}
+                    onClick={() => {
+                      setKindLabel(k.label);
+                      // A kind is a step towards picking a set, not the pool.
+                      if (wholePool) setSelected(null);
+                    }}
                     className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide transition-colors ${
-                      kind?.label === k.label
+                      kind?.label === k.label && !wholePool
                         ? 'bg-orange-500/15 text-orange-300'
                         : 'text-fg/40 hover:text-fg/70'
                     }`}
@@ -300,8 +306,7 @@ export function SpeedRunSetup({
                   setSelected({ source: StartRunDtoSourceEnum.Curated })
                 }
                 className={`ml-auto inline-flex items-center gap-1 px-2.5 py-1 rounded-full border text-[10px] font-bold transition-colors ${
-                  selected?.source === StartRunDtoSourceEnum.Curated &&
-                  !selected.id
+                  wholePool
                     ? 'border-orange-500/60 bg-orange-500/15 text-orange-300'
                     : 'border-fg/10 text-fg/60 hover:border-fg/25 hover:text-fg'
                 }`}
