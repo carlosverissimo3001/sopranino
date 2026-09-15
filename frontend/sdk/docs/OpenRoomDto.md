@@ -12,6 +12,7 @@ Name | Type
 `capacity` | number
 `roundCount` | number
 `trackSource` | string
+`trackGroupName` | string
 
 ## Example
 
@@ -26,6 +27,7 @@ const example = {
   "capacity": null,
   "roundCount": null,
   "trackSource": null,
+  "trackGroupName": null,
 } satisfies OpenRoomDto
 
 console.log(example)

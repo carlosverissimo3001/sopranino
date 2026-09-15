@@ -82,6 +82,18 @@ export interface RoomDto {
      */
     trackSource: RoomDtoTrackSourceEnum;
     /**
+     * The set a set room draws from
+     * @type {string}
+     * @memberof RoomDto
+     */
+    trackGroupId?: string;
+    /**
+     * That set`s name, for the lobby to show
+     * @type {string}
+     * @memberof RoomDto
+     */
+    trackGroupName?: string;
+    /**
      * 
      * @type {Array<RoomPlayerDto>}
      * @memberof RoomDto
@@ -124,7 +136,8 @@ export type RoomDtoStatusEnum = typeof RoomDtoStatusEnum[keyof typeof RoomDtoSta
  */
 export const RoomDtoTrackSourceEnum = {
     Pool: 'POOL',
-    Libraries: 'LIBRARIES'
+    Libraries: 'LIBRARIES',
+    Set: 'SET'
 } as const;
 export type RoomDtoTrackSourceEnum = typeof RoomDtoTrackSourceEnum[keyof typeof RoomDtoTrackSourceEnum];
 
@@ -166,6 +179,8 @@ export function RoomDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean): R
         'roundCount': json['roundCount'],
         'status': json['status'],
         'trackSource': json['trackSource'],
+        'trackGroupId': json['trackGroupId'] == null ? undefined : json['trackGroupId'],
+        'trackGroupName': json['trackGroupName'] == null ? undefined : json['trackGroupName'],
         'players': ((json['players'] as Array<any>).map(RoomPlayerDtoFromJSON)),
         'createdAt': (new Date(json['createdAt'])),
         'startedAt': json['startedAt'] == null ? undefined : (new Date(json['startedAt'])),
@@ -193,6 +208,8 @@ export function RoomDtoToJSONTyped(value?: RoomDto | null, ignoreDiscriminator: 
         'roundCount': value['roundCount'],
         'status': value['status'],
         'trackSource': value['trackSource'],
+        'trackGroupId': value['trackGroupId'],
+        'trackGroupName': value['trackGroupName'],
         'players': ((value['players'] as Array<any>).map(RoomPlayerDtoToJSON)),
         'createdAt': value['createdAt'].toISOString(),
         'startedAt': value['startedAt'] == null ? value['startedAt'] : value['startedAt'].toISOString(),

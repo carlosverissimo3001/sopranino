@@ -7,6 +7,7 @@
 Name | Type
 ------------ | -------------
 `trackSource` | string
+`trackGroupId` | string
 
 ## Example
 
@@ -16,6 +17,7 @@ import type { SetTrackSourceDto } from ''
 // TODO: Update the object below with actual values
 const example = {
   "trackSource": null,
+  "trackGroupId": null,
 } satisfies SetTrackSourceDto
 
 console.log(example)

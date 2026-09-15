@@ -50,11 +50,17 @@ export interface OpenRoomDto {
      */
     roundCount: number;
     /**
-     * Whether it draws on the curated pool or on linked libraries
+     * Whether it draws on the curated pool, a set or linked libraries
      * @type {string}
      * @memberof OpenRoomDto
      */
     trackSource: OpenRoomDtoTrackSourceEnum;
+    /**
+     * The set it draws from, unless that set is private
+     * @type {string}
+     * @memberof OpenRoomDto
+     */
+    trackGroupName?: string;
 }
 
 
@@ -63,7 +69,8 @@ export interface OpenRoomDto {
  */
 export const OpenRoomDtoTrackSourceEnum = {
     Pool: 'POOL',
-    Libraries: 'LIBRARIES'
+    Libraries: 'LIBRARIES',
+    Set: 'SET'
 } as const;
 export type OpenRoomDtoTrackSourceEnum = typeof OpenRoomDtoTrackSourceEnum[keyof typeof OpenRoomDtoTrackSourceEnum];
 
@@ -97,6 +104,7 @@ export function OpenRoomDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean
         'capacity': json['capacity'],
         'roundCount': json['roundCount'],
         'trackSource': json['trackSource'],
+        'trackGroupName': json['trackGroupName'] == null ? undefined : json['trackGroupName'],
     };
 }
 
@@ -117,6 +125,7 @@ export function OpenRoomDtoToJSONTyped(value?: OpenRoomDto | null, ignoreDiscrim
         'capacity': value['capacity'],
         'roundCount': value['roundCount'],
         'trackSource': value['trackSource'],
+        'trackGroupName': value['trackGroupName'],
     };
 }
 

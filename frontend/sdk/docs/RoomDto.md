@@ -15,6 +15,8 @@ Name | Type
 `roundCount` | number
 `status` | string
 `trackSource` | string
+`trackGroupId` | string
+`trackGroupName` | string
 `players` | [Array&lt;RoomPlayerDto&gt;](RoomPlayerDto.md)
 `createdAt` | Date
 `startedAt` | Date
@@ -36,6 +38,8 @@ const example = {
   "roundCount": null,
   "status": null,
   "trackSource": null,
+  "trackGroupId": null,
+  "trackGroupName": null,
   "players": null,
   "createdAt": null,
   "startedAt": null,
