@@ -233,9 +233,7 @@ export function GameRoundView({
             ) : (
               <div
                 key={`guess-${roundKey}`}
-                // Held at the height of the last round's four choices on a
-                // phone, which are taller than the search box.
-                className="sticky bottom-0 z-20 order-last -mx-3 mt-auto flex min-h-[14rem] flex-col bg-[rgb(var(--bg))] px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:relative sm:order-none sm:mx-0 sm:mt-0 sm:block sm:min-h-0 sm:bg-transparent sm:p-0"
+                className="sticky bottom-0 z-20 order-last -mx-3 mt-auto bg-[rgb(var(--bg))] px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:relative sm:order-none sm:mx-0 sm:mt-0 sm:bg-transparent sm:p-0"
               >
                 <GuessInput
                   pinned
