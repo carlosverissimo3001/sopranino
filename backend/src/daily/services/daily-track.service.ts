@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { FameTier } from '@prisma/client';
 import { PoolService } from '../../pool/services/pool.service';
 import { TrackService } from '../../track/services/track.service';
 import { TrackEntity } from '../../track/entities/track.entity';
@@ -8,6 +9,7 @@ import { DailyTrackRepository } from '../repositories/daily-track.repository';
 import { addDays, startOfDay, subDays } from 'date-fns';
 import { TZDate } from '@date-fns/tz';
 import {
+  DAILY_TRACK_EASY_SHARE,
   DAILY_TRACK_EXCLUSION_DAYS,
   DAILY_TRACK_PICK_ATTEMPTS,
 } from '../consts';
@@ -75,9 +77,13 @@ export class DailyTrackService {
       subDays(day, DAILY_TRACK_EXCLUSION_DAYS),
     );
     const tried = [...recent];
+    const tier =
+      Math.random() < DAILY_TRACK_EASY_SHARE ? FameTier.EASY : FameTier.MEDIUM;
 
     for (let attempt = 0; attempt < DAILY_TRACK_PICK_ATTEMPTS; attempt++) {
-      const track = await this.poolService.pickTrack(tried);
+      const track = await this.poolService.pickTrack(tried, undefined, {
+        tier,
+      });
       try {
         const previewUrl = await this.trackService.resolvePreview(track);
         if (previewUrl) {

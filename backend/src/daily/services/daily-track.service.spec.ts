@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
+import { FameTier } from '@prisma/client';
 import { DailyTrackService } from './daily-track.service';
 import { DailyTrackRepository } from '../repositories/daily-track.repository';
 import { PoolService } from '../../pool/services/pool.service';
@@ -100,7 +101,11 @@ describe('DailyTrackService', () => {
       expect(repository.claimDay).toHaveBeenCalledTimes(1);
       expect(repository.claimDay).toHaveBeenCalledWith(day, 'dz:playable');
       // The dead one is not offered again on the retry.
-      expect(poolService.pickTrack).toHaveBeenLastCalledWith(['dz:silent']);
+      expect(poolService.pickTrack).toHaveBeenLastCalledWith(
+        ['dz:silent'],
+        undefined,
+        expect.anything(),
+      );
     });
 
     it('gives up rather than committing a day nobody can play', async () => {
@@ -126,10 +131,31 @@ describe('DailyTrackService', () => {
       const daysBack =
         (day.getTime() - since.getTime()) / (24 * 60 * 60 * 1000);
       expect(daysBack).toBe(DAILY_TRACK_EXCLUSION_DAYS);
-      expect(poolService.pickTrack).toHaveBeenCalledWith([
-        'dz:heard',
-        'dz:also',
-      ]);
+      expect(poolService.pickTrack).toHaveBeenCalledWith(
+        ['dz:heard', 'dz:also'],
+        undefined,
+        expect.anything(),
+      );
+    });
+
+    it.each([
+      [0.1, FameTier.EASY],
+      [0.9, FameTier.MEDIUM],
+    ])('draws a %s roll from %s', async (roll, tier) => {
+      repository.findTrackIdForDay
+        .mockResolvedValueOnce(null)
+        .mockResolvedValue('dz:fresh');
+      repository.trackIdsSince.mockResolvedValue([]);
+      poolService.pickTrack.mockResolvedValue(track('dz:fresh'));
+      trackService.resolvePreview.mockResolvedValue('https://audio');
+      const random = jest.spyOn(Math, 'random').mockReturnValue(roll);
+
+      await service.trackForDay(day);
+
+      expect(poolService.pickTrack).toHaveBeenCalledWith([], undefined, {
+        tier,
+      });
+      random.mockRestore();
     });
   });
 
