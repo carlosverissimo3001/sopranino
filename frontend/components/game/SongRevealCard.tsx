@@ -4,7 +4,7 @@ import { useState, type ReactNode } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowUpRight, Music, Pause, Play } from 'lucide-react';
+import { ArrowUpRight, Check, Music, Pause, Play, X } from 'lucide-react';
 import { GameStateDtoStatusEnum } from '@/sdk/models/GameStateDto';
 import type { TrackOptionDto } from '@/sdk';
 import { ShareButton } from '@/components/daily/ShareButton';
@@ -64,9 +64,10 @@ export function SongRevealCard({
 
   const verdict = isWon
     ? tries
-      ? `You got it in ${tries} ${tries === 1 ? 'try' : 'tries'}`
-      : 'You got it'
-    : 'The song was';
+      ? `Got it in ${tries} ${tries === 1 ? 'try' : 'tries'}`
+      : 'Got it'
+    : 'Not this time';
+  const Verdict = isWon ? Check : X;
 
   return (
     <motion.div
@@ -74,7 +75,13 @@ export function SongRevealCard({
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
       className="mb-3 overflow-hidden rounded-2xl md:mb-4"
-      style={GLASS_STYLE}
+      style={{
+        ...GLASS_STYLE,
+        background: isWon ? 'rgb(29 185 84 / 0.12)' : 'rgb(239 68 68 / 0.10)',
+        border: isWon
+          ? '1px solid rgb(29 185 84 / 0.45)'
+          : '1px solid rgb(239 68 68 / 0.40)',
+      }}
     >
       <div className="flex flex-col items-center gap-4 p-5 text-center sm:flex-row sm:items-center sm:gap-6 sm:p-6 sm:text-left">
         <motion.div
@@ -114,8 +121,9 @@ export function SongRevealCard({
         <div className="flex w-full min-w-0 flex-1 flex-col items-center gap-3 sm:w-auto sm:items-start">
           <div className="w-full min-w-0">
             <p
-              className={`text-sm font-bold ${isWon ? 'text-spotify-green' : 'text-fg/50'}`}
+              className={`flex items-center justify-center gap-1.5 text-sm font-black uppercase tracking-wide sm:justify-start ${isWon ? 'text-spotify-green' : 'text-red-400'}`}
             >
+              <Verdict className="h-4 w-4" strokeWidth={3} aria-hidden />
               {verdict}
             </p>
             {rankTitle && (
