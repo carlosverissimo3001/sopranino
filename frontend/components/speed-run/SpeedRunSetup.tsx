@@ -4,7 +4,15 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, ListMusic, Trophy, Zap, Check, ArrowLeft } from 'lucide-react';
+import {
+  Flame,
+  ListMusic,
+  Shuffle,
+  Trophy,
+  Zap,
+  Check,
+  ArrowLeft,
+} from 'lucide-react';
 import { useMyPlaylists } from '@/hooks/playlists/useMyPlaylists';
 import { useMe } from '@/hooks/auth/useMe';
 import { useTrackGroups } from '@/hooks/track-groups/useTrackGroups';
@@ -109,10 +117,12 @@ export function SpeedRunSetup({
   // One kind per query, since that is what the endpoint takes. A kind with no
   // groups drops out, so genres cost nothing until the pool has any and the
   // picker needs no change when it does — a new kind is one line here.
+  const { data: artists } = useTrackGroups(TrackGroupDtoTypeEnum.Artist);
   const { data: decades } = useTrackGroups(TrackGroupDtoTypeEnum.Decade);
   const { data: genres } = useTrackGroups(TrackGroupDtoTypeEnum.Genre);
   const { data: charts } = useTrackGroups(TrackGroupDtoTypeEnum.Chart);
   const kinds = [
+    { label: 'Artists', groups: artists },
     { label: 'Decades', groups: decades },
     { label: 'Genres', groups: genres },
     { label: 'Charts', groups: charts },
@@ -269,9 +279,9 @@ export function SpeedRunSetup({
           </div>
         ) : tab === StartRunDtoSourceEnum.Curated ? (
           <div className="space-y-2">
-            {kinds.length > 1 && (
-              <div className="flex gap-1.5">
-                {kinds.map((k) => (
+            <div className="flex items-center gap-1.5">
+              {kinds.length > 1 &&
+                kinds.map((k) => (
                   <button
                     key={k.label}
                     onClick={() => setKindLabel(k.label)}
@@ -284,16 +294,23 @@ export function SpeedRunSetup({
                     {k.label}
                   </button>
                 ))}
-              </div>
-            )}
-            <div className={GRID}>
-              <SourceTile
-                name="Everything"
-                isSelected={!!selected && !selected.id}
-                onSelect={() =>
+              {/* Once, beside the kinds: as a tile it repeated in every one. */}
+              <button
+                onClick={() =>
                   setSelected({ source: StartRunDtoSourceEnum.Curated })
                 }
-              />
+                className={`ml-auto inline-flex items-center gap-1 px-2.5 py-1 rounded-full border text-[10px] font-bold transition-colors ${
+                  selected?.source === StartRunDtoSourceEnum.Curated &&
+                  !selected.id
+                    ? 'border-orange-500/60 bg-orange-500/15 text-orange-300'
+                    : 'border-fg/10 text-fg/60 hover:border-fg/25 hover:text-fg'
+                }`}
+              >
+                <Shuffle className="w-3 h-3" />
+                Everything
+              </button>
+            </div>
+            <div className={GRID}>
               {kind?.groups?.map((group) => (
                 <SourceTile
                   key={group.id}
