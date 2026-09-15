@@ -86,7 +86,7 @@ export function ShuffleModeNav({
   return (
     <nav
       aria-label="Game modes"
-      className="flex flex-wrap justify-center gap-1.5"
+      className="relative flex flex-wrap justify-center gap-1.5"
     >
       <button
         type="button"
@@ -98,7 +98,9 @@ export function ShuffleModeNav({
         All songs
       </button>
 
-      <div ref={panelRef} className="relative">
+      {/* Not relative: the panel hangs from the whole row, since centred on a
+          pill left of centre it ran off the edge of a phone. */}
+      <div ref={panelRef}>
         <button
           type="button"
           aria-expanded={setsOpen}
@@ -117,7 +119,7 @@ export function ShuffleModeNav({
           <div
             role="dialog"
             aria-label="Pick a set"
-            className="absolute left-1/2 top-full z-40 mt-2 w-[min(22rem,calc(100vw-3rem))] -translate-x-1/2 space-y-3 rounded-2xl border border-fg/10 bg-[rgb(var(--surface))] p-3 text-left shadow-2xl shadow-black/50"
+            className="absolute inset-x-0 top-full z-40 mx-auto mt-2 w-full max-w-[22rem] space-y-3 rounded-2xl border border-fg/10 bg-[rgb(var(--surface))] p-3 text-left shadow-2xl shadow-black/50"
           >
             {sections.map((section) => (
               <div key={section.label}>
