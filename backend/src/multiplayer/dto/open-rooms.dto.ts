@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { TrackSource } from '@prisma/client';
 
 export class OpenRoomDto {
@@ -18,10 +18,16 @@ export class OpenRoomDto {
   roundCount: number;
 
   @ApiProperty({
-    description: 'Whether it draws on the curated pool or on linked libraries',
+    description:
+      'Whether it draws on the curated pool, a set or linked libraries',
     enum: TrackSource,
   })
   trackSource: TrackSource;
+
+  @ApiPropertyOptional({
+    description: 'The set it draws from, unless that set is private',
+  })
+  trackGroupName?: string;
 }
 
 export class OpenRoomsDto {

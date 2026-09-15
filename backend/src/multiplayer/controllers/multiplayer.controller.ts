@@ -113,7 +113,7 @@ export class MultiplayerController {
     @Param('id') id: string,
     @Body() dto: SetTrackSourceDto,
   ): Promise<RoomDto> {
-    return this.roomService.setTrackSource(sessionId, id, dto.trackSource);
+    return this.roomService.setTrackSource(sessionId, id, dto);
   }
 
   @Patch('rooms/:id/settings')

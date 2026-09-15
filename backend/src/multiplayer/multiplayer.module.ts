@@ -5,6 +5,7 @@ import { AuthModule } from '../auth/auth.module';
 import { PlaylistModule } from '../playlist/playlist.module';
 import { TrackModule } from '../track/track.module';
 import { PoolModule } from '../pool/pool.module';
+import { TrackGroupModule } from '../track-group/track-group.module';
 import { MultiplayerController } from './controllers/multiplayer.controller';
 import { RoomService } from './services/room.service';
 import { MultiplayerGameService } from './services/multiplayer-game.service';
@@ -21,6 +22,7 @@ import { RoomConsumer } from './consumers/room.consumer';
     PlaylistModule,
     TrackModule,
     PoolModule,
+    TrackGroupModule,
     BullModule.registerQueue({
       name: ROOM_CLEANUP_QUEUE,
       defaultJobOptions: JOB_OPTIONS_WITH_BACKOFF,

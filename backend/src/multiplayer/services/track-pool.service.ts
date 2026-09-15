@@ -47,13 +47,27 @@ export class TrackPoolService {
    * @param roundCount - Number of tracks to select
    * @returns Array of trackIds
    */
-  async selectTracksForRoom(
-    playerUserIds: string[],
-    roundCount: number,
-    trackSource: TrackSource = TrackSource.POOL,
-  ): Promise<string[]> {
+  async selectTracksForRoom({
+    playerUserIds,
+    roundCount,
+    trackSource = TrackSource.POOL,
+    trackGroupId,
+  }: {
+    playerUserIds: string[];
+    roundCount: number;
+    trackSource?: TrackSource;
+    /** Required for a set; ignored otherwise. */
+    trackGroupId?: string;
+  }): Promise<string[]> {
     if (trackSource === TrackSource.POOL) {
       return this.selectFromCuratedPool(roundCount);
+    }
+
+    if (trackSource === TrackSource.SET) {
+      if (!trackGroupId) {
+        throw new BadRequestException('This room has no set to play from');
+      }
+      return this.selectFromCuratedPool(roundCount, trackGroupId);
     }
 
     // Only the players who have a library can contribute one. A guest in the
@@ -97,14 +111,20 @@ export class TrackPoolService {
    * Draws from the committed pool, which is local, so a room with a guest in it
    * costs nothing upstream to start.
    */
-  async selectFromCuratedPool(roundCount: number): Promise<string[]> {
+  async selectFromCuratedPool(
+    roundCount: number,
+    trackGroupId?: string,
+  ): Promise<string[]> {
     const trackIds: string[] = [];
 
     for (let i = 0; i < roundCount; i++) {
       try {
         // A copy: the same array is passed on every draw, and the callee
         // holding onto it would let one round rewrite the next.
-        const track = await this.poolService.pickTrack([...trackIds]);
+        const track = await this.poolService.pickTrack(
+          [...trackIds],
+          trackGroupId,
+        );
         trackIds.push(track.id);
       } catch (err) {
         this.logger.warn(

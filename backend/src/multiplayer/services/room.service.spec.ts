@@ -4,7 +4,8 @@ import {
   BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
-import { RoomStatus, TrackSource } from '@prisma/client';
+import { RoomStatus, TrackGroupType, TrackSource } from '@prisma/client';
+import { TrackGroupService } from '../../track-group/services/track-group.service';
 import { RoomService } from './room.service';
 import { RoomRepository } from '../repositories/room.repository';
 import { AuthService } from '../../auth/services/auth.service';
@@ -39,6 +40,8 @@ describe('RoomService', () => {
     findable: true,
     status: RoomStatus.WAITING,
     trackSource: TrackSource.POOL,
+    trackGroupId: null,
+    trackGroup: null,
     trackIds: [],
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -85,6 +88,8 @@ describe('RoomService', () => {
 
   const mockPresence = { onlineUserIds: jest.fn().mockResolvedValue([]) };
 
+  const mockTrackGroupService = { requireById: jest.fn() };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -94,6 +99,7 @@ describe('RoomService', () => {
         { provide: TrackPoolService, useValue: mockTrackPoolService },
         { provide: RoomsGateway, useValue: mockRoomsGateway },
         { provide: RoomPresenceService, useValue: mockPresence },
+        { provide: TrackGroupService, useValue: mockTrackGroupService },
       ],
     }).compile();
 
@@ -161,6 +167,27 @@ describe('RoomService', () => {
         roundCount: 5,
         trackSource: TrackSource.POOL,
       });
+    });
+
+    it("names a set room's set, but not a private one", async () => {
+      mockRoomRepository.findFindableWaiting.mockResolvedValue([
+        makeRoom({
+          id: 'room-artist',
+          trackSource: TrackSource.SET,
+          trackGroup: { name: 'Taylor Swift', type: TrackGroupType.ARTIST },
+        }),
+        makeRoom({
+          id: 'room-special',
+          trackSource: TrackSource.SET,
+          trackGroup: { name: 'Private', type: TrackGroupType.SPECIAL },
+        }),
+      ]);
+      mockPresence.onlineUserIds.mockResolvedValue([HOST_USER_ID]);
+
+      const [artist, special] = await service.listOpenRooms();
+
+      expect(artist.trackGroupName).toBe('Taylor Swift');
+      expect(special.trackGroupName).toBeUndefined();
     });
 
     // A room is WAITING from the moment it is made, so status alone would
@@ -649,11 +676,9 @@ describe('RoomService', () => {
         makeRoom({ trackSource: TrackSource.LIBRARIES }),
       );
 
-      const result = await service.setTrackSource(
-        HOST_SESSION,
-        ROOM_ID,
-        TrackSource.LIBRARIES,
-      );
+      const result = await service.setTrackSource(HOST_SESSION, ROOM_ID, {
+        trackSource: TrackSource.LIBRARIES,
+      });
 
       expect(result.trackSource).toBe(TrackSource.LIBRARIES);
     });
@@ -667,11 +692,9 @@ describe('RoomService', () => {
         makeRoom({ trackSource: TrackSource.LIBRARIES }),
       );
 
-      await service.setTrackSource(
-        HOST_SESSION,
-        ROOM_ID,
-        TrackSource.LIBRARIES,
-      );
+      await service.setTrackSource(HOST_SESSION, ROOM_ID, {
+        trackSource: TrackSource.LIBRARIES,
+      });
 
       expect(mockRoomsGateway.emitRoomUpdate).toHaveBeenCalledWith(
         ROOM_ID,
@@ -686,8 +709,96 @@ describe('RoomService', () => {
       mockRoomRepository.findById.mockResolvedValue(makeRoom());
 
       await expect(
-        service.setTrackSource(HOST_SESSION, ROOM_ID, TrackSource.LIBRARIES),
+        service.setTrackSource(HOST_SESSION, ROOM_ID, {
+          trackSource: TrackSource.LIBRARIES,
+        }),
       ).rejects.toThrow('Only the host can change the song source');
+    });
+
+    it('lets the host pick a set, and tells the room which', async () => {
+      mockAuthService.getUserBySessionId.mockResolvedValue({
+        id: HOST_USER_ID,
+      });
+      mockRoomRepository.findById.mockResolvedValue(makeRoom());
+      mockTrackGroupService.requireById.mockResolvedValue({
+        id: 'set-taylor',
+        type: TrackGroupType.ARTIST,
+        name: 'Taylor Swift',
+      });
+      mockRoomRepository.setTrackSource.mockResolvedValue(
+        makeRoom({
+          trackSource: TrackSource.SET,
+          trackGroupId: 'set-taylor',
+          trackGroup: { name: 'Taylor Swift', type: TrackGroupType.ARTIST },
+        }),
+      );
+
+      const result = await service.setTrackSource(HOST_SESSION, ROOM_ID, {
+        trackSource: TrackSource.SET,
+        trackGroupId: 'set-taylor',
+      });
+
+      expect(mockRoomRepository.setTrackSource).toHaveBeenCalledWith(ROOM_ID, {
+        trackSource: TrackSource.SET,
+        trackGroupId: 'set-taylor',
+      });
+      expect(result).toMatchObject({
+        trackGroupId: 'set-taylor',
+        trackGroupName: 'Taylor Swift',
+      });
+    });
+
+    it('needs a set to be named when the source is a set', async () => {
+      mockAuthService.getUserBySessionId.mockResolvedValue({
+        id: HOST_USER_ID,
+      });
+      mockRoomRepository.findById.mockResolvedValue(makeRoom());
+
+      await expect(
+        service.setTrackSource(HOST_SESSION, ROOM_ID, {
+          trackSource: TrackSource.SET,
+        }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('will not pick a private set the host cannot see', async () => {
+      mockAuthService.getUserBySessionId.mockResolvedValue({
+        id: HOST_USER_ID,
+        isTrusted: false,
+      });
+      mockRoomRepository.findById.mockResolvedValue(makeRoom());
+      mockTrackGroupService.requireById.mockResolvedValue({
+        id: 'set-special',
+        type: TrackGroupType.SPECIAL,
+        name: 'Private',
+      });
+
+      await expect(
+        service.setTrackSource(HOST_SESSION, ROOM_ID, {
+          trackSource: TrackSource.SET,
+          trackGroupId: 'set-special',
+        }),
+      ).rejects.toThrow(NotFoundException);
+      expect(mockRoomRepository.setTrackSource).not.toHaveBeenCalled();
+    });
+
+    it('forgets the set when the host goes back to the pool', async () => {
+      mockAuthService.getUserBySessionId.mockResolvedValue({
+        id: HOST_USER_ID,
+      });
+      mockRoomRepository.findById.mockResolvedValue(makeRoom());
+      mockRoomRepository.setTrackSource.mockResolvedValue(makeRoom());
+
+      await service.setTrackSource(HOST_SESSION, ROOM_ID, {
+        trackSource: TrackSource.POOL,
+        trackGroupId: 'set-taylor',
+      });
+
+      expect(mockRoomRepository.setTrackSource).toHaveBeenCalledWith(ROOM_ID, {
+        trackSource: TrackSource.POOL,
+        trackGroupId: null,
+      });
+      expect(mockTrackGroupService.requireById).not.toHaveBeenCalled();
     });
 
     it('refuses once the game is under way', async () => {
@@ -699,7 +810,9 @@ describe('RoomService', () => {
       );
 
       await expect(
-        service.setTrackSource(HOST_SESSION, ROOM_ID, TrackSource.LIBRARIES),
+        service.setTrackSource(HOST_SESSION, ROOM_ID, {
+          trackSource: TrackSource.LIBRARIES,
+        }),
       ).rejects.toThrow('The game has already started');
     });
   });
@@ -724,11 +837,12 @@ describe('RoomService', () => {
       const result = await service.startGame(HOST_SESSION, ROOM_ID);
 
       expect(result.status).toBe(RoomStatus.PLAYING);
-      expect(mockTrackPoolService.selectTracksForRoom).toHaveBeenCalledWith(
-        [HOST_USER_ID],
-        5,
-        TrackSource.POOL,
-      );
+      expect(mockTrackPoolService.selectTracksForRoom).toHaveBeenCalledWith({
+        playerUserIds: [HOST_USER_ID],
+        roundCount: 5,
+        trackSource: TrackSource.POOL,
+        trackGroupId: undefined,
+      });
       expect(mockRoomRepository.updateStatus).toHaveBeenCalledWith(
         ROOM_ID,
         RoomStatus.PLAYING,
