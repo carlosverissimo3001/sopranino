@@ -4,7 +4,10 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { ShuffleGamePage } from '@/components/game/ShuffleGamePage';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { useTrackGroupBySlug } from '@/hooks/track-groups/useTrackGroups';
+import {
+  isNotFound,
+  useTrackGroupBySlug,
+} from '@/hooks/track-groups/useTrackGroups';
 import { groupHasFameTiers } from '@/lib/fame-tier';
 import { useMe } from '@/hooks/auth/useMe';
 import { setAuthReturnUrl } from '@/lib/auth-return';
@@ -19,10 +22,16 @@ export function GroupGameClient({ heading }: { heading?: string }) {
   // By slug rather than by searching a list: the list is one kind of group at
   // a time, so a special one was never in the one this page happened to ask
   // for.
-  const { data: group, isPending } = useTrackGroupBySlug(slug);
-  const { data: user, isPending: userPending } = useMe();
+  const { data: group, isPending, error, refetch } = useTrackGroupBySlug(slug);
+  const {
+    data: user,
+    isPending: userPending,
+    error: userError,
+    refetch: refetchUser,
+  } = useMe();
+  const missing = isNotFound(error);
 
-  if (isPending || (!group && userPending)) {
+  if (isPending || (missing && userPending)) {
     return (
       <main className="min-h-screen flex items-center justify-center">
         <LoadingSpinner size="md" />
@@ -33,6 +42,33 @@ export function GroupGameClient({ heading }: { heading?: string }) {
   // A special set is only there for a linked account, so whoever it was made
   // for may simply not be signed in on this device. Every missing slug says
   // this to them, so it gives away nothing about which ones exist.
+  // Only a real "no such set", and only once we know who is asking: a failed
+  // request is not a reason to sign in.
+  if ((error && !missing) || (missing && userError)) {
+    return (
+      <main className="min-h-screen flex flex-col items-center justify-center gap-5 px-6 text-center">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-2xl font-black tracking-tight text-fg">
+            Could not load this collection
+          </h1>
+          <p className="max-w-sm text-sm text-fg/50">
+            Check your connection and try again.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            void refetch();
+            if (userError) void refetchUser();
+          }}
+          className="rounded-full bg-spotify-green px-6 py-3 text-sm font-bold text-black transition hover:brightness-110"
+        >
+          Try again
+        </button>
+      </main>
+    );
+  }
+
   if (!group && !user?.hasLinkedAccount) {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center gap-5 px-6 text-center">
