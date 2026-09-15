@@ -8,8 +8,12 @@ export const THROTTLE_DEMO = 'demo';
 /** Sliding window duration in milliseconds (1 minute) */
 export const THROTTLE_TTL = 60_000;
 
-/** Max guesses per minute per session */
-export const THROTTLE_GUESS_LIMIT = 20;
+/**
+ * Max guesses per minute per session, shared by solo rounds, speed runs and
+ * rooms. A guess a second: a speed run spends one per song, and a round is
+ * capped at six guesses anyway.
+ */
+export const THROTTLE_GUESS_LIMIT = 60;
 /** Max search requests per minute per session */
 export const THROTTLE_SEARCH_LIMIT = 60;
 
