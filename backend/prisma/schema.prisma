@@ -326,7 +326,7 @@ model UserPreference {
   showAlbumHint     Boolean @default(true) @map("show_album_hint")
   showTextHints     Boolean @default(true) @map("show_text_hints")
   showGuessHistory  Boolean @default(true) @map("show_guess_history")
-  showStatsToOthers Boolean @default(false) @map("show_stats_to_others")
+  showStatsToOthers Boolean @default(true) @map("show_stats_to_others")
   timezone          String  @default("UTC") @map("timezone")
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
