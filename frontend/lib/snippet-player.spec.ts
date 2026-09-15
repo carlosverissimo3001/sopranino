@@ -252,6 +252,22 @@ describe('SnippetPlayer', () => {
       expect(p.position()).toBeNull();
     });
 
+    it('carries on from a snippet still playing, without a fade to dip through', async () => {
+      const p = player();
+      await p.load('https://cdn/preview.mp3');
+      harness.context.currentTime = 50;
+      p.play(12);
+      harness.context.currentTime = 54;
+
+      p.playFull(p.position() ?? undefined, { continuing: true });
+
+      expect(harness.sources[1].start).toHaveBeenCalledWith(0, 4, 26);
+      const rampIn = harness.gain.gain.linearRampToValueAtTime.mock.calls.find(
+        ([value, at]) => value > 0 && at > 54,
+      );
+      expect(rampIn?.[1]).toBeLessThan(54.02);
+    });
+
     it('will not play before anything is decoded', () => {
       expect(player().playFull()).toBe(false);
     });

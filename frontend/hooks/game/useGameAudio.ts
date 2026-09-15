@@ -472,6 +472,16 @@ export function useGameAudio({
 
     let cleanupReveal: (() => void) | undefined;
 
+    // A snippet still sounding carries on into the song instead of jumping back,
+    // whichever path played it: the element's clock is the file's own. Read
+    // before the element is stopped below.
+    const element = audioRef.current;
+    const sounding =
+      snippetRef.current.position() ??
+      (element && !element.paused && element.currentTime > 0
+        ? element.currentTime
+        : null);
+
     if (requestRef.current) {
       cancelAnimationFrame(requestRef.current);
       requestRef.current = null;
@@ -486,7 +496,12 @@ export function useGameAudio({
     // Web Audio to a media element halfway through the moment.
     const player = snippetRef.current;
     fullSongPositionRef.current = null;
-    if (player.isReady && player.playFull()) {
+    if (
+      player.isReady &&
+      player.playFull(sounding ?? undefined, {
+        continuing: sounding !== null,
+      })
+    ) {
       revealPlayedForRef.current = previewUrl;
       holdAudioSession();
       fullSongOnBufferRef.current = true;

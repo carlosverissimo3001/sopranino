@@ -276,7 +276,11 @@ export class SnippetPlayer {
    * from `from` to resume. The same decoded buffer, so nothing is fetched and
    * iOS never switches audio paths between the last snippet and the song.
    */
-  playFull(from?: number): boolean {
+  playFull(
+    from?: number,
+    /** Picking up a snippet still sounding: a fade in would be a dip. */
+    { continuing = false }: { continuing?: boolean } = {},
+  ): boolean {
     const buffer = this.buffer;
     if (!buffer) {
       return false;
@@ -285,7 +289,7 @@ export class SnippetPlayer {
     return this.start({
       from: start,
       seconds: buffer.duration - start,
-      fadeIn: REVEAL_FADE_SECONDS,
+      fadeIn: continuing ? EDGE_FADE_SECONDS : REVEAL_FADE_SECONDS,
     });
   }
 
