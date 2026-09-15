@@ -16,6 +16,7 @@ import {
   Shuffle,
 } from 'lucide-react';
 import { usePlayedToday } from '@/hooks/game/usePlayedToday';
+import { useStreakStatus } from '@/hooks/streak/useStreakStatus';
 import { DailyChallengeCountdown } from './DailyChallangeCountdown';
 import { usePersonalBest } from '@/hooks/speed-run/useSpeedRunPersonalBest';
 import { JoinRoomModal } from '@/components/multiplayer/JoinRoomModal';
@@ -35,8 +36,10 @@ const modeGlow: Record<string, string> = {
 function DailyCardContent() {
   const { data: playedTodayData, isLoading: playedTodayLoading } =
     usePlayedToday();
+  const { data: streak } = useStreakStatus();
   const playedToday = playedTodayData?.playedToday ?? false;
   const showAsPlayed = playedTodayLoading ? true : playedToday;
+  const days = streak?.currentStreak ?? 0;
 
   return (
     <div
@@ -54,13 +57,16 @@ function DailyCardContent() {
           <h2 className="font-black tracking-tighter text-fg text-xl sm:text-2xl leading-tight">
             The <span className="text-spotify-green">Mystery</span>
           </h2>
-          {showAsPlayed && !playedTodayLoading ? (
-            <DailyChallengeCountdown />
-          ) : (
-            <p className="text-fg/50 text-xs sm:text-sm tracking-tight">
-              One song. Six chances. Guess in 0.1s.
-            </p>
-          )}
+          <p className="text-fg/50 text-xs sm:text-sm tracking-tight">
+            {days > 0 && `${days} day streak. `}
+            {showAsPlayed && !playedTodayLoading ? (
+              <DailyChallengeCountdown />
+            ) : days > 0 ? (
+              'Keep it alive.'
+            ) : (
+              'Start a streak. One song a day.'
+            )}
+          </p>
         </div>
       </div>
 
