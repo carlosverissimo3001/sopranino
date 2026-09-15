@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import { ShuffleGamePage } from '@/components/game/ShuffleGamePage';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -18,7 +19,10 @@ import { setAuthReturnUrl } from '@/lib/auth-return';
  * being reseeded.
  */
 export function GroupGameClient({ heading }: { heading?: string }) {
-  const slug = useParams().slug as string;
+  // Read once: picking another set rewrites the URL, and following it here
+  // would restart the round on the set just picked.
+  const params = useParams();
+  const [slug] = useState(params.slug as string);
   // By slug rather than by searching a list: the list is one kind of group at
   // a time, so a special one was never in the one this page happened to ask
   // for.
@@ -109,6 +113,7 @@ export function GroupGameClient({ heading }: { heading?: string }) {
   return (
     <ShuffleGamePage
       canSignIn={false}
+      syncUrl
       heading={heading}
       initialTrackGroupId={group.id}
       initialTiersApply={groupHasFameTiers(group.type)}

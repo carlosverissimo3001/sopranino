@@ -34,7 +34,11 @@ interface ShuffleModeNavProps {
   /** The set the song on screen came from, until a pick made mid-round applies. */
   playingTrackGroupId?: string;
   /** `hasTiers` is false for a set whose songs are all one fame, such as a chart. */
-  onTrackGroupChange: (groupId: string | undefined, hasTiers: boolean) => void;
+  onTrackGroupChange: (
+    groupId: string | undefined,
+    hasTiers: boolean,
+    slug?: string,
+  ) => void;
 }
 
 /**
@@ -79,7 +83,11 @@ export function ShuffleModeNav({
   }, [setsOpen]);
 
   const pick = (set: TrackGroupDto | undefined) => {
-    onTrackGroupChange(set?.id, set ? groupHasFameTiers(set.type) : true);
+    onTrackGroupChange(
+      set?.id,
+      set ? groupHasFameTiers(set.type) : true,
+      set?.slug,
+    );
     setSetsOpen(false);
   };
 
