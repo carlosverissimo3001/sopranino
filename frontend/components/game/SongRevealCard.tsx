@@ -109,8 +109,10 @@ export function SongRevealCard({
           )}
         </motion.div>
 
-        <div className="flex min-w-0 flex-1 flex-col items-center gap-3 sm:items-start">
-          <div className="min-w-0 max-w-full">
+        {/* w-full on a phone: a centred flex item sizes to its content, and a
+            one-line title's content is as wide as the title. */}
+        <div className="flex w-full min-w-0 flex-1 flex-col items-center gap-3 sm:w-auto sm:items-start">
+          <div className="w-full min-w-0">
             <p
               className={`text-sm font-bold ${isWon ? 'text-spotify-green' : 'text-fg/50'}`}
             >
@@ -121,7 +123,7 @@ export function SongRevealCard({
             )}
             {answer && (
               <>
-                <h2 className="mt-1 truncate text-2xl font-black tracking-tight text-fg sm:text-3xl">
+                <h2 className="mt-1 line-clamp-2 break-words text-2xl font-black leading-tight tracking-tight text-fg sm:line-clamp-none sm:truncate sm:text-3xl sm:leading-normal">
                   {answer.name}
                 </h2>
                 <p className="truncate text-sm text-fg/60">{credited}</p>

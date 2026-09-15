@@ -282,30 +282,34 @@ export function SpeedRunSetup({
         ) : tab === StartRunDtoSourceEnum.Curated ? (
           <div className="space-y-2">
             <div className="flex items-center gap-1.5">
-              {kinds.length > 1 &&
-                kinds.map((k) => (
-                  <button
-                    key={k.label}
-                    onClick={() => {
-                      setKindLabel(k.label);
-                      // A kind is a step towards picking a set, not the pool.
-                      if (wholePool) setSelected(null);
-                    }}
-                    className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide transition-colors ${
-                      kind?.label === k.label && !wholePool
-                        ? 'bg-orange-500/15 text-orange-300'
-                        : 'text-fg/40 hover:text-fg/70'
-                    }`}
-                  >
-                    {k.label}
-                  </button>
-                ))}
+              {/* Scrolls on the narrowest phones rather than pushing the
+                  pool button off the screen. */}
+              <div className="flex min-w-0 gap-0.5 overflow-x-auto [scrollbar-width:none] sm:gap-1.5">
+                {kinds.length > 1 &&
+                  kinds.map((k) => (
+                    <button
+                      key={k.label}
+                      onClick={() => {
+                        setKindLabel(k.label);
+                        // A kind is a step towards picking a set, not the pool.
+                        if (wholePool) setSelected(null);
+                      }}
+                      className={`shrink-0 px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide transition-colors sm:px-2.5 ${
+                        kind?.label === k.label && !wholePool
+                          ? 'bg-orange-500/15 text-orange-300'
+                          : 'text-fg/40 hover:text-fg/70'
+                      }`}
+                    >
+                      {k.label}
+                    </button>
+                  ))}
+              </div>
               {/* Once, beside the kinds: as a tile it repeated in every one. */}
               <button
                 onClick={() =>
                   setSelected({ source: StartRunDtoSourceEnum.Curated })
                 }
-                className={`ml-auto inline-flex items-center gap-1 px-2.5 py-1 rounded-full border text-[10px] font-bold transition-colors ${
+                className={`ml-auto inline-flex shrink-0 items-center gap-1 px-2.5 py-1 rounded-full border text-[10px] font-bold transition-colors ${
                   wholePool
                     ? 'border-orange-500/60 bg-orange-500/15 text-orange-300'
                     : 'border-fg/10 text-fg/60 hover:border-fg/25 hover:text-fg'
