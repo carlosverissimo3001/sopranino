@@ -46,7 +46,7 @@ export class UserPreferencesRepository {
       showAlbumHint: true,
       showTextHints: true,
       showGuessHistory: true,
-      showStatsToOthers: false,
+      showStatsToOthers: true,
       timezone: 'UTC',
     };
   }

@@ -280,7 +280,7 @@ export class GauntletRunRepository {
         displayName: user?.displayName ?? 'Unknown',
         avatarUrl: effectiveAvatar ?? null,
         score: row._max.score ?? 0,
-        showStatsToOthers: user?.preferences?.showStatsToOthers ?? false,
+        showStatsToOthers: user?.preferences?.showStatsToOthers ?? true,
         trackGroupName: (() => {
           const groupId = groupIdByUser.get(row.userId);
           return groupId ? (nameById.get(groupId) ?? null) : null;

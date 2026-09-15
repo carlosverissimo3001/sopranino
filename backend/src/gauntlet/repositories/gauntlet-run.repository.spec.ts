@@ -179,5 +179,33 @@ describe('GauntletRunRepository and what the board is allowed to see', () => {
       expect(entry.trackGroupName).toBeNull();
       expect(prisma.trackGroup.findMany).not.toHaveBeenCalled();
     });
+
+    it('shows a player who never saved a preference', async () => {
+      prisma.gauntletRun.groupBy.mockResolvedValue([
+        { userId: 'u1', _max: { score: 4 } },
+      ]);
+      prisma.gauntletRun.findMany.mockResolvedValue([
+        { userId: 'u1', sourceId: null },
+      ]);
+      prisma.user.findMany.mockResolvedValue([
+        {
+          id: 'u1',
+          displayName: 'Charly',
+          avatarUrl: null,
+          customAvatarUrl: null,
+          avatarSource: 'SPOTIFY',
+          preferences: null,
+        },
+      ]);
+
+      const [entry] = await repository.findLeaderboardEntries(
+        null,
+        10,
+        0,
+        GauntletDifficulty.EASY,
+      );
+
+      expect(entry.showStatsToOthers).toBe(true);
+    });
   });
 });
