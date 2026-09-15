@@ -8,5 +8,5 @@ export default async function ShufflePage() {
     (await cookies()).get(SITE_ACCESS_COOKIE)?.value,
   );
 
-  return <ShuffleGamePage canSignIn={canSignIn} />;
+  return <ShuffleGamePage canSignIn={canSignIn} syncUrl />;
 }

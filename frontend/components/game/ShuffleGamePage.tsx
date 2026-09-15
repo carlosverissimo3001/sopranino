@@ -50,6 +50,8 @@ interface ShuffleGamePageProps {
   headerTrailing?: ReactNode;
   /** Read by crawlers and screen readers; the round heads itself on screen. */
   heading?: string;
+  /** Keep the address on the set being played, so a reload or a share opens it. */
+  syncUrl?: boolean;
   /** Under the reveal, once a round is over. */
   afterReveal?: ReactNode;
   /** A set's own page opens on that set. */
@@ -67,6 +69,7 @@ export function ShuffleGamePage({
   deferStart = false,
   headerTrailing,
   heading = 'Shuffle: guess the song from a snippet',
+  syncUrl = false,
   afterReveal,
   initialTrackGroupId,
   initialTiersApply = true,
@@ -224,9 +227,17 @@ export function ShuffleGamePage({
             <ShuffleModeNav
               trackGroupId={trackGroupId}
               playingTrackGroupId={playingTrackGroupId}
-              onTrackGroupChange={(groupId, hasTiers) => {
+              onTrackGroupChange={(groupId, hasTiers, slug) => {
                 setTiersApply(hasTiers);
                 handleTrackGroupChange(groupId);
+                // A replace, not a navigation: the round carries on.
+                if (syncUrl) {
+                  window.history.replaceState(
+                    null,
+                    '',
+                    slug ? `/group/${slug}` : '/shuffle',
+                  );
+                }
               }}
             />
             {/* One line for where the round stands and how hard it is. */}
