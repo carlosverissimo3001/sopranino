@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown, Disc3, Globe, Library, Lock, Music } from 'lucide-react';
-import { RoomDtoTrackSourceEnum, type RoomDto } from '@/sdk';
+import { ChevronDown, Globe, Lock, Music } from 'lucide-react';
+import type { RoomDto } from '@/sdk';
+import { trackSourceSummary } from '@/lib/track-source';
 import { TrackSourcePicker } from './TrackSourcePicker';
 import { RoomRoundsPicker } from './RoomRoundsPicker';
 import { RoomVisibilityPicker } from './RoomVisibilityPicker';
@@ -25,15 +26,17 @@ export function RoomSettings({
 }: RoomSettingsProps) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const isPool = room.trackSource === RoomDtoTrackSourceEnum.Pool;
-  const SourceIcon = isPool ? Disc3 : Library;
+  const { label: sourceLabel, Icon: SourceIcon } = trackSourceSummary(
+    room.trackSource,
+    { setName: room.trackGroupName },
+  );
   const FindableIcon = room.findable ? Globe : Lock;
 
   const summary = (
     <>
       <span className="flex items-center gap-1.5">
         <SourceIcon className="h-3.5 w-3.5" />
-        {isPool ? 'Anything' : 'Our libraries'}
+        {sourceLabel}
       </span>
       <span aria-hidden="true" className="text-fg/15">
         &middot;

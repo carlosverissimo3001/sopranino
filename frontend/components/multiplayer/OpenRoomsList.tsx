@@ -1,8 +1,9 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Disc3, Library, Loader2, Plus } from 'lucide-react';
-import { OpenRoomDtoTrackSourceEnum, type OpenRoomDto } from '@/sdk';
+import { ArrowRight, Loader2, Plus } from 'lucide-react';
+import type { OpenRoomDto } from '@/sdk';
+import { trackSourceSummary } from '@/lib/track-source';
 
 interface OpenRoomsListProps {
   rooms: OpenRoomDto[] | undefined;
@@ -24,8 +25,10 @@ function RoomCard({
   disabled: boolean;
   onJoin: () => void;
 }) {
-  const isPool = room.trackSource === OpenRoomDtoTrackSourceEnum.Pool;
-  const SourceIcon = isPool ? Disc3 : Library;
+  const { label: sourceLabel, Icon: SourceIcon } = trackSourceSummary(
+    room.trackSource,
+    { setName: room.trackGroupName, libraries: 'Their libraries' },
+  );
 
   return (
     <motion.li
@@ -64,7 +67,7 @@ function RoomCard({
           <span>{room.roundCount} rounds</span>
           <span aria-hidden="true">&middot;</span>
           <SourceIcon className="w-3 h-3" aria-hidden="true" />
-          <span>{isPool ? 'Anything' : 'Their libraries'}</span>
+          <span className="truncate">{sourceLabel}</span>
         </div>
       </button>
     </motion.li>

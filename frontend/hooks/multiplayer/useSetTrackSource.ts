@@ -12,13 +12,18 @@ export function useSetTrackSource() {
   return useMutation<
     RoomDto,
     Error,
-    { roomId: string; trackSource: SetTrackSourceDtoTrackSourceEnum }
+    {
+      roomId: string;
+      trackSource: SetTrackSourceDtoTrackSourceEnum;
+      /** The set, when the source is one. */
+      trackGroupId?: string;
+    }
   >({
-    mutationFn: async ({ roomId, trackSource }) => {
+    mutationFn: async ({ roomId, trackSource, trackGroupId }) => {
       try {
         return await api.multiplayerControllerSetTrackSource({
           id: roomId,
-          setTrackSourceDto: { trackSource },
+          setTrackSourceDto: { trackSource, trackGroupId },
         });
       } catch (e) {
         const message = await getApiErrorMessage(e);

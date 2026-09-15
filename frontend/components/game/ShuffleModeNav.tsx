@@ -10,10 +10,9 @@ import {
   Timer,
   Users,
 } from 'lucide-react';
-import { useTrackGroups } from '@/hooks/track-groups/useTrackGroups';
+import { SetChips } from '@/components/features/track-group/SetChips';
 import { useTrackGroupName } from '@/hooks/track-groups/useTrackGroupName';
 import { groupHasFameTiers } from '@/lib/fame-tier';
-import { TrackGroupDtoTypeEnum } from '@/sdk';
 import type { TrackGroupDto } from '@/sdk';
 
 const PILL =
@@ -52,16 +51,6 @@ export function ShuffleModeNav({
 }: ShuffleModeNavProps) {
   const [setsOpen, setSetsOpen] = useState(false);
   const panelRef = useRef<HTMLElement>(null);
-  const { data: artists = [] } = useTrackGroups(TrackGroupDtoTypeEnum.Artist);
-  const { data: decades = [] } = useTrackGroups(TrackGroupDtoTypeEnum.Decade);
-  const { data: genres = [] } = useTrackGroups(TrackGroupDtoTypeEnum.Genre);
-  const { data: charts = [] } = useTrackGroups(TrackGroupDtoTypeEnum.Chart);
-  const sections = [
-    { label: 'Artists', sets: artists },
-    { label: 'Decades', sets: decades },
-    { label: 'Genres', sets: genres },
-    { label: 'Charts', sets: charts },
-  ].filter((section) => section.sets.length > 0);
   // Green is what is playing; a pick made mid-round is named below the row.
   const playingName = useTrackGroupName(playingTrackGroupId);
 
@@ -134,34 +123,12 @@ export function ShuffleModeNav({
         <div
           role="dialog"
           aria-label="Pick a set"
-          className="absolute inset-x-0 top-full z-40 mx-auto mt-2 w-full max-w-[22rem] space-y-3 rounded-2xl border border-fg/10 bg-[rgb(var(--surface))] p-3 text-left shadow-2xl shadow-black/50"
+          className="absolute inset-x-0 top-full z-40 mx-auto mt-2 w-full max-w-[22rem] rounded-2xl border border-fg/10 bg-[rgb(var(--surface))] p-3 text-left shadow-2xl shadow-black/50"
         >
-          {sections.map((section) => (
-            <div key={section.label}>
-              <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-fg/35">
-                {section.label}
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {section.sets.map((set) => (
-                  <button
-                    key={set.id}
-                    type="button"
-                    aria-pressed={trackGroupId === set.id}
-                    onClick={() =>
-                      pick(trackGroupId === set.id ? undefined : set)
-                    }
-                    className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors sm:px-2.5 sm:py-1 sm:text-[11px] ${
-                      trackGroupId === set.id
-                        ? 'bg-spotify-green/20 text-spotify-green'
-                        : 'bg-fg/5 text-fg/70 hover:bg-fg/10 hover:text-fg'
-                    }`}
-                  >
-                    {set.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
+          <SetChips
+            selectedId={trackGroupId}
+            onPick={(set) => pick(trackGroupId === set.id ? undefined : set)}
+          />
         </div>
       )}
     </nav>

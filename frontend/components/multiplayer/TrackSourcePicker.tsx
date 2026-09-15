@@ -1,7 +1,10 @@
 'use client';
 
-import { Disc3, Library } from 'lucide-react';
+import { useState } from 'react';
+import { Disc3, Library, ListMusic } from 'lucide-react';
 import { useSetTrackSource } from '@/hooks/multiplayer/useSetTrackSource';
+import { SetChips } from '@/components/features/track-group/SetChips';
+import { trackSourceSummary } from '@/lib/track-source';
 import { RoomDtoTrackSourceEnum } from '@/sdk';
 import type { RoomDto } from '@/sdk';
 
@@ -18,6 +21,12 @@ const OPTIONS = [
     label: 'Anything',
     detail: 'Songs everyone has a fair shot at',
     Icon: Disc3,
+  },
+  {
+    value: RoomDtoTrackSourceEnum.Set,
+    label: 'A set',
+    detail: 'One artist, decade or genre',
+    Icon: ListMusic,
   },
   {
     value: RoomDtoTrackSourceEnum.Libraries,
@@ -38,6 +47,8 @@ export function TrackSourcePicker({
   hasLinkedAccount,
 }: TrackSourcePickerProps) {
   const setTrackSource = useSetTrackSource();
+  // "A set" alone is not a source yet: it opens the sets, and a pick saves it.
+  const [choosingSet, setChoosingSet] = useState(false);
 
   /**
    * The value being written counts as selected before the server agrees.
@@ -47,16 +58,22 @@ export function TrackSourcePicker({
   const inFlight = setTrackSource.isPending
     ? setTrackSource.variables.trackSource
     : undefined;
-  const selected = inFlight ?? room.trackSource;
-  const chosen = OPTIONS.find((option) => option.value === selected);
+  const selected =
+    inFlight ?? (choosingSet ? RoomDtoTrackSourceEnum.Set : room.trackSource);
+  const selectedSetId = setTrackSource.isPending
+    ? setTrackSource.variables.trackGroupId
+    : room.trackGroupId;
 
   // Everyone sees what they are about to play; only the host can change it.
   if (!isHost) {
+    const { label, Icon } = trackSourceSummary(room.trackSource, {
+      setName: room.trackGroupName,
+    });
     return (
       <div className="flex items-center gap-2.5 rounded-xl border border-fg/10 bg-fg/[0.03] px-4 py-3">
-        {chosen ? <chosen.Icon className="h-4 w-4 text-fg/40" /> : null}
+        <Icon className="h-4 w-4 text-fg/40" />
         <span className="text-sm text-fg/60">
-          Songs: <span className="text-fg/80">{chosen?.label}</span>
+          Songs: <span className="text-fg/80">{label}</span>
         </span>
       </div>
     );
@@ -68,7 +85,7 @@ export function TrackSourcePicker({
         Songs from
       </p>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-3 gap-2">
         {OPTIONS.map(({ value, label, detail, Icon }) => {
           const active = selected === value;
           // Nobody in the room would have a library to pool from.
@@ -80,10 +97,15 @@ export function TrackSourcePicker({
               key={value}
               type="button"
               disabled={unavailable || setTrackSource.isPending}
-              onClick={() =>
-                setTrackSource.mutate({ roomId: room.id, trackSource: value })
-              }
-              className={`flex flex-col gap-1 rounded-xl border px-4 py-3 text-left transition-all disabled:cursor-not-allowed disabled:opacity-40 ${
+              onClick={() => {
+                if (value === RoomDtoTrackSourceEnum.Set) {
+                  setChoosingSet(true);
+                  return;
+                }
+                setChoosingSet(false);
+                setTrackSource.mutate({ roomId: room.id, trackSource: value });
+              }}
+              className={`flex flex-col gap-1 rounded-xl border px-3 py-3 text-left transition-all disabled:cursor-not-allowed disabled:opacity-40 ${
                 active
                   ? 'border-green-500/30 bg-green-500/10'
                   : 'border-fg/10 bg-fg/[0.03] hover:bg-fg/[0.06]'
@@ -101,13 +123,31 @@ export function TrackSourcePicker({
                   {label}
                 </span>
               </span>
-              <span className="text-[11px] leading-snug text-fg/40">
+              <span className="hidden text-[11px] leading-snug text-fg/40 sm:block">
                 {unavailable ? 'Link Spotify to use this' : detail}
               </span>
             </button>
           );
         })}
       </div>
+
+      {selected === RoomDtoTrackSourceEnum.Set && (
+        <div className="rounded-xl border border-fg/10 bg-fg/[0.02] p-3">
+          <SetChips
+            includeSpecial
+            selectedId={selectedSetId}
+            disabled={setTrackSource.isPending}
+            onPick={(set) => {
+              setChoosingSet(false);
+              setTrackSource.mutate({
+                roomId: room.id,
+                trackSource: RoomDtoTrackSourceEnum.Set,
+                trackGroupId: set.id,
+              });
+            }}
+          />
+        </div>
+      )}
 
       {setTrackSource.isError && (
         <p className="text-xs text-red-400">{setTrackSource.error.message}</p>

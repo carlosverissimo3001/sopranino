@@ -4209,11 +4209,16 @@
           },
           "trackSource": {
             "type": "string",
-            "description": "Whether it draws on the curated pool or on linked libraries",
+            "description": "Whether it draws on the curated pool, a set or linked libraries",
             "enum": [
               "POOL",
-              "LIBRARIES"
+              "LIBRARIES",
+              "SET"
             ]
+          },
+          "trackGroupName": {
+            "type": "string",
+            "description": "The set it draws from, unless that set is private"
           }
         },
         "required": [
@@ -4335,9 +4340,18 @@
             "type": "string",
             "enum": [
               "POOL",
-              "LIBRARIES"
+              "LIBRARIES",
+              "SET"
             ],
             "description": "Where this room draws its songs from"
+          },
+          "trackGroupId": {
+            "type": "string",
+            "description": "The set a set room draws from"
+          },
+          "trackGroupName": {
+            "type": "string",
+            "description": "That set`s name, for the lobby to show"
           },
           "players": {
             "type": "array",
@@ -4379,9 +4393,14 @@
             "type": "string",
             "enum": [
               "POOL",
-              "LIBRARIES"
+              "LIBRARIES",
+              "SET"
             ],
             "description": "Where the room should draw its songs from"
+          },
+          "trackGroupId": {
+            "type": "string",
+            "description": "The set to draw from, required when the source is a set"
           }
         },
         "required": [

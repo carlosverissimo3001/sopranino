@@ -25,6 +25,12 @@ export interface SetTrackSourceDto {
      * @memberof SetTrackSourceDto
      */
     trackSource: SetTrackSourceDtoTrackSourceEnum;
+    /**
+     * The set to draw from, required when the source is a set
+     * @type {string}
+     * @memberof SetTrackSourceDto
+     */
+    trackGroupId?: string;
 }
 
 
@@ -33,7 +39,8 @@ export interface SetTrackSourceDto {
  */
 export const SetTrackSourceDtoTrackSourceEnum = {
     Pool: 'POOL',
-    Libraries: 'LIBRARIES'
+    Libraries: 'LIBRARIES',
+    Set: 'SET'
 } as const;
 export type SetTrackSourceDtoTrackSourceEnum = typeof SetTrackSourceDtoTrackSourceEnum[keyof typeof SetTrackSourceDtoTrackSourceEnum];
 
@@ -57,6 +64,7 @@ export function SetTrackSourceDtoFromJSONTyped(json: any, ignoreDiscriminator: b
     return {
         
         'trackSource': json['trackSource'],
+        'trackGroupId': json['trackGroupId'] == null ? undefined : json['trackGroupId'],
     };
 }
 
@@ -72,6 +80,7 @@ export function SetTrackSourceDtoToJSONTyped(value?: SetTrackSourceDto | null, i
     return {
         
         'trackSource': value['trackSource'],
+        'trackGroupId': value['trackGroupId'],
     };
 }
 
