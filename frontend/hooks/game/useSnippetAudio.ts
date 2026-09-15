@@ -132,10 +132,10 @@ export function useSnippetAudio({
   useEffect(() => stopTracking, [stopTracking]);
 
   const playFull = useCallback(
-    (from?: number) => {
+    (from?: number, options?: { continuing?: boolean }) => {
       stopTracking();
       progress.set(0);
-      return player.playFull(from);
+      return player.playFull(from, options);
     },
     [player, progress, stopTracking],
   );
