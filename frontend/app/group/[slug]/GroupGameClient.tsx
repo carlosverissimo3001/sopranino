@@ -1,10 +1,13 @@
 'use client';
 
+import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { ShuffleGamePage } from '@/components/game/ShuffleGamePage';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useTrackGroupBySlug } from '@/hooks/track-groups/useTrackGroups';
 import { groupHasFameTiers } from '@/lib/fame-tier';
+import { useMe } from '@/hooks/auth/useMe';
+import { setAuthReturnUrl } from '@/lib/auth-return';
 
 /**
  * The slug is what is shareable; the id is what starts a round. Resolving one
@@ -17,11 +20,37 @@ export function GroupGameClient({ heading }: { heading?: string }) {
   // a time, so a special one was never in the one this page happened to ask
   // for.
   const { data: group, isPending } = useTrackGroupBySlug(slug);
+  const { data: user, isPending: userPending } = useMe();
 
-  if (isPending) {
+  if (isPending || (!group && userPending)) {
     return (
       <main className="min-h-screen flex items-center justify-center">
         <LoadingSpinner size="md" />
+      </main>
+    );
+  }
+
+  // A special set is only there for a linked account, so whoever it was made
+  // for may simply not be signed in on this device. Every missing slug says
+  // this to them, so it gives away nothing about which ones exist.
+  if (!group && !user?.hasLinkedAccount) {
+    return (
+      <main className="min-h-screen flex flex-col items-center justify-center gap-5 px-6 text-center">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-2xl font-black tracking-tight text-fg">
+            Sign in to open this
+          </h1>
+          <p className="max-w-sm text-sm text-fg/50">
+            Some collections are only for the people they were made for.
+          </p>
+        </div>
+        <Link
+          href="/signin"
+          onClick={() => setAuthReturnUrl(`/group/${slug}`)}
+          className="rounded-full bg-spotify-green px-6 py-3 text-sm font-bold text-black transition hover:brightness-110"
+        >
+          Sign in
+        </Link>
       </main>
     );
   }
