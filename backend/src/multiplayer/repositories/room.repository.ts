@@ -6,11 +6,13 @@ import {
   RoomStatus,
   TrackSource,
   User,
+  TrackGroup,
 } from '@prisma/client';
 import { CreateRoomDto } from '../dto/create-room.dto';
 import { Transactional } from '@transaction/transactional.decorator';
 
 const PLAYERS_INCLUDE = {
+  trackGroup: { select: { name: true, type: true } },
   players: {
     include: {
       user: {
@@ -22,6 +24,7 @@ const PLAYERS_INCLUDE = {
 };
 
 export type RoomWithPlayers = MultiplayerRoom & {
+  trackGroup: Pick<TrackGroup, 'name' | 'type'> | null;
   players: (RoomPlayer & {
     user: Pick<User, 'displayName' | 'avatarUrl'>;
   })[];
@@ -150,11 +153,14 @@ export class RoomRepository {
 
   async setTrackSource(
     roomId: string,
-    trackSource: TrackSource,
+    {
+      trackSource,
+      trackGroupId,
+    }: { trackSource: TrackSource; trackGroupId: string | null },
   ): Promise<RoomWithPlayers> {
     return this.prisma.multiplayerRoom.update({
       where: { id: roomId },
-      data: { trackSource },
+      data: { trackSource, trackGroupId },
       include: PLAYERS_INCLUDE,
     });
   }

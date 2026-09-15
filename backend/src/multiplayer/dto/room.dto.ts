@@ -4,12 +4,14 @@ import {
   TrackSource,
   MultiplayerRoom,
   RoomPlayer,
+  TrackGroup,
   User,
 } from '@prisma/client';
 import { RoomPlayerDto } from './room-player.dto';
 import { ROOM_MAX_PLAYERS } from '../../consts';
 
 type RoomWithPlayers = MultiplayerRoom & {
+  trackGroup?: Pick<TrackGroup, 'name' | 'type'> | null;
   players: (RoomPlayer & {
     user: Pick<User, 'displayName' | 'avatarUrl'>;
   })[];
@@ -46,6 +48,14 @@ export class RoomDto {
   })
   trackSource: TrackSource;
 
+  @ApiPropertyOptional({ description: 'The set a set room draws from' })
+  trackGroupId?: string;
+
+  @ApiPropertyOptional({
+    description: 'That set`s name, for the lobby to show',
+  })
+  trackGroupName?: string;
+
   @ApiProperty({ type: [RoomPlayerDto] })
   players: RoomPlayerDto[];
 
@@ -69,6 +79,8 @@ export class RoomDto {
       roundCount: room.roundCount,
       status: room.status,
       trackSource: room.trackSource,
+      trackGroupId: room.trackGroupId ?? undefined,
+      trackGroupName: room.trackGroup?.name,
       players: room.players.map(RoomPlayerDto.fromEntity),
       createdAt: room.createdAt,
       startedAt: room.startedAt ?? undefined,

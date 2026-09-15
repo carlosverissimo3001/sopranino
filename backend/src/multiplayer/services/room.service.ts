@@ -6,7 +6,9 @@ import {
   NotFoundException,
   forwardRef,
 } from '@nestjs/common';
-import { RoomStatus, TrackSource } from '@prisma/client';
+import { RoomStatus, TrackGroupType, TrackSource } from '@prisma/client';
+import { TrackGroupService } from '../../track-group/services/track-group.service';
+import { SetTrackSourceDto } from '../dto/set-track-source.dto';
 import {
   LOBBY_MAX_ROOMS,
   ROOM_MAX_PLAYERS,
@@ -37,6 +39,7 @@ export class RoomService {
     private readonly authService: AuthService,
     private readonly roomRepository: RoomRepository,
     private readonly trackPoolService: TrackPoolService,
+    private readonly trackGroupService: TrackGroupService,
     private readonly presence: RoomPresenceService,
     @Inject(forwardRef(() => RoomsGateway))
     private readonly roomsGateway: RoomsGateway,
@@ -73,6 +76,11 @@ export class RoomService {
         capacity: ROOM_MAX_PLAYERS,
         roundCount: room.roundCount,
         trackSource: room.trackSource,
+        // A special set's name is for the people it was made for, not the lobby.
+        trackGroupName:
+          room.trackGroup && room.trackGroup.type !== TrackGroupType.SPECIAL
+            ? room.trackGroup.name
+            : undefined,
       }));
   }
 
@@ -177,12 +185,12 @@ export class RoomService {
   async setTrackSource(
     sessionId: string,
     roomId: string,
-    trackSource: TrackSource,
+    { trackSource, trackGroupId }: SetTrackSourceDto,
   ): Promise<RoomDto> {
-    const { id: userId } = await this.authService.getUserBySessionId(sessionId);
+    const user = await this.authService.getUserBySessionId(sessionId);
     const room = await this.findRoomOrThrow(roomId);
 
-    if (room.hostId !== userId) {
+    if (room.hostId !== user.id) {
       throw new ForbiddenException('Only the host can change the song source');
     }
 
@@ -190,10 +198,23 @@ export class RoomService {
       throw new BadRequestException('The game has already started');
     }
 
-    const updated = await this.roomRepository.setTrackSource(
-      roomId,
+    let groupId: string | null = null;
+    if (trackSource === TrackSource.SET) {
+      if (!trackGroupId) {
+        throw new BadRequestException('Pick a set to play from');
+      }
+      const group = await this.trackGroupService.requireById(trackGroupId);
+      // Same answer as a missing set: a room is no way to learn a private one exists.
+      if (!TrackGroupService.isVisible(group.type, user)) {
+        throw new NotFoundException(`No track group ${trackGroupId}`);
+      }
+      groupId = group.id;
+    }
+
+    const updated = await this.roomRepository.setTrackSource(roomId, {
       trackSource,
-    );
+      trackGroupId: groupId,
+    });
     const dto = RoomDto.fromEntity(updated);
     this.roomsGateway.emitRoomUpdate(roomId, dto);
     return dto;
@@ -267,11 +288,12 @@ export class RoomService {
     const playerUserIds = room.players.map((p) => p.userId);
     let trackIds: string[];
     try {
-      trackIds = await this.trackPoolService.selectTracksForRoom(
+      trackIds = await this.trackPoolService.selectTracksForRoom({
         playerUserIds,
-        room.roundCount,
-        room.trackSource,
-      );
+        roundCount: room.roundCount,
+        trackSource: room.trackSource,
+        trackGroupId: room.trackGroupId ?? undefined,
+      });
     } catch (error) {
       if (error instanceof BadRequestException) {
         throw error;

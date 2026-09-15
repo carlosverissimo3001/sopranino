@@ -72,7 +72,7 @@ model GameSession {
   userId String @map("user_id")
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  playlistId   String   @map("playlist_id")
+  playlistId   String    @map("playlist_id")
   trackGroupId String?   @map("track_group_id")
   fameTier     FameTier? @map("fame_tier")
   mode         GameMode  @default(ALL)
@@ -281,6 +281,7 @@ model StreakFreezeUsage {
 enum TrackSource {
   POOL
   LIBRARIES
+  SET
 }
 
 enum RoomStatus {
@@ -301,6 +302,9 @@ model MultiplayerRoom {
   roundCount  Int         @map("round_count")
   status      RoomStatus  @default(WAITING)
   trackSource TrackSource @default(POOL) @map("track_source")
+
+  trackGroupId String?     @map("track_group_id")
+  trackGroup   TrackGroup? @relation(fields: [trackGroupId], references: [id], onDelete: SetNull)
 
   trackIds String[] @default([]) @map("track_ids")
 
@@ -390,6 +394,7 @@ model TrackGroup {
   createdAt DateTime @default(now()) @map("created_at")
 
   tracks TrackGroupTrack[]
+  rooms  MultiplayerRoom[]
 
   @@unique([type, name])
   @@index([type])
