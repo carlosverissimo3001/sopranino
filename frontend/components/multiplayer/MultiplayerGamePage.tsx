@@ -217,7 +217,9 @@ export function MultiplayerGamePage({ roomId }: MultiplayerGamePageProps) {
 
   const gameAudio = useGameAudio({
     previewUrl: roundState?.previewUrl,
-    isGameOver: !!isRoundComplete,
+    // Not on the last round: the results page is next, and the song would be
+    // heard for the moment before the page goes.
+    isGameOver: !!isRoundComplete && !isGameOver,
     snippetDuration: roundState?.snippetDuration ?? 0.5,
     volume,
   });
