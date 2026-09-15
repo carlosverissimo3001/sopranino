@@ -14,3 +14,6 @@ export const DAILY_TRACK_EXCLUSION_DAYS = 30;
  * drawn.
  */
 export const DAILY_TRACK_PICK_ATTEMPTS = 5;
+
+/** The one song everyone plays: mostly Easy, Medium on the other days. */
+export const DAILY_TRACK_EASY_SHARE = 0.7;
