@@ -9,7 +9,7 @@ export const THROTTLE_DEMO = 'demo';
 export const THROTTLE_TTL = 60_000;
 
 /** Max guesses per minute per session */
-export const THROTTLE_GUESS_LIMIT = 20;
+export const THROTTLE_GUESS_LIMIT = 60;
 /** Max search requests per minute per session */
 export const THROTTLE_SEARCH_LIMIT = 60;
 
