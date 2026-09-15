@@ -11,6 +11,7 @@ import {
   GuessAudioDtoPathEnum as SnippetPath,
   type GuessAudioDto,
 } from '@/sdk';
+import { keepPreviewUrl } from '@/lib/preview-url';
 import { useMediaSession } from '../useMediaSession';
 import { useSnippetAudio } from './useSnippetAudio';
 
@@ -27,12 +28,20 @@ interface UseGameAudioOptions {
 const HAVE_CURRENT_DATA = 2;
 
 export function useGameAudio({
-  previewUrl,
+  previewUrl: incomingUrl,
   isGameOver,
   snippetDuration,
   maxSnippetDuration = 12,
   volume,
 }: UseGameAudioOptions) {
+  // Every read of a round re-signs its link. Taking each one would reload the
+  // audio and restart the reveal; the same song keeps the link it has.
+  const [heldUrl, setHeldUrl] = useState(incomingUrl);
+  const previewUrl = keepPreviewUrl(heldUrl, incomingUrl);
+  if (previewUrl !== heldUrl) {
+    setHeldUrl(previewUrl);
+  }
+
   const audioRef = useRef<HTMLAudioElement>(null);
   const fullAudioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -46,7 +55,19 @@ export function useGameAudio({
     playedPathRef.current = null;
   }, [previewUrl, snippetDuration]);
 
-  const handleSnippetEnded = useCallback(() => setIsPlaying(false), []);
+  /** True while the reveal plays through the decoded buffer rather than the element. */
+  const fullSongOnBufferRef = useRef(false);
+  /** Where a paused reveal resumes from, in seconds into the preview. */
+  const fullSongPositionRef = useRef<number | null>(null);
+
+  const handleSnippetEnded = useCallback(() => {
+    setIsPlaying(false);
+    if (fullSongOnBufferRef.current) {
+      fullSongOnBufferRef.current = false;
+      fullSongPositionRef.current = null;
+      setIsFullSongPlaying(false);
+    }
+  }, []);
   const snippet = useSnippetAudio({
     previewUrl,
     volume,
@@ -187,9 +208,11 @@ export function useGameAudio({
   // Held in a ref so stopAudioInternal keeps a stable identity — it is a
   // dependency of half the callbacks in here.
   const snippetStopRef = useRef(snippet.stop);
+  const snippetRef = useRef(snippet);
   useEffect(() => {
     snippetStopRef.current = snippet.stop;
-  }, [snippet.stop]);
+    snippetRef.current = snippet;
+  }, [snippet]);
 
   const stopAudioInternal = useCallback(() => {
     if (requestRef.current) {
@@ -354,6 +377,24 @@ export function useGameAudio({
   }, []);
 
   const toggleFullSong = useCallback(() => {
+    const player = snippetRef.current;
+    if (fullSongOnBufferRef.current) {
+      fullSongPositionRef.current = player.position();
+      fullSongOnBufferRef.current = false;
+      player.stop();
+      setIsFullSongPlaying(false);
+      return;
+    }
+    if (
+      player.isReady &&
+      player.playFull(fullSongPositionRef.current ?? undefined)
+    ) {
+      holdAudioSession();
+      fullSongOnBufferRef.current = true;
+      setIsFullSongPlaying(true);
+      return;
+    }
+
     if (!fullAudioRef.current) return;
 
     if (fullAudioRef.current.paused) {
@@ -366,6 +407,11 @@ export function useGameAudio({
   }, []);
 
   const stopFullSong = useCallback(() => {
+    if (fullSongOnBufferRef.current) {
+      fullSongOnBufferRef.current = false;
+      snippetRef.current.stop();
+    }
+    fullSongPositionRef.current = null;
     if (fullAudioRef.current) {
       fullAudioRef.current.pause();
       fullAudioRef.current.currentTime = 0;
@@ -436,6 +482,19 @@ export function useGameAudio({
       audioRef.current.currentTime = 0;
     }
 
+    // From the buffer the snippets played: no fetch, and on iOS no switch from
+    // Web Audio to a media element halfway through the moment.
+    const player = snippetRef.current;
+    fullSongPositionRef.current = null;
+    if (player.isReady && player.playFull()) {
+      revealPlayedForRef.current = previewUrl;
+      holdAudioSession();
+      fullSongOnBufferRef.current = true;
+      setIsFullSongPlaying(true);
+      setTimeout(() => setIsPlaying(false), 0);
+      return;
+    }
+
     const fullAudio = fullAudioRef.current;
     if (fullAudio) {
       fullAudio.volume = volumeRef.current;
@@ -454,6 +513,8 @@ export function useGameAudio({
         start();
       } else {
         fullAudio.addEventListener('canplay', start, { once: true });
+        // Not preloaded, since the buffer usually plays the reveal instead.
+        fullAudio.load();
         cleanupReveal = () => fullAudio.removeEventListener('canplay', start);
       }
     }
@@ -474,6 +535,8 @@ export function useGameAudio({
   );
 
   return {
+    /** The link the audio is using, which a re-signed one does not replace. */
+    previewUrl,
     audioRef,
     fullAudioRef,
     /** 0–1 through the current snippet, for the progress bar. */

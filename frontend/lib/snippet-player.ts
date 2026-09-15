@@ -10,8 +10,19 @@ import { logAudio } from './audio-debug';
 const ONSET_HOLD_SECONDS = 0.15;
 /** Measured over windows this size, so a single click cannot trigger it. */
 const ONSET_FRAME_SECONDS = 0.02;
-/** Share of the track's own loud level that counts as sound. */
-const ONSET_RATIO = 0.2;
+/**
+ * Share of the track's own peak level that counts as sound: -34dB, so only
+ * near silence is skipped. A fifth (-14dB) skipped soft intros as if they were
+ * silent, 4.4s of Hotel California among them.
+ */
+const ONSET_RATIO = 0.02;
+/** Below this (about -50dBFS) is silence however quiet the whole track is. */
+const ONSET_FLOOR = 0.003;
+
+/** Long enough to take the click off a cut mid-wave, short enough not to hear. */
+const EDGE_FADE_SECONDS = 0.008;
+/** Into the reveal, which picks up where the snippet left the player. */
+const REVEAL_FADE_SECONDS = 0.12;
 
 /**
  * Where the round should start, so a near-silent opening doesn't spend the
@@ -20,9 +31,13 @@ const ONSET_RATIO = 0.2;
  */
 export function findOnset(buffer: AudioBuffer, window: number): number {
   const rate = buffer.sampleRate;
-  const channel = buffer.getChannelData(0);
+  // Every channel: an opening panned to one side is still the song.
+  const channels = Array.from(
+    { length: Math.max(buffer.numberOfChannels ?? 1, 1) },
+    (_, i) => buffer.getChannelData(i),
+  );
   const frame = Math.max(Math.floor(ONSET_FRAME_SECONDS * rate), 1);
-  const frames = Math.floor(channel.length / frame);
+  const frames = Math.floor(channels[0].length / frame);
   if (frames === 0) {
     return 0;
   }
@@ -31,11 +46,14 @@ export function findOnset(buffer: AudioBuffer, window: number): number {
   let loudest = 0;
   for (let i = 0; i < frames; i++) {
     const start = i * frame;
-    let sum = 0;
-    for (let j = start; j < start + frame; j++) {
-      sum += channel[j] * channel[j];
+    let rms = 0;
+    for (const channel of channels) {
+      let sum = 0;
+      for (let j = start; j < start + frame; j++) {
+        sum += channel[j] * channel[j];
+      }
+      rms = Math.max(rms, Math.sqrt(sum / frame));
     }
-    const rms = Math.sqrt(sum / frame);
     levels[i] = rms;
     if (rms > loudest) {
       loudest = rms;
@@ -45,7 +63,7 @@ export function findOnset(buffer: AudioBuffer, window: number): number {
     return 0;
   }
 
-  const threshold = loudest * ONSET_RATIO;
+  const threshold = Math.max(loudest * ONSET_RATIO, ONSET_FLOOR);
   const hold = Math.max(Math.ceil(ONSET_HOLD_SECONDS / ONSET_FRAME_SECONDS), 1);
   // Never skip so far that a full-length round runs off the end.
   const latest = Math.max(
@@ -89,6 +107,8 @@ export class SnippetPlayer {
   /** Context clock reading when the current snippet started, for the playhead. */
   private startedAt = 0;
   private playingFor = 0;
+  /** Seconds into the preview where the current playback started. */
+  private startedFrom = 0;
   /** Seconds into the preview where the round starts. */
   private offset = 0;
 
@@ -173,8 +193,20 @@ export class SnippetPlayer {
 
   setVolume(volume: number): void {
     this.volume = volume;
-    if (this.gain) {
-      this.gain.gain.value = volume;
+    const context = this.audio.get();
+    if (!this.gain || !this.source || !context) {
+      return;
+    }
+    // Automation outranks .value, so the change is scheduled, and the fade out
+    // at the end is put back after it.
+    const now = context.currentTime;
+    const end = this.startedAt + this.playingFor;
+    const tail = Math.min(EDGE_FADE_SECONDS, this.playingFor / 4);
+    this.gain.gain.cancelScheduledValues(now);
+    this.gain.gain.setValueAtTime(volume, now);
+    if (end - tail > now) {
+      this.gain.gain.setValueAtTime(volume, end - tail);
+      this.gain.gain.linearRampToValueAtTime(0, end);
     }
   }
 
@@ -232,6 +264,54 @@ export class SnippetPlayer {
     if (!buffer) {
       return false;
     }
+    return this.start({
+      from: this.offset,
+      seconds: Math.min(durationSeconds, buffer.duration - this.offset),
+      fadeIn: EDGE_FADE_SECONDS,
+    });
+  }
+
+  /**
+   * The rest of the preview, for the reveal: from where the rounds start, or
+   * from `from` to resume. The same decoded buffer, so nothing is fetched and
+   * iOS never switches audio paths between the last snippet and the song.
+   */
+  playFull(from?: number): boolean {
+    const buffer = this.buffer;
+    if (!buffer) {
+      return false;
+    }
+    const start = Math.min(Math.max(from ?? this.offset, 0), buffer.duration);
+    return this.start({
+      from: start,
+      seconds: buffer.duration - start,
+      fadeIn: REVEAL_FADE_SECONDS,
+    });
+  }
+
+  /** Seconds into the preview of what is playing, or null when nothing is. */
+  position(): number | null {
+    const context = this.audio.get();
+    if (!this.source || !context) {
+      return null;
+    }
+    const elapsed = Math.max(context.currentTime - this.startedAt, 0);
+    return this.startedFrom + Math.min(elapsed, this.playingFor);
+  }
+
+  private start({
+    from,
+    seconds,
+    fadeIn,
+  }: {
+    from: number;
+    seconds: number;
+    fadeIn: number;
+  }): boolean {
+    const buffer = this.buffer;
+    if (!buffer || seconds <= 0) {
+      return false;
+    }
 
     const context = this.audio.get();
     if (!context) {
@@ -263,8 +343,15 @@ export class SnippetPlayer {
 
     this.stop();
 
+    const now = context.currentTime;
+    const edge = Math.min(fadeIn, seconds / 4);
+    const tail = Math.min(EDGE_FADE_SECONDS, seconds / 4);
     const gain = context.createGain();
     gain.gain.value = this.volume;
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(this.volume, now + edge);
+    gain.gain.setValueAtTime(this.volume, now + seconds - tail);
+    gain.gain.linearRampToValueAtTime(0, now + seconds);
     gain.connect(context.destination);
 
     const source = context.createBufferSource();
@@ -277,13 +364,13 @@ export class SnippetPlayer {
       }
     };
 
-    const seconds = Math.min(durationSeconds, buffer.duration - this.offset);
     this.source = source;
     this.gain = gain;
-    this.startedAt = context.currentTime;
+    this.startedAt = now;
+    this.startedFrom = from;
     this.playingFor = seconds;
     // The third argument is enforced by the hardware, so the length is exact.
-    source.start(0, this.offset, seconds);
+    source.start(0, from, seconds);
     logAudio(
       `snippet ${seconds.toFixed(2)}s at clock ${context.currentTime.toFixed(3)}, state=${context.state}`,
     );
@@ -295,12 +382,19 @@ export class SnippetPlayer {
     if (!source) {
       return;
     }
+    const gain = this.gain;
     this.source = null;
     this.playingFor = 0;
     // Detached first: onended fires on an explicit stop too.
     source.onended = null;
+    const now = this.audio.get()?.currentTime ?? 0;
+    if (gain) {
+      gain.gain.cancelScheduledValues(now);
+      gain.gain.setValueAtTime(gain.gain.value, now);
+      gain.gain.linearRampToValueAtTime(0, now + EDGE_FADE_SECONDS);
+    }
     try {
-      source.stop();
+      source.stop(now + EDGE_FADE_SECONDS);
     } catch {
       // Already stopped; nothing to undo.
     }

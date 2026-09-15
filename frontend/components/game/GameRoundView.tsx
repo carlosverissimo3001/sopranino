@@ -97,6 +97,7 @@ export function GameRoundView({
   const showGuessHistory = preferences?.showGuessHistory ?? true;
 
   const {
+    previewUrl: audioUrl,
     audioRef,
     fullAudioRef,
     isPlaying,
@@ -150,15 +151,15 @@ export function GameRoundView({
           {/* `||`, not `??`: an empty src makes the browser refetch the page. */}
           <audio
             ref={audioRef}
-            src={round.previewUrl || undefined}
+            src={audioUrl || undefined}
             preload="auto"
             crossOrigin="anonymous"
           />
-          {isOver && round.previewUrl && (
+          {isOver && audioUrl && (
             <audio
               ref={fullAudioRef}
-              src={round.previewUrl}
-              preload="auto"
+              src={audioUrl}
+              preload="none"
               loop={false}
             />
           )}

@@ -1,18 +1,27 @@
 import { SnippetPlayer, findOnset } from './snippet-player';
 
 /** A buffer whose loudness follows `level(second)`, at 100 samples a second. */
-function buffer(seconds: number, level: (t: number) => number): AudioBuffer {
+function buffer(
+  seconds: number,
+  level: (t: number) => number,
+  right?: (t: number) => number,
+): AudioBuffer {
   const rate = 100;
-  const data = new Float32Array(seconds * rate);
-  for (let i = 0; i < data.length; i++) {
-    // Alternating sign so RMS reflects the level rather than a DC offset.
-    data[i] = level(i / rate) * (i % 2 === 0 ? 1 : -1);
-  }
+  const channel = (at: (t: number) => number) => {
+    const data = new Float32Array(seconds * rate);
+    for (let i = 0; i < data.length; i++) {
+      // Alternating sign so RMS reflects the level rather than a DC offset.
+      data[i] = at(i / rate) * (i % 2 === 0 ? 1 : -1);
+    }
+    return data;
+  };
+  const channels = right ? [channel(level), channel(right)] : [channel(level)];
   return {
     duration: seconds,
     sampleRate: rate,
-    length: data.length,
-    getChannelData: () => data,
+    length: channels[0].length,
+    numberOfChannels: channels.length,
+    getChannelData: (i: number) => channels[i],
   } as unknown as AudioBuffer;
 }
 
@@ -26,7 +35,15 @@ interface FakeSource {
 
 function fakeContext() {
   const sources: FakeSource[] = [];
-  const gain = { gain: { value: 0 }, connect: jest.fn() };
+  const gain = {
+    gain: {
+      value: 0,
+      setValueAtTime: jest.fn(),
+      linearRampToValueAtTime: jest.fn(),
+      cancelScheduledValues: jest.fn(),
+    },
+    connect: jest.fn(),
+  };
 
   const context = {
     state: 'running' as AudioContextState,
@@ -163,7 +180,81 @@ describe('SnippetPlayer', () => {
 
     p.play(0.5);
 
-    expect(harness.gain.gain.value).toBe(0.3);
+    expect(harness.gain.gain.linearRampToValueAtTime).toHaveBeenCalledWith(
+      0.3,
+      expect.any(Number),
+    );
+  });
+
+  it('fades a snippet in and out rather than cutting it', async () => {
+    const p = player();
+    p.setVolume(1);
+    await p.load('https://cdn/preview.mp3');
+    harness.context.currentTime = 10;
+
+    p.play(0.5);
+
+    const ramps = harness.gain.gain.linearRampToValueAtTime.mock.calls;
+    expect(harness.gain.gain.setValueAtTime).toHaveBeenCalledWith(0, 10);
+    expect(ramps[0][0]).toBe(1);
+    expect(ramps[0][1]).toBeGreaterThan(10);
+    expect(ramps[0][1]).toBeLessThan(10.02);
+    // Silent by the very end of the snippet, so the stop lands on nothing.
+    expect(ramps[1]).toEqual([0, 10.5]);
+  });
+
+  it('fades out a snippet stopped by hand before it stops the source', async () => {
+    const p = player();
+    await p.load('https://cdn/preview.mp3');
+    p.play(4);
+    harness.context.currentTime = 2;
+
+    p.stop();
+
+    expect(harness.gain.gain.linearRampToValueAtTime).toHaveBeenLastCalledWith(
+      0,
+      expect.closeTo(2.008, 3),
+    );
+    expect(harness.sources[0].stop).toHaveBeenCalledWith(
+      expect.closeTo(2.008, 3),
+    );
+  });
+
+  describe('the full song', () => {
+    it('plays the rest of the preview from where the rounds start', async () => {
+      const p = player();
+      await p.load('https://cdn/preview.mp3');
+
+      expect(p.playFull()).toBe(true);
+
+      expect(harness.sources[0].start).toHaveBeenCalledWith(0, 0, 30);
+    });
+
+    it('resumes from a position', async () => {
+      const p = player();
+      await p.load('https://cdn/preview.mp3');
+
+      p.playFull(7);
+
+      expect(harness.sources[0].start).toHaveBeenCalledWith(0, 7, 23);
+    });
+
+    it('knows where it is, so a pause can resume from there', async () => {
+      const p = player();
+      await p.load('https://cdn/preview.mp3');
+      harness.context.currentTime = 100;
+      p.playFull(5);
+
+      harness.context.currentTime = 103;
+
+      expect(p.position()).toBe(8);
+      p.stop();
+      expect(p.position()).toBeNull();
+    });
+
+    it('will not play before anything is decoded', () => {
+      expect(player().playFull()).toBe(false);
+    });
   });
 
   it('reports the snippet ending on its own', async () => {
@@ -389,10 +480,43 @@ describe('findOnset', () => {
   });
 
   it('stays at the beginning for a quiet but not silent opening', () => {
-    // A fade-in still counts once it passes a fifth of the track's level.
     expect(
       findOnset(
         buffer(30, () => 0.3),
+        12,
+      ),
+    ).toBe(0);
+  });
+
+  it('does not skip a soft intro before a loud chorus', () => {
+    // The case that shipped: intros well under the chorus, like Hotel
+    // California's guitar, were skipped as if they were silence.
+    expect(
+      findOnset(
+        buffer(30, (t) => (t < 4 ? 0.05 : 0.9)),
+        12,
+      ),
+    ).toBe(0);
+  });
+
+  it('does not skip an intro that breathes between notes', () => {
+    // Plucked notes with near-silent gaps still say the song has started.
+    expect(
+      findOnset(
+        buffer(30, (t) => (t < 3 ? (t % 0.3 < 0.2 ? 0.6 : 0.01) : 0.9)),
+        12,
+      ),
+    ).toBe(0);
+  });
+
+  it('hears an opening that is only on the right channel', () => {
+    expect(
+      findOnset(
+        buffer(
+          30,
+          (t) => (t < 3 ? 0 : 0.8),
+          () => 0.8,
+        ),
         12,
       ),
     ).toBe(0);
