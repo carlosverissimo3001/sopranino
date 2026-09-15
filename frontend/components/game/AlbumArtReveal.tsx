@@ -73,16 +73,18 @@ export function AlbumArtReveal({
   return (
     <AnimatePresence>
       <motion.div
-        className="relative mb-3 flex min-h-40 w-full flex-1 justify-center sm:mb-6 sm:min-h-0 sm:flex-none"
+        className="relative mb-3 flex min-h-24 w-full flex-1 justify-center sm:mb-6 sm:min-h-0 sm:flex-none"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
       >
+        {/* Safari drops the rounded clip on a blurred child unless the frame is
+            masked, which is why the cover flicked between square and round. */}
         {/* Absolute on a phone because only a definite height can be measured
             in container units, and a flexed one is not. */}
         <div className="absolute inset-0 flex items-center justify-center [container-type:size] sm:static sm:[container-type:normal]">
           <div
-            className="relative h-[min(100cqw,100cqh)] w-[min(100cqw,100cqh)] overflow-hidden rounded-2xl bg-fg/10 sm:h-40 sm:w-40 sm:rounded-2xl"
+            className="relative isolate h-[min(100cqw,100cqh)] w-[min(100cqw,100cqh)] overflow-hidden rounded-2xl bg-fg/10 [-webkit-mask-image:-webkit-radial-gradient(white,black)] sm:h-40 sm:w-40 sm:rounded-2xl"
             style={blurVars}
           >
             {idle ? (

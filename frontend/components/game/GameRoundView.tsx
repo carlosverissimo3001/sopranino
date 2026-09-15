@@ -12,6 +12,7 @@ import { AudioDebugPanel } from './AudioDebugPanel';
 import { GuessHistoryList } from './GuessHistoryList';
 import { GuessInput, type GuessSearchState } from './GuessInput';
 import { HintPanel } from './HintPanel';
+import { GuessResultNote } from './GuessResultNote';
 import { PlaySnippetButton } from './PlaySnippetButton';
 import { RoundProgressBar } from './RoundProgressBar';
 import { GameStatsDtoModeEnum as GameMode } from '../../sdk';
@@ -112,7 +113,7 @@ export function GameRoundView({
 
   return (
     <div
-      className="min-h-screen min-h-[100dvh] overflow-y-auto"
+      className="min-h-screen min-h-[100dvh] overflow-x-clip"
       style={{ background: 'rgb(var(--bg))' }}
     >
       {preloadAlbumUrl && (
@@ -203,12 +204,19 @@ export function GameRoundView({
               </div>
             )}
 
-            {!isOver && showTextHints && (
-              <HintPanel
-                hints={round.hints ?? []}
-                currentRound={round.currentRound}
-              />
-            )}
+            {!isOver && <GuessResultNote guesses={round.guesses} />}
+
+            {!isOver &&
+              showTextHints && (
+                // The hint row is held from the start on a phone, so the
+                // cover does not shrink as they arrive.
+                <div className="min-h-[2.875rem] sm:min-h-0">
+                  <HintPanel
+                    hints={round.hints ?? []}
+                    currentRound={round.currentRound}
+                  />
+                </div>
+              )}
           </div>
 
           <AnimatePresence mode="wait">
@@ -225,7 +233,9 @@ export function GameRoundView({
             ) : (
               <div
                 key={`guess-${roundKey}`}
-                className="sticky bottom-0 z-20 order-last -mx-3 mt-auto bg-[rgb(var(--bg))] px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:relative sm:order-none sm:mx-0 sm:mt-0 sm:bg-transparent sm:p-0"
+                // Held at the height of the last round's four choices on a
+                // phone, which are taller than the search box.
+                className="sticky bottom-0 z-20 order-last -mx-3 mt-auto flex min-h-[14rem] flex-col bg-[rgb(var(--bg))] px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:relative sm:order-none sm:mx-0 sm:mt-0 sm:block sm:min-h-0 sm:bg-transparent sm:p-0"
               >
                 <GuessInput
                   pinned
@@ -244,8 +254,10 @@ export function GameRoundView({
             )}
           </AnimatePresence>
 
-          {showGuessHistory && (
-            <GuessHistoryList guesses={round.guesses} isGameOver={isOver} />
+          {/* After the round only: during it the progress bar's ticks already
+              say how each guess went, and the list pushed the search down. */}
+          {showGuessHistory && isOver && (
+            <GuessHistoryList guesses={round.guesses} isGameOver />
           )}
         </div>
       </motion.div>
