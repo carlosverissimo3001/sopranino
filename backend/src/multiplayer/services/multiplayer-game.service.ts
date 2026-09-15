@@ -63,9 +63,15 @@ export class MultiplayerGameService {
     private readonly presence: RoomPresenceService,
   ) {}
 
+  /**
+   * @param roundIndex the round the page is showing. Without it the player's
+   * furthest round is returned, which after a finished song is already the next
+   * one, and the answer would never be seen.
+   */
   async getRoundState(
     sessionId: string,
     roomId: string,
+    roundIndex?: number,
   ): Promise<MultiplayerRoundStateDto> {
     const { id: userId } = await this.authService.getUserBySessionId(sessionId);
     const room = await this.roomRepository.findById(roomId);
@@ -96,10 +102,11 @@ export class MultiplayerGameService {
     const completedRounds = playerSessions.filter(
       (s) => s.status !== GameStatus.PLAYING,
     ).length;
-    const currentRoundIndex = Math.min(
-      completedRounds,
-      room.trackIds.length - 1,
-    );
+    const furthestRound = Math.min(completedRounds, room.trackIds.length - 1);
+    if (roundIndex !== undefined && roundIndex > furthestRound) {
+      throw new BadRequestException('That round has not been reached yet');
+    }
+    const currentRoundIndex = roundIndex ?? furthestRound;
 
     // Find or create session for the current round
     const trackId = room.trackIds[currentRoundIndex];

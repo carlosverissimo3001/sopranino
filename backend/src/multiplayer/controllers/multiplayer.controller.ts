@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
@@ -28,6 +29,7 @@ import { GuessDto } from '../../game/dto/guess/guess.dto';
 import { GuessResultDto } from '../../game/dto/guess/guess-result.dto';
 import { RoomService } from '../services/room.service';
 import { MultiplayerGameService } from '../services/multiplayer-game.service';
+import { GetRoundStateDto } from '../dto/get-round-state.dto';
 import { CreateRoomControllerDto } from '../dto/create-room-controller.dto';
 import { UpdateRoomSettingsControllerDto } from '../dto/update-room-settings-controller.dto';
 import { SetTrackSourceDto } from '../dto/set-track-source.dto';
@@ -190,8 +192,9 @@ export class MultiplayerController {
   async getRoundState(
     @SessionId() sessionId: string,
     @Param('id') id: string,
+    @Query() { roundIndex }: GetRoundStateDto,
   ): Promise<MultiplayerRoundStateDto> {
-    return this.gameService.getRoundState(sessionId, id);
+    return this.gameService.getRoundState(sessionId, id, roundIndex);
   }
 
   @Post('rooms/:id/guess')

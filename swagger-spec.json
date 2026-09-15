@@ -1991,6 +1991,16 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "roundIndex",
+            "required": false,
+            "in": "query",
+            "description": "The round to show. Omitted, the player is given their furthest round.",
+            "schema": {
+              "minimum": 0,
+              "type": "number"
+            }
           }
         ],
         "responses": {

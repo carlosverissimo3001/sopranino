@@ -2677,7 +2677,7 @@ example().catch(console.error);
 
 ## multiplayerControllerGetRoundState
 
-> MultiplayerRoundStateDto multiplayerControllerGetRoundState(id)
+> MultiplayerRoundStateDto multiplayerControllerGetRoundState(id, roundIndex)
 
 Get current round state for the player
 
@@ -2701,6 +2701,8 @@ async function example() {
   const body = {
     // string
     id: id_example,
+    // number | The round to show. Omitted, the player is given their furthest round. (optional)
+    roundIndex: 8.14,
   } satisfies MultiplayerControllerGetRoundStateRequest;
 
   try {
@@ -2721,6 +2723,7 @@ example().catch(console.error);
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
 | **id** | `string` |  | [Defaults to `undefined`] |
+| **roundIndex** | `number` | The round to show. Omitted, the player is given their furthest round. | [Optional] [Defaults to `undefined`] |
 
 ### Return type
 

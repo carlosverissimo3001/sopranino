@@ -334,6 +334,7 @@ export interface MultiplayerControllerGetRoomStateRequest {
 
 export interface MultiplayerControllerGetRoundStateRequest {
     id: string;
+    roundIndex?: number;
 }
 
 export interface MultiplayerControllerGetScoreboardRequest {
@@ -1930,6 +1931,10 @@ export class ApiApi extends runtime.BaseAPI {
         }
 
         const queryParameters: any = {};
+
+        if (requestParameters['roundIndex'] != null) {
+            queryParameters['roundIndex'] = requestParameters['roundIndex'];
+        }
 
         const headerParameters: runtime.HTTPHeaders = {};
 

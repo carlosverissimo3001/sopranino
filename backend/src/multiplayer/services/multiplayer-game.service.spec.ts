@@ -204,6 +204,60 @@ describe('MultiplayerGameService', () => {
       );
     });
 
+    it('shows a finished round again when asked for it, answer and all', async () => {
+      mockAuthService.getUserBySessionId.mockResolvedValue({
+        id: HOST_USER_ID,
+      });
+      mockRoomRepository.findById.mockResolvedValue(makeRoom());
+      mockGameSessionRepository.findPlayerSessions.mockResolvedValue([
+        makeSession({ status: GameStatus.WON }),
+      ]);
+
+      const result = await service.getRoundState(HOST_SESSION, ROOM_ID, 0);
+
+      expect(result.roundIndex).toBe(0);
+      expect(result.status).toBe(GameStatus.WON);
+      expect(result.answer).toBeDefined();
+      expect(mockGameSessionRepository.createSession).not.toHaveBeenCalled();
+    });
+
+    it('will not open a round the player has not reached', async () => {
+      mockAuthService.getUserBySessionId.mockResolvedValue({
+        id: HOST_USER_ID,
+      });
+      mockRoomRepository.findById.mockResolvedValue(makeRoom());
+      mockGameSessionRepository.findPlayerSessions.mockResolvedValue([
+        makeSession(),
+      ]);
+
+      await expect(
+        service.getRoundState(HOST_SESSION, ROOM_ID, 1),
+      ).rejects.toThrow(BadRequestException);
+      expect(mockGameSessionRepository.createSession).not.toHaveBeenCalled();
+    });
+
+    it('starts the next round once the player asks for it', async () => {
+      mockAuthService.getUserBySessionId.mockResolvedValue({
+        id: HOST_USER_ID,
+      });
+      mockRoomRepository.findById.mockResolvedValue(makeRoom());
+      mockGameSessionRepository.findPlayerSessions.mockResolvedValue([
+        makeSession({ status: GameStatus.WON }),
+      ]);
+      mockGameSessionRepository.createSession.mockResolvedValue(
+        makeSession({ id: 'session-2', trackId: TRACK_2 }),
+      );
+
+      const result = await service.getRoundState(HOST_SESSION, ROOM_ID, 1);
+
+      expect(result.roundIndex).toBe(1);
+      expect(mockGameSessionRepository.createSession).toHaveBeenCalledWith(
+        HOST_USER_ID,
+        ROOM_ID,
+        TRACK_2,
+      );
+    });
+
     it('should advance to next round after completing one', async () => {
       mockAuthService.getUserBySessionId.mockResolvedValue({
         id: HOST_USER_ID,
