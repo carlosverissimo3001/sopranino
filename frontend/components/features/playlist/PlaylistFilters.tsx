@@ -1,9 +1,10 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useId } from 'react';
+import { motion } from 'framer-motion';
 import { ChevronDown, ArrowDownAZ, ListOrdered, Undo2 } from 'lucide-react';
-import { type Visibility } from '@/hooks/playlists/usePlaylistFilters';
-import { PlaylistControllerGetMyPlaylistsSortByEnum as SortPlaylistsBy } from '@/sdk';
+import { type KindFilter } from '@/hooks/playlists/usePlaylistFilters';
+import { PlaylistSortBy as SortPlaylistsBy } from '@/sdk';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -15,8 +16,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 interface PlaylistFiltersProps {
-  visibility: Visibility;
-  onVisibilityChange: (value: Visibility) => void;
+  /** Shown only when the list holds more than one kind. */
+  kinds?: { value: KindFilter; label: string }[];
+  kind?: KindFilter;
+  onKindChange?: (value: KindFilter) => void;
   sortBy: SortPlaylistsBy;
   onSortByChange: (value: SortPlaylistsBy) => void;
 }
@@ -34,55 +37,51 @@ const PILL_ACTIVE =
 const PILL_INACTIVE =
   'bg-fg/[0.03] border-fg/10 text-fg/40 hover:bg-fg/[0.08] hover:border-fg/20';
 
-const FilterPill = ({
-  active,
-  onClick,
-  label,
-}: {
-  active: boolean;
-  onClick: () => void;
-  label: string;
-}) => (
-  <button
-    onClick={onClick}
-    className={`${PILL_BASE} ${active ? PILL_ACTIVE : PILL_INACTIVE}`}
-  >
-    {active && (
-      <span className="absolute inset-1 rounded-full bg-spotify-green blur-md opacity-40 animate-pulse -z-10" />
-    )}
-    {active && (
-      <span className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/20 to-transparent pointer-events-none" />
-    )}
-    <span className="relative z-10">{label}</span>
-  </button>
-);
-
 function PlaylistFiltersComponent({
-  visibility,
-  onVisibilityChange,
+  kinds,
+  kind,
+  onKindChange,
   sortBy,
   onSortByChange,
 }: PlaylistFiltersProps) {
-  const toggleVisibility = (target: 'public' | 'private') => {
-    onVisibilityChange(visibility === target ? 'all' : target);
-  };
-
+  const indicatorId = useId();
   const activeSort =
     SORT_OPTIONS.find((o) => o.value === sortBy) ?? SORT_OPTIONS[0];
   const isSortActive = sortBy !== SortPlaylistsBy.Default;
 
   return (
     <div className="flex flex-wrap items-center gap-1.5 sm:gap-3">
-      <FilterPill
-        active={visibility === 'public'}
-        onClick={() => toggleVisibility('public')}
-        label="Public"
-      />
-      <FilterPill
-        active={visibility === 'private'}
-        onClick={() => toggleVisibility('private')}
-        label="Private"
-      />
+      {kinds && (
+        <div
+          role="radiogroup"
+          aria-label="Which playlists"
+          className="flex h-8 items-center gap-0.5 rounded-full border border-fg/10 bg-fg/[0.03] p-0.5 sm:h-9"
+        >
+          {kinds.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              role="radio"
+              aria-checked={kind === option.value}
+              onClick={() => onKindChange?.(option.value)}
+              className={`relative h-full rounded-full px-3 text-[10px] font-black uppercase tracking-wider transition-colors sm:px-4 sm:text-xs ${
+                kind === option.value
+                  ? 'text-black'
+                  : 'text-fg/40 hover:text-fg/70'
+              }`}
+            >
+              {kind === option.value && (
+                <motion.span
+                  layoutId={indicatorId}
+                  transition={{ type: 'spring', bounce: 0.15, duration: 0.3 }}
+                  className="absolute inset-0 rounded-full bg-spotify-green"
+                />
+              )}
+              <span className="relative">{option.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>

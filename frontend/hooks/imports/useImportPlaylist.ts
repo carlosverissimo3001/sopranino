@@ -20,6 +20,6 @@ export function useImportPlaylist() {
       }
     },
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: queryKeys.imports.mine }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.imports.all }),
   });
 }

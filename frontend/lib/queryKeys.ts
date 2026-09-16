@@ -9,7 +9,9 @@ import {
  */
 export const queryKeys = {
   imports: {
+    all: ['imports'] as const,
     mine: ['imports', 'mine'] as const,
+    library: (sortBy: string) => ['imports', 'library', sortBy] as const,
   },
   // Game-related queries
   game: {
