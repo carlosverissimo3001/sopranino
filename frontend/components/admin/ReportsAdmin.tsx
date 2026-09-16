@@ -40,7 +40,6 @@ export function ReportsAdmin() {
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState<Status>('open');
   const [kind, setKind] = useState<Kind | null>(null);
-  // Grouped by name rather than listed, so a view rather than a kind filter.
   const [isRequests, setIsRequests] = useState(false);
 
   useEffect(() => {
@@ -189,7 +188,6 @@ export function ReportsAdmin() {
   );
 }
 
-/** A name and its votes: what to build next, in the order to build it. */
 function RequestRow({
   request,
   isUpdating,

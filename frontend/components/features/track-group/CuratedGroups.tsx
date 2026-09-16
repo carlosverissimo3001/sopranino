@@ -94,6 +94,11 @@ function CuratedGroupsComponent({ defaultOpen }: CuratedGroupsProps) {
       actions={tabs || undefined}
       defaultOpen={defaultOpen}
     >
+      {kind.label === 'Artist' && (
+        <div className="mx-auto -mt-2 mb-3 flex min-h-[29px] max-w-[1200px] items-center sm:-mt-4">
+          <AskForASet />
+        </div>
+      )}
       <motion.div
         key={kind.label}
         initial={{ opacity: 0 }}
@@ -101,9 +106,6 @@ function CuratedGroupsComponent({ defaultOpen }: CuratedGroupsProps) {
         className={GRID}
         style={{ maxWidth: '1200px', margin: '0 auto' }}
       >
-        {/* First, or a phone scrolls eight rows to find it; artists only, since
-            that is what people come looking for. */}
-        {kind.label === 'Artist' && <AskForASet variant="tile" />}
         {kind.query.data?.map((group) => (
           <TrackGroupCard key={group.id} group={group} />
         ))}

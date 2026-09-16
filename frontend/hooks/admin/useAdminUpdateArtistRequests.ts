@@ -18,7 +18,6 @@ export function useAdminUpdateArtistRequests() {
         throw new Error(await getApiErrorMessage(e));
       }
     },
-    // The reports list shows the same rows, so both go stale together.
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: queryKeys.admin.feedback,

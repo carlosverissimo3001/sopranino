@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
-import { Check, Loader2, Plus } from 'lucide-react';
+import { useRef, useState, type FormEvent } from 'react';
+import { Check, Loader2, Plus, X } from 'lucide-react';
 import { useSubmitFeedback } from '@/hooks/feedback/useSubmitFeedback';
 import { originPath } from '@/lib/report-origin';
 import { CreateFeedbackControllerDtoKindEnum as Kind } from '@/sdk';
@@ -11,24 +11,21 @@ const NAME_MAX = 80;
 const NAME_MIN = 3;
 const THANKS = 'Got it, thanks for asking.';
 
-interface AskForASetProps {
-  /** A line under a list of chips, or the last card of a grid. */
-  variant?: 'line' | 'tile';
-}
-
-/**
- * The moment someone wants an artist is the moment they look for one and it is
- * not there, so the ask sits after the sets rather than on the report form.
- */
-export function AskForASet({ variant = 'line' }: AskForASetProps) {
+export function AskForASet() {
   const submit = useSubmitFeedback();
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState('');
   const [website, setWebsite] = useState('');
+  const reopenFocus = useRef(false);
+
+  const close = () => {
+    setIsOpen(false);
+    setName('');
+    reopenFocus.current = true;
+  };
 
   const trimmed = name.trim();
   const canSend = trimmed.length >= NAME_MIN && !submit.isPending;
-  const isTile = variant === 'tile';
 
   const send = (e: FormEvent) => {
     e.preventDefault();
@@ -43,22 +40,20 @@ export function AskForASet({ variant = 'line' }: AskForASetProps) {
   };
 
   const form = (
-    <form
-      onSubmit={send}
-      className={
-        isTile
-          ? 'flex w-full flex-col gap-2'
-          : // Wraps rather than scrolls: at 375px the field and button may not share a row.
-            'mt-3 flex flex-wrap items-center gap-2'
-      }
-    >
+    <form onSubmit={send} className="flex flex-wrap items-center gap-2">
       <label className="min-w-0 flex-1">
         <span className="sr-only">Artist name</span>
-        {/* Important, to beat the global 16px input rule; maximumScale already stops the iOS zoom it guards against. */}
+        {/* Beats the global 16px input rule. */}
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key !== 'Escape') return;
+            // The picker around it listens on document, which is also React's root.
+            e.nativeEvent.stopImmediatePropagation();
+            close();
+          }}
           maxLength={NAME_MAX}
           autoFocus
           placeholder="Which artist?"
@@ -91,6 +86,15 @@ export function AskForASet({ variant = 'line' }: AskForASetProps) {
         Ask
       </button>
 
+      <button
+        type="button"
+        onClick={close}
+        aria-label="Cancel"
+        className="shrink-0 rounded-full p-1 text-fg/30 transition-colors hover:text-fg/70"
+      >
+        <X className="h-3.5 w-3.5" />
+      </button>
+
       {submit.isError && (
         <p className="w-full text-xs text-red-400">{submit.error.message}</p>
       )}
@@ -98,68 +102,28 @@ export function AskForASet({ variant = 'line' }: AskForASetProps) {
   );
 
   const thanks = (
-    <p
-      className={`flex items-center gap-1.5 text-xs text-fg/50 ${isTile ? 'justify-center text-center' : 'mt-3'}`}
-    >
+    <p className="flex items-center gap-1.5 text-xs text-fg/50">
       <Check className="h-3.5 w-3.5 shrink-0 text-spotify-green" />
       {THANKS}
     </p>
   );
 
-  if (!isTile) {
-    if (submit.isSuccess) return thanks;
-    if (isOpen) return form;
-    return (
-      <button
-        type="button"
-        onClick={() => setIsOpen(true)}
-        className="mt-3 inline-flex items-center gap-1.5 text-xs text-fg/40 transition-colors hover:text-fg/70"
-      >
-        <Plus className="h-3.5 w-3.5 shrink-0" />
-        Missing an artist? Tell us
-      </button>
-    );
-  }
-
-  // Built like TrackGroupCard, square and caption, so it lines up with the row.
-  const square = submit.isSuccess ? (
-    thanks
-  ) : isOpen ? (
-    form
-  ) : (
-    <span className="flex h-12 w-12 items-center justify-center rounded-full bg-fg/5 text-fg/40 transition-colors group-hover:bg-spotify-green/15 group-hover:text-spotify-green">
-      <Plus className="h-6 w-6" />
-    </span>
-  );
-
-  const body = (
-    <div className="flex h-full flex-col">
-      <div className="mb-3 flex aspect-square w-full items-center justify-center rounded-lg border border-dashed border-fg/10 p-3 sm:mb-5 sm:rounded-xl">
-        {square}
-      </div>
-      <div className="flex min-w-0 flex-1 flex-col text-left">
-        <h3 className="line-clamp-1 text-sm font-black leading-tight text-fg/60 transition-colors group-hover:text-fg sm:text-xl">
-          Missing an artist?
-        </h3>
-        <p className="mt-1.5 text-[9px] font-black uppercase tracking-[0.1em] text-fg/30 sm:text-[10px] sm:tracking-[0.15em]">
-          Tell us who
-        </p>
-      </div>
-    </div>
-  );
-
-  const shell =
-    'group mx-auto h-full w-full max-w-[400px] rounded-xl border border-fg/5 p-3 sm:rounded-2xl sm:p-5 md:h-auto';
-
-  return isOpen || submit.isSuccess ? (
-    <div className={shell}>{body}</div>
-  ) : (
+  if (submit.isSuccess) return thanks;
+  if (isOpen) return form;
+  return (
     <button
+      ref={(el) => {
+        if (el && reopenFocus.current) {
+          reopenFocus.current = false;
+          el.focus();
+        }
+      }}
       type="button"
       onClick={() => setIsOpen(true)}
-      className={`${shell} cursor-pointer transition-colors hover:bg-fg/[0.04]`}
+      className="inline-flex items-center gap-1.5 text-xs text-fg/40 transition-colors hover:text-fg/70"
     >
-      {body}
+      <Plus className="h-3.5 w-3.5 shrink-0" />
+      Missing an artist? Tell us
     </button>
   );
 }
