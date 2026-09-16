@@ -16,6 +16,23 @@ import {
 
 const PAGE_SIZE = 20;
 
+const KIND_BADGE: Record<
+  Kind,
+  { Icon: typeof Bug; label: string; tone: string }
+> = {
+  [Kind.Bug]: { Icon: Bug, label: 'Bug', tone: 'bg-red-500/15 text-red-300' },
+  [Kind.Suggestion]: {
+    Icon: Lightbulb,
+    label: 'Idea',
+    tone: 'bg-amber-500/15 text-amber-300',
+  },
+  [Kind.ArtistRequest]: {
+    Icon: Mic2,
+    label: 'Request',
+    tone: 'bg-spotify-green/15 text-spotify-green',
+  },
+};
+
 type Status = 'open' | 'resolved' | 'all';
 
 export function ReportsAdmin() {
@@ -188,8 +205,7 @@ function ReportRow({
   isUpdating: boolean;
   onToggle: () => void;
 }) {
-  const isBug = report.kind === Kind.Bug;
-  const Icon = isBug ? Bug : Lightbulb;
+  const { Icon, label, tone } = KIND_BADGE[report.kind];
 
   return (
     <li
@@ -198,14 +214,10 @@ function ReportRow({
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2 text-xs text-fg/50">
           <span
-            className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-semibold ${
-              isBug
-                ? 'bg-red-500/15 text-red-300'
-                : 'bg-amber-500/15 text-amber-300'
-            }`}
+            className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-semibold ${tone}`}
           >
             <Icon className="h-3 w-3" />
-            {isBug ? 'Bug' : 'Idea'}
+            {label}
           </span>
           <time dateTime={new Date(report.createdAt).toISOString()}>
             {new Date(report.createdAt).toLocaleString()}

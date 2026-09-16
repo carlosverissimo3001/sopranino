@@ -101,13 +101,13 @@ function CuratedGroupsComponent({ defaultOpen }: CuratedGroupsProps) {
         className={GRID}
         style={{ maxWidth: '1200px', margin: '0 auto' }}
       >
+        {/* First, or a phone scrolls eight rows to find it; artists only, since
+            that is what people come looking for. */}
+        {kind.label === 'Artist' && <AskForASet variant="tile" />}
         {kind.query.data?.map((group) => (
           <TrackGroupCard key={group.id} group={group} />
         ))}
       </motion.div>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <AskForASet />
-      </div>
     </CollapsibleSection>
   );
 }
