@@ -2,6 +2,7 @@
 
 import { memo, useState } from 'react';
 import { motion } from 'framer-motion';
+import { AskForASet } from '@/components/features/track-group/AskForASet';
 import { TrackGroupCard } from '@/components/track-group/TrackGroupCard';
 import { PlaylistSkeleton } from '@/components/playlist/PlaylistSkeleton';
 import { useTrackGroups } from '@/hooks/track-groups/useTrackGroups';
@@ -104,6 +105,9 @@ function CuratedGroupsComponent({ defaultOpen }: CuratedGroupsProps) {
           <TrackGroupCard key={group.id} group={group} />
         ))}
       </motion.div>
+      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        <AskForASet />
+      </div>
     </CollapsibleSection>
   );
 }

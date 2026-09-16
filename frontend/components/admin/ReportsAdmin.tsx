@@ -1,13 +1,18 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Bug, Inbox, Lightbulb, Loader2 } from 'lucide-react';
+import { Bug, Inbox, Lightbulb, Loader2, Mic2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { FilterChip } from '@/components/admin/FilterChip';
 import { Pagination } from '@/components/ui/Pagination';
+import { useAdminArtistRequests } from '@/hooks/admin/useAdminArtistRequests';
 import { useAdminFeedback } from '@/hooks/admin/useAdminFeedback';
 import { useAdminUpdateFeedback } from '@/hooks/admin/useAdminUpdateFeedback';
-import { FeedbackDtoKindEnum as Kind, type FeedbackDto } from '@/sdk';
+import {
+  FeedbackDtoKindEnum as Kind,
+  type ArtistRequestDto,
+  type FeedbackDto,
+} from '@/sdk';
 
 const PAGE_SIZE = 20;
 
@@ -17,21 +22,30 @@ export function ReportsAdmin() {
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState<Status>('open');
   const [kind, setKind] = useState<Kind | null>(null);
+  // Requests are counted, not resolved, so they are a view rather than a filter.
+  const [isRequests, setIsRequests] = useState(false);
 
   useEffect(() => {
     setPage(1);
-  }, [status, kind]);
+  }, [status, kind, isRequests]);
 
-  const { data, isLoading, error } = useAdminFeedback({
+  const feedback = useAdminFeedback({
     page,
     limit: PAGE_SIZE,
     kind: kind ?? undefined,
     resolved: status === 'all' ? undefined : status === 'resolved',
   });
+  const requests = useAdminArtistRequests(
+    { page, limit: PAGE_SIZE },
+    isRequests,
+  );
   const update = useAdminUpdateFeedback();
 
-  const reports = data?.items ?? [];
+  const { data, isLoading, error } = isRequests ? requests : feedback;
+  const reports = isRequests ? [] : (feedback.data?.items ?? []);
+  const asked = isRequests ? (requests.data?.items ?? []) : [];
   const meta = data?.meta;
+  const isEmpty = !isLoading && !error && reports.length + asked.length === 0;
 
   return (
     <div>
@@ -44,7 +58,9 @@ export function ReportsAdmin() {
       </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        <div className="flex items-center gap-1 rounded-full border border-fg/10 bg-fg/5 p-1">
+        <div
+          className={`flex items-center gap-1 rounded-full border border-fg/10 bg-fg/5 p-1 ${isRequests ? 'hidden' : ''}`}
+        >
           {(['open', 'resolved', 'all'] as const).map((value) => (
             <FilterChip
               key={value}
@@ -77,12 +93,22 @@ export function ReportsAdmin() {
           >
             Ideas
           </FilterChip>
+          <FilterChip
+            isActive={isRequests}
+            onClick={() => {
+              setIsRequests(!isRequests);
+              setKind(null);
+            }}
+            activeClasses="bg-spotify-green/15 text-spotify-green"
+          >
+            Requests
+          </FilterChip>
         </div>
       </div>
 
       {error && (
         <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-400">
-          Failed to load reports.
+          Failed to load {isRequests ? 'requests' : 'reports'}.
         </div>
       )}
 
@@ -90,13 +116,20 @@ export function ReportsAdmin() {
         <Loader2 className="mx-auto my-10 h-6 w-6 animate-spin text-spotify-green" />
       )}
 
-      {!isLoading && !error && reports.length === 0 && (
+      {isEmpty && (
         <p className="py-10 text-center text-sm text-fg/50">
-          {status === 'open' ? 'Nothing open.' : 'No reports here.'}
+          {isRequests
+            ? 'Nobody has asked for anything yet.'
+            : status === 'open'
+              ? 'Nothing open.'
+              : 'No reports here.'}
         </p>
       )}
 
       <ul className="space-y-2">
+        {asked.map((request) => (
+          <RequestRow key={request.name} request={request} />
+        ))}
         {reports.map((report) => (
           <ReportRow
             key={report.id}
@@ -122,6 +155,27 @@ export function ReportsAdmin() {
         </div>
       )}
     </div>
+  );
+}
+
+/** A name and its votes: what to build next, in the order to build it. */
+function RequestRow({ request }: { request: ArtistRequestDto }) {
+  return (
+    <li className="flex items-center gap-3 rounded-xl border border-fg/10 bg-fg/[0.03] p-4">
+      <Mic2 className="h-4 w-4 shrink-0 text-spotify-green" />
+      <p className="min-w-0 flex-1 break-words text-sm font-semibold text-fg">
+        {request.name}
+      </p>
+      <time
+        className="shrink-0 text-xs text-fg/40"
+        dateTime={new Date(request.lastAskedAt).toISOString()}
+      >
+        {new Date(request.lastAskedAt).toLocaleDateString()}
+      </time>
+      <span className="shrink-0 rounded-full bg-spotify-green/15 px-2.5 py-0.5 text-xs font-bold tabular-nums text-spotify-green">
+        {request.count}
+      </span>
+    </li>
   );
 }
 

@@ -16,6 +16,7 @@ import {
 import { useMyPlaylists } from '@/hooks/playlists/useMyPlaylists';
 import { useMe } from '@/hooks/auth/useMe';
 import { useTrackGroups } from '@/hooks/track-groups/useTrackGroups';
+import { AskForASet } from '@/components/features/track-group/AskForASet';
 import { DIFFICULTIES } from '@/lib/difficulty';
 import {
   StartRunDtoDifficultyEnum as GauntletDifficulty,
@@ -335,6 +336,7 @@ export function SpeedRunSetup({
                 />
               ))}
             </div>
+            <AskForASet />
           </div>
         ) : (
           <div className={GRID}>

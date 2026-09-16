@@ -1,5 +1,6 @@
 'use client';
 
+import { AskForASet } from './AskForASet';
 import { useTrackGroups } from '@/hooks/track-groups/useTrackGroups';
 import { TrackGroupDtoTypeEnum } from '@/sdk';
 import type { TrackGroupDto } from '@/sdk';
@@ -59,6 +60,7 @@ export function SetChips({
           </div>
         </div>
       ))}
+      <AskForASet />
     </div>
   );
 }
