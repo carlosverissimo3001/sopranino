@@ -22,6 +22,7 @@ import { useTimezoneSync } from '@/hooks/user-preferences/useTimezoneSync';
 import { useSpotifyReturnMark } from '@/hooks/auth/useSpotifyReturnMark';
 import { UnverifiedEmailBanner } from '@/components/auth/UnverifiedEmailBanner';
 import { TrackGroupView } from '@/components/features/track-group/TrackGroupView';
+import { ImportedPlaylists } from '@/components/features/imports/ImportedPlaylists';
 import { CuratedGroups } from '@/components/features/track-group/CuratedGroups';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { TrackGroupDtoTypeEnum } from '@/sdk';
@@ -203,6 +204,8 @@ export function HomeClient({
                   playlists are already on screen. */}
               {/* Rendered for everyone: the server answers with nothing for
                   anyone it is not for, and nothing renders nothing. */}
+              <ImportedPlaylists defaultOpen={!hasSpotify} />
+
               <TrackGroupView
                 type={TrackGroupDtoTypeEnum.Special}
                 title="Special"

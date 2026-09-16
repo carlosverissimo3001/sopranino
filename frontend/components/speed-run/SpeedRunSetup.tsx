@@ -4,18 +4,11 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Flame,
-  ListMusic,
-  Shuffle,
-  Trophy,
-  Zap,
-  Check,
-  ArrowLeft,
-} from 'lucide-react';
+import { ListMusic, Shuffle, Trophy, Check } from 'lucide-react';
 import { useMyPlaylists } from '@/hooks/playlists/useMyPlaylists';
 import { useMe } from '@/hooks/auth/useMe';
 import { useTrackGroups } from '@/hooks/track-groups/useTrackGroups';
+import { usePlayableImports } from '@/hooks/imports/useMyImports';
 import { AskForASet } from '@/components/features/track-group/AskForASet';
 import { DIFFICULTIES } from '@/lib/difficulty';
 import {
@@ -26,8 +19,10 @@ import {
 import type { StartRunDto } from '@/sdk';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
+// Five across on wide screens, taking the height the rest of the page (about
+// 660px) leaves, from a peek at the third row up to three full rows.
 const GRID =
-  'grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-[24rem] overflow-y-auto';
+  'grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-2 max-h-[24rem] lg:max-h-[clamp(17.5rem,calc(100dvh-660px),26rem)] overflow-y-auto';
 
 /** What the run will be played against. `id` is absent for the whole pool. */
 interface Selection {
@@ -122,6 +117,7 @@ export function SpeedRunSetup({
   const { data: decades } = useTrackGroups(TrackGroupDtoTypeEnum.Decade);
   const { data: genres } = useTrackGroups(TrackGroupDtoTypeEnum.Genre);
   const { data: charts } = useTrackGroups(TrackGroupDtoTypeEnum.Chart);
+  const imported = usePlayableImports();
   const kinds = [
     { label: 'Artists', groups: artists },
     { label: 'Decades', groups: decades },
@@ -133,7 +129,27 @@ export function SpeedRunSetup({
   const wholePool =
     selected?.source === StartRunDtoSourceEnum.Curated && !selected.id;
 
-  const isRanked = selected?.source === StartRunDtoSourceEnum.Curated;
+  // A player's own music, whichever service it came from. Sub-tabs only when
+  // there is more than one kind to tell apart.
+  const owned = [
+    {
+      label: 'Spotify',
+      items: playlists,
+      source: StartRunDtoSourceEnum.Playlist,
+    },
+    {
+      label: 'Imported',
+      items: imported,
+      source: StartRunDtoSourceEnum.Curated,
+    },
+  ].filter((group) => group.items.length > 0);
+  const [ownedLabel, setOwnedLabel] = useState<string | null>(null);
+  const ownedGroup = owned.find((g) => g.label === ownedLabel) ?? owned[0];
+
+  // An import plays like a set but never ranks; the server decides the same.
+  const isImport = imported.some((set) => set.id === selected?.id);
+  const isRanked =
+    selected?.source === StartRunDtoSourceEnum.Curated && !isImport;
   const canStart = !!selected && !isStarting;
 
   const start = () => {
@@ -158,49 +174,36 @@ export function SpeedRunSetup({
       animate={{ opacity: 1, y: 0 }}
       className="flex flex-col gap-6"
     >
-      {/* Back Button */}
-      <div className="flex items-center">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-fg/60 hover:text-fg transition-colors text-sm font-semibold"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back
-        </Link>
-      </div>
-
       {/* Header */}
       <div className="text-center space-y-2">
-        <div className="flex items-center justify-center gap-2 mb-1">
-          <Flame className="w-6 h-6 fill-orange-500 text-orange-500" />
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tighter">
-            The{' '}
-            <span
-              className="text-transparent bg-clip-text"
-              style={{
-                backgroundImage: 'linear-gradient(135deg, #fb923c, #ef4444)',
-              }}
-            >
-              Speed Run
-            </span>
-          </h1>
-          <Flame className="w-6 h-6 fill-orange-500 text-orange-500" />
-        </div>
+        <h1 className="text-3xl sm:text-4xl font-black tracking-tighter">
+          The{' '}
+          <span
+            className="text-transparent bg-clip-text"
+            style={{
+              backgroundImage: 'linear-gradient(135deg, #fb923c, #ef4444)',
+            }}
+          >
+            Speed Run
+          </span>
+        </h1>
         <p className="text-fg/50 text-sm sm:text-base">
           One snippet. One chance. How far can you go?
         </p>
-        {personalBest > 0 && (
-          <p className="text-orange-400/80 text-sm font-semibold">
-            Your best: {personalBest} 🔥
-          </p>
-        )}
-        <Link
-          href="/speed-run/leaderboard"
-          className="inline-flex items-center gap-1.5 text-amber-400/70 hover:text-amber-400 transition-colors text-xs font-bold uppercase tracking-wider"
-        >
-          <Trophy className="w-3.5 h-3.5" />
-          Leaderboard
-        </Link>
+        <div className="flex items-center justify-center gap-4">
+          {personalBest > 0 && (
+            <p className="text-orange-400/80 text-sm font-semibold">
+              Your best: {personalBest}
+            </p>
+          )}
+          <Link
+            href="/speed-run/leaderboard"
+            className="inline-flex items-center gap-1.5 text-amber-400/70 hover:text-amber-400 transition-colors text-xs font-bold uppercase tracking-wider"
+          >
+            <Trophy className="w-3.5 h-3.5" />
+            Leaderboard
+          </Link>
+        </div>
       </div>
 
       {/* Difficulty. The same pill control as the tabs below: four lengths
@@ -237,7 +240,7 @@ export function SpeedRunSetup({
           Choose your tracks
         </h2>
 
-        {playlists.length > 0 && (
+        {owned.length > 0 && (
           <div className="flex gap-1 p-1 rounded-full bg-fg/5 w-fit">
             {[
               {
@@ -276,11 +279,7 @@ export function SpeedRunSetup({
             : 'Practice runs. Your history keeps them; the leaderboard does not.'}
         </p>
 
-        {isLoadingPlaylists ? (
-          <div className="flex justify-center py-8">
-            <LoadingSpinner size="md" />
-          </div>
-        ) : tab === StartRunDtoSourceEnum.Curated ? (
+        {tab === StartRunDtoSourceEnum.Curated ? (
           <div className="space-y-2">
             <div className="flex items-center gap-1.5">
               {/* Scrolls on the narrowest phones rather than pushing the
@@ -338,22 +337,42 @@ export function SpeedRunSetup({
             </div>
             <AskForASet />
           </div>
+        ) : isLoadingPlaylists && !imported.length ? (
+          <div className="flex justify-center py-8">
+            <LoadingSpinner size="md" />
+          </div>
         ) : (
-          <div className={GRID}>
-            {playlists.map((playlist) => (
-              <SourceTile
-                key={playlist.id}
-                name={playlist.name}
-                imageUrl={playlist.imageUrl}
-                isSelected={selected?.id === playlist.id}
-                onSelect={() =>
-                  setSelected({
-                    source: StartRunDtoSourceEnum.Playlist,
-                    id: playlist.id,
-                  })
-                }
-              />
-            ))}
+          <div className="space-y-2">
+            {owned.length > 1 && (
+              <div className="flex gap-0.5 sm:gap-1.5">
+                {owned.map((g) => (
+                  <button
+                    key={g.label}
+                    onClick={() => setOwnedLabel(g.label)}
+                    className={`shrink-0 px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide transition-colors sm:px-2.5 ${
+                      ownedGroup?.label === g.label
+                        ? 'bg-orange-500/15 text-orange-300'
+                        : 'text-fg/40 hover:text-fg/70'
+                    }`}
+                  >
+                    {g.label}
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className={GRID}>
+              {ownedGroup?.items.map((item) => (
+                <SourceTile
+                  key={item.id}
+                  name={item.name}
+                  imageUrl={item.imageUrl}
+                  isSelected={selected?.id === item.id}
+                  onSelect={() =>
+                    setSelected({ source: ownedGroup.source, id: item.id })
+                  }
+                />
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -398,7 +417,6 @@ export function SpeedRunSetup({
           </span>
         ) : (
           <span className="flex items-center justify-center gap-2">
-            <Zap className="w-5 h-5 fill-current" />
             {!selected
               ? 'Start Speed Run'
               : isRanked
