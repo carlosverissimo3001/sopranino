@@ -88,7 +88,20 @@ describe('RoomService', () => {
 
   const mockPresence = { onlineUserIds: jest.fn().mockResolvedValue([]) };
 
-  const mockTrackGroupService = { requireById: jest.fn() };
+  const mockTrackGroupService = {
+    requireById: jest.fn(),
+    // The real rule over the mocked lookup, so hidden sets stay hidden here too.
+    requireVisible: jest.fn(
+      async (id: string, user: never): Promise<unknown> => {
+        const group: { type: TrackGroupType } =
+          await mockTrackGroupService.requireById(id);
+        if (!TrackGroupService.isListable(group.type, user)) {
+          throw new NotFoundException(`No track group ${id}`);
+        }
+        return group;
+      },
+    ),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -798,7 +811,7 @@ describe('RoomService', () => {
         trackSource: TrackSource.POOL,
         trackGroupId: null,
       });
-      expect(mockTrackGroupService.requireById).not.toHaveBeenCalled();
+      expect(mockTrackGroupService.requireVisible).not.toHaveBeenCalled();
     });
 
     it('refuses once the game is under way', async () => {

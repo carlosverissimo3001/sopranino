@@ -109,6 +109,21 @@ export class PoolService {
     this.groupTypes.clear();
   }
 
+  forget(trackGroupId: string): void {
+    this.cache.delete(trackGroupId);
+    this.groupTypes.delete(trackGroupId);
+  }
+
+  idsByIsrc(isrcs: string[]): Promise<Map<string, string>> {
+    return this.poolTrackRepository.idsByIsrc(isrcs);
+  }
+
+  addGroupOnly(
+    rows: { id: string; isrc: string; year: number; fame: number }[],
+  ): Promise<void> {
+    return this.poolTrackRepository.createGroupOnly(rows);
+  }
+
   async stats() {
     return this.poolTrackRepository.stats();
   }

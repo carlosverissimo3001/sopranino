@@ -3,6 +3,17 @@ import { AppLoggerService } from '../../logger/logger.service';
 import { ChartRepository } from '../repositories/chart.repository';
 import { ChartService } from './chart.service';
 import { CHARTS } from '../chart.constants';
+import { DeezerClient } from '../../playlist-import/providers/deezer/client';
+import { DeezerMembersService } from '../../playlist-import/providers/deezer/members.service';
+import { PoolService } from '../../pool/services/pool.service';
+import { TrackGroupService } from '../../track-group/services/track-group.service';
+
+jest.mock('@transaction/transaction.store', () => ({
+  ...jest.requireActual('@transaction/transaction.store'),
+  getBasePrismaClient: () => ({
+    $transaction: (fn: (tx: unknown) => Promise<unknown>) => fn({}),
+  }),
+}));
 
 const mockLogger = {
   child: () => ({ log: jest.fn(), warn: jest.fn(), error: jest.fn() }),
@@ -22,20 +33,20 @@ const track = (id: number, overrides: Record<string, unknown> = {}) => ({
 describe('ChartService', () => {
   let service: ChartService;
   const repository = {
-    poolIdsByIsrc: jest.fn(),
-    replaceChart: jest.fn(),
+    upsertChart: jest.fn(),
     countMembers: jest.fn(),
   };
+  const pool = { idsByIsrc: jest.fn() };
+  const trackGroups = { replaceMembers: jest.fn() };
   let fetchMock: jest.Mock;
 
   const respond = (body: unknown) => ({ ok: true, json: async () => body });
 
   beforeEach(async () => {
     jest.clearAllMocks();
-    repository.poolIdsByIsrc.mockResolvedValue(new Map<string, string>());
-    repository.replaceChart.mockImplementation((_c, members: unknown[]) =>
-      Promise.resolve(members.length),
-    );
+    pool.idsByIsrc.mockResolvedValue(new Map<string, string>());
+    repository.upsertChart.mockResolvedValue('chart-group');
+    trackGroups.replaceMembers.mockResolvedValue(undefined);
 
     fetchMock = jest.fn(async (url: string) => {
       if (url.includes('/playlist/')) {
@@ -49,6 +60,10 @@ describe('ChartService', () => {
       providers: [
         ChartService,
         { provide: ChartRepository, useValue: repository },
+        { provide: PoolService, useValue: pool },
+        { provide: TrackGroupService, useValue: trackGroups },
+        DeezerClient,
+        DeezerMembersService,
         { provide: AppLoggerService, useValue: mockLogger },
       ],
     }).compile();
@@ -59,13 +74,13 @@ describe('ChartService', () => {
     const result = await service.refreshAll();
 
     expect(Object.keys(result)).toHaveLength(CHARTS.length);
-    expect(repository.replaceChart).toHaveBeenCalledTimes(CHARTS.length);
+    expect(trackGroups.replaceMembers).toHaveBeenCalledTimes(CHARTS.length);
   });
 
   it("takes fame from the chart's own rank", async () => {
     await service.refreshAll();
 
-    const [, members] = repository.replaceChart.mock.calls[0] as [
+    const [, members] = trackGroups.replaceMembers.mock.calls[0] as [
       unknown,
       { create?: { fame: number } }[],
     ];
@@ -75,7 +90,7 @@ describe('ChartService', () => {
   // A year costs a request each, and the pool already knows the year of
   // anything it has seen. Only a genuinely new track is worth asking about.
   it('asks for a year only for a track the pool has never seen', async () => {
-    repository.poolIdsByIsrc.mockResolvedValue(new Map([['ISRC1', 'dz:999']]));
+    pool.idsByIsrc.mockResolvedValue(new Map([['ISRC1', 'dz:999']]));
 
     await service.refreshAll();
 
@@ -89,11 +104,11 @@ describe('ChartService', () => {
   // the chart's copy of a song it already holds arrives under a different id.
   // Inserting it would break the unique ISRC; the entry plays as the pool's row.
   it('plays a song the pool already holds as the row the pool already has', async () => {
-    repository.poolIdsByIsrc.mockResolvedValue(new Map([['ISRC1', 'dz:777']]));
+    pool.idsByIsrc.mockResolvedValue(new Map([['ISRC1', 'dz:777']]));
 
     await service.refreshAll();
 
-    const [, members] = repository.replaceChart.mock.calls[0] as [
+    const [, members] = trackGroups.replaceMembers.mock.calls[0] as [
       unknown,
       { trackId: string; create?: unknown }[],
     ];
@@ -103,7 +118,7 @@ describe('ChartService', () => {
   });
 
   it('holds a song once when the chart lists two uploads of it', async () => {
-    repository.poolIdsByIsrc.mockResolvedValue(
+    pool.idsByIsrc.mockResolvedValue(
       new Map([
         ['ISRC1', 'dz:777'],
         ['ISRC2', 'dz:777'],
@@ -112,7 +127,7 @@ describe('ChartService', () => {
 
     await service.refreshAll();
 
-    const [, members] = repository.replaceChart.mock.calls[0] as [
+    const [, members] = trackGroups.replaceMembers.mock.calls[0] as [
       unknown,
       unknown[],
     ];
@@ -128,7 +143,7 @@ describe('ChartService', () => {
 
     await service.refreshAll();
 
-    const [, members] = repository.replaceChart.mock.calls[0] as [
+    const [, members] = trackGroups.replaceMembers.mock.calls[0] as [
       unknown,
       unknown[],
     ];
@@ -143,7 +158,7 @@ describe('ChartService', () => {
     );
 
     await expect(service.refreshAll()).rejects.toThrow();
-    expect(repository.replaceChart).not.toHaveBeenCalled();
+    expect(trackGroups.replaceMembers).not.toHaveBeenCalled();
   });
 
   // Throwing is what makes the queue retry; swallowing would leave a chart a
@@ -190,7 +205,7 @@ describe('ChartService', () => {
 
     await service.refreshAll();
 
-    const [, members] = repository.replaceChart.mock.calls[0] as [
+    const [, members] = trackGroups.replaceMembers.mock.calls[0] as [
       unknown,
       unknown[],
     ];

@@ -1032,7 +1032,7 @@
             "name": "type",
             "required": false,
             "in": "query",
-            "description": "Which axis to list. Only DECADE is populated today.",
+            "description": "Which axis to list",
             "schema": {
               "enum": [
                 "DECADE",
@@ -2714,6 +2714,115 @@
           "demo"
         ]
       }
+    },
+    "/me/imports": {
+      "get": {
+        "operationId": "PlaylistImportController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ImportedSetDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Playlists this player imported",
+        "tags": [
+          "Api"
+        ]
+      },
+      "post": {
+        "operationId": "PlaylistImportController_import",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportPlaylistControllerDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportedSetDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Private or deleted playlist"
+          },
+          "422": {
+            "description": "Service not supported yet"
+          },
+          "429": {
+            "description": "Daily import used"
+          },
+          "503": {
+            "description": "Import queue is full"
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Import a public playlist as a private set",
+        "tags": [
+          "Api"
+        ]
+      }
+    },
+    "/me/imports/{trackGroupId}": {
+      "delete": {
+        "operationId": "PlaylistImportController_leave",
+        "parameters": [
+          {
+            "name": "trackGroupId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": "Not one of theirs"
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Remove an import from this player",
+        "tags": [
+          "Api"
+        ]
+      }
     }
   },
   "info": {
@@ -3952,7 +4061,8 @@
               "FAME",
               "CHART",
               "SPECIAL",
-              "ARTIST"
+              "ARTIST",
+              "IMPORTED"
             ],
             "description": "Which axis this groups by"
           },
@@ -4865,7 +4975,8 @@
             "description": "Where the run draws its tracks from",
             "enum": [
               "PLAYLIST",
-              "CURATED"
+              "CURATED",
+              "IMPORTED"
             ]
           },
           "playlistId": {
@@ -5314,7 +5425,8 @@
             "description": "What the run drew from. Only a curated run is ranked against other players.",
             "enum": [
               "PLAYLIST",
-              "CURATED"
+              "CURATED",
+              "IMPORTED"
             ]
           },
           "tracks": {
@@ -5568,6 +5680,98 @@
           "totalAttempts",
           "snippetDuration",
           "wrongIds"
+        ]
+      },
+      "ImportedSetDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable id, used to start a round"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "DECADE",
+              "GENRE",
+              "FAME",
+              "CHART",
+              "SPECIAL",
+              "ARTIST",
+              "IMPORTED"
+            ],
+            "description": "Which axis this groups by"
+          },
+          "name": {
+            "type": "string",
+            "example": "1980s",
+            "description": "What the tile is called"
+          },
+          "slug": {
+            "type": "string",
+            "example": "1980s",
+            "description": "In the URL, so a shared link survives a rename"
+          },
+          "trackCount": {
+            "type": "number",
+            "example": 490
+          },
+          "imageUrl": {
+            "type": "string",
+            "description": "Album art of the best known song in the group, absent if none of them has any"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "DEEZER",
+              "SPOTIFY",
+              "APPLE_MUSIC"
+            ]
+          },
+          "externalUrl": {
+            "type": "string",
+            "description": "The playlist on its own service"
+          },
+          "pending": {
+            "type": "boolean",
+            "description": "Its songs have not been read yet"
+          },
+          "staleSince": {
+            "format": "date-time",
+            "type": "string",
+            "description": "When the playlist stopped being readable; its last songs are kept"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "name",
+          "slug",
+          "trackCount",
+          "source",
+          "externalUrl",
+          "pending"
+        ]
+      },
+      "ImportPlaylistControllerDto": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string",
+            "enum": [
+              "DEEZER",
+              "SPOTIFY",
+              "APPLE_MUSIC"
+            ]
+          },
+          "link": {
+            "type": "string",
+            "example": "https://www.deezer.com/playlist/1313621735"
+          }
+        },
+        "required": [
+          "source",
+          "link"
         ]
       }
     }

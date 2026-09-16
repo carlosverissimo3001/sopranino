@@ -58,6 +58,32 @@ export class PoolTrackRepository {
     return rows.map((row) => row.fame);
   }
 
+  /**
+   * Pool ids keyed by ISRC. The pool is ISRC-deduped on purpose, so this is
+   * what tells a new entry it is a song the pool already holds under another id.
+   */
+  async idsByIsrc(isrcs: string[]): Promise<Map<string, string>> {
+    const rows = await this.prisma.poolTrack.findMany({
+      where: { isrc: { in: isrcs } },
+      select: { id: true, isrc: true },
+    });
+    return new Map(rows.map((row) => [row.isrc, row.id]));
+  }
+
+  /**
+   * Only ever created: a song the pool already holds keeps its own year, fame
+   * and draw eligibility, so being in a set never pulls it out of the shuffle.
+   */
+  async createGroupOnly(
+    rows: { id: string; isrc: string; year: number; fame: number }[],
+  ): Promise<void> {
+    if (!rows.length) return;
+    await this.prisma.poolTrack.createMany({
+      data: rows.map((row) => ({ ...row, groupOnly: true })),
+      skipDuplicates: true,
+    });
+  }
+
   async findGroupType(trackGroupId: string): Promise<TrackGroupType | null> {
     const group = await this.prisma.trackGroup.findUnique({
       where: { id: trackGroupId },

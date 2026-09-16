@@ -58,6 +58,9 @@ All URIs are relative to *http://localhost*
 | [**multiplayerControllerUpdateRoomSettings**](ApiApi.md#multiplayercontrollerupdateroomsettings) | **PATCH** /multiplayer/rooms/{id}/settings | Rename a room or change whether it is listed |
 | [**playlistControllerGetMyPlaylists**](ApiApi.md#playlistcontrollergetmyplaylists) | **GET** /playlists/me | Get current user\&#39;s playlists |
 | [**playlistControllerGetPlaylistById**](ApiApi.md#playlistcontrollergetplaylistbyid) | **GET** /playlists/{id} | Get playlist by ID |
+| [**playlistImportControllerImport**](ApiApi.md#playlistimportcontrollerimport) | **POST** /me/imports | Import a public playlist as a private set |
+| [**playlistImportControllerLeave**](ApiApi.md#playlistimportcontrollerleave) | **DELETE** /me/imports/{trackGroupId} | Remove an import from this player |
+| [**playlistImportControllerList**](ApiApi.md#playlistimportcontrollerlist) | **GET** /me/imports | Playlists this player imported |
 | [**searchControllerSearchTracks**](ApiApi.md#searchcontrollersearchtracks) | **GET** /search/tracks | Search tracks (for game guess options) |
 | [**streakControllerGetNextQuestion**](ApiApi.md#streakcontrollergetnextquestion) | **GET** /streak/quiz/next | Get the next unanswered quiz question |
 | [**streakControllerGetStatus**](ApiApi.md#streakcontrollergetstatus) | **GET** /streak/status | Get streak status including freeze info |
@@ -3808,6 +3811,210 @@ example().catch(console.error);
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 
+## playlistImportControllerImport
+
+> ImportedSetDto playlistImportControllerImport(importPlaylistControllerDto)
+
+Import a public playlist as a private set
+
+### Example
+
+```ts
+import {
+  Configuration,
+  ApiApi,
+} from '';
+import type { PlaylistImportControllerImportRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: cookie
+    apiKey: "YOUR API KEY",
+  });
+  const api = new ApiApi(config);
+
+  const body = {
+    // ImportPlaylistControllerDto
+    importPlaylistControllerDto: ...,
+  } satisfies PlaylistImportControllerImportRequest;
+
+  try {
+    const data = await api.playlistImportControllerImport(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **importPlaylistControllerDto** | [ImportPlaylistControllerDto](ImportPlaylistControllerDto.md) |  | |
+
+### Return type
+
+[**ImportedSetDto**](ImportedSetDto.md)
+
+### Authorization
+
+[cookie](../README.md#cookie)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **201** |  |  -  |
+| **404** | Private or deleted playlist |  -  |
+| **422** | Service not supported yet |  -  |
+| **429** | Daily import used |  -  |
+| **503** | Import queue is full |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## playlistImportControllerLeave
+
+> playlistImportControllerLeave(trackGroupId)
+
+Remove an import from this player
+
+### Example
+
+```ts
+import {
+  Configuration,
+  ApiApi,
+} from '';
+import type { PlaylistImportControllerLeaveRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: cookie
+    apiKey: "YOUR API KEY",
+  });
+  const api = new ApiApi(config);
+
+  const body = {
+    // string
+    trackGroupId: trackGroupId_example,
+  } satisfies PlaylistImportControllerLeaveRequest;
+
+  try {
+    const data = await api.playlistImportControllerLeave(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **trackGroupId** | `string` |  | [Defaults to `undefined`] |
+
+### Return type
+
+`void` (Empty response body)
+
+### Authorization
+
+[cookie](../README.md#cookie)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: Not defined
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **204** |  |  -  |
+| **404** | Not one of theirs |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## playlistImportControllerList
+
+> Array&lt;ImportedSetDto&gt; playlistImportControllerList()
+
+Playlists this player imported
+
+### Example
+
+```ts
+import {
+  Configuration,
+  ApiApi,
+} from '';
+import type { PlaylistImportControllerListRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: cookie
+    apiKey: "YOUR API KEY",
+  });
+  const api = new ApiApi(config);
+
+  try {
+    const data = await api.playlistImportControllerList();
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+[**Array&lt;ImportedSetDto&gt;**](ImportedSetDto.md)
+
+### Authorization
+
+[cookie](../README.md#cookie)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** |  |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
 ## searchControllerSearchTracks
 
 > Array&lt;TrackOptionDto&gt; searchControllerSearchTracks(q)
@@ -4212,7 +4419,7 @@ async function example() {
   const api = new ApiApi();
 
   const body = {
-    // 'DECADE' | 'GENRE' | 'FAME' | 'CHART' | 'SPECIAL' | 'ARTIST' | Which axis to list. Only DECADE is populated today. (optional)
+    // 'DECADE' | 'GENRE' | 'FAME' | 'CHART' | 'SPECIAL' | 'ARTIST' | Which axis to list (optional)
     type: type_example,
   } satisfies TrackGroupControllerListRequest;
 
@@ -4233,7 +4440,7 @@ example().catch(console.error);
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **type** | `DECADE`, `GENRE`, `FAME`, `CHART`, `SPECIAL`, `ARTIST` | Which axis to list. Only DECADE is populated today. | [Optional] [Defaults to `undefined`] [Enum: DECADE, GENRE, FAME, CHART, SPECIAL, ARTIST] |
+| **type** | `DECADE`, `GENRE`, `FAME`, `CHART`, `SPECIAL`, `ARTIST` | Which axis to list | [Optional] [Defaults to `undefined`] [Enum: DECADE, GENRE, FAME, CHART, SPECIAL, ARTIST] |
 
 ### Return type
 

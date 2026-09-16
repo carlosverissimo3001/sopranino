@@ -49,6 +49,11 @@ export const THROTTLE_FEEDBACK = 'feedback';
 /** Per IP: guests can send them, and a person has no reason to send more. */
 export const THROTTLE_FEEDBACK_LIMIT = 5;
 
+export const THROTTLE_IMPORT = 'import';
+
+/** The daily import cap is the real limit; this only stops a loop. */
+export const THROTTLE_IMPORT_LIMIT = 10;
+
 /** Named throttler for signup and login */
 export const THROTTLE_CREDENTIALS = 'credentials';
 

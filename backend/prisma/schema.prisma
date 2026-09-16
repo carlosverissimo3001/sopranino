@@ -47,6 +47,7 @@ model User {
   gauntletRuns GauntletRun[]
   authTokens   AuthToken[]
   feedback     Feedback[]
+  trackGroups  TrackGroupMember[]
 
   @@map("users")
 }
@@ -199,6 +200,7 @@ enum GauntletDifficulty {
 enum GauntletSource {
   PLAYLIST
   CURATED
+  IMPORTED
 }
 
 model GauntletRun {
@@ -380,6 +382,13 @@ enum TrackGroupType {
   CHART
   SPECIAL
   ARTIST
+  IMPORTED
+}
+
+enum PlaylistSource {
+  DEEZER
+  SPOTIFY
+  APPLE_MUSIC
 }
 
 model TrackGroup {
@@ -393,10 +402,11 @@ model TrackGroup {
 
   createdAt DateTime @default(now()) @map("created_at")
 
-  tracks TrackGroupTrack[]
-  rooms  MultiplayerRoom[]
+  tracks  TrackGroupTrack[]
+  rooms   MultiplayerRoom[]
+  import  PlaylistImport?
+  members TrackGroupMember[]
 
-  @@unique([type, name])
   @@index([type])
   @@map("track_groups")
 }
@@ -413,6 +423,36 @@ model TrackGroupTrack {
   @@id([trackId, trackGroupId])
   @@index([trackGroupId])
   @@map("track_group_tracks")
+}
+
+model PlaylistImport {
+  trackGroupId String     @id @map("track_group_id")
+  trackGroup   TrackGroup @relation(fields: [trackGroupId], references: [id], onDelete: Cascade)
+
+  source     PlaylistSource
+  externalId String         @map("external_id")
+  checksum   String?
+
+  refreshedAt DateTime? @map("refreshed_at")
+  staleSince  DateTime? @map("stale_since")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@unique([source, externalId])
+  @@map("playlist_imports")
+}
+
+model TrackGroupMember {
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  trackGroupId String     @map("track_group_id")
+  trackGroup   TrackGroup @relation(fields: [trackGroupId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@id([userId, trackGroupId])
+  @@index([trackGroupId])
+  @@map("track_group_members")
 }
 
 enum FeedbackKind {

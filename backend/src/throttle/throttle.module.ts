@@ -13,6 +13,7 @@ import {
   THROTTLE_CREDENTIALS,
   THROTTLE_DEFAULT_LIMIT,
   THROTTLE_FEEDBACK,
+  THROTTLE_IMPORT,
 } from './throttle.constants';
 
 @Module({
@@ -49,6 +50,11 @@ import {
           },
           {
             name: THROTTLE_FEEDBACK,
+            ttl: THROTTLE_TTL,
+            limit: THROTTLE_DEFAULT_LIMIT,
+          },
+          {
+            name: THROTTLE_IMPORT,
             ttl: THROTTLE_TTL,
             limit: THROTTLE_DEFAULT_LIMIT,
           },

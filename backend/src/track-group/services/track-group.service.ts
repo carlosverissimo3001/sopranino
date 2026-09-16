@@ -3,23 +3,96 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { TrackGroup, TrackGroupType } from '@prisma/client';
 import { TrackGroupRepository } from '../repositories/track-group.repository';
 import { TrackGroupDto } from '../dto/track-group.dto';
+import { SetMemberDto } from '../dto/set-member.dto';
 import { UserEntity } from '@/auth/entities/user.entity';
 import { CHART_BY_COUNTRY } from '@/chart/chart.constants';
+import { TrackRepository } from '@tracks/repositories/track.repository';
+import { PoolService } from '@/pool/services/pool.service';
+import { Transactional } from '@transaction/transactional.decorator';
 
 @Injectable()
 export class TrackGroupService {
-  constructor(private readonly repository: TrackGroupRepository) {}
+  constructor(
+    private readonly repository: TrackGroupRepository,
+    private readonly trackRepository: TrackRepository,
+    private readonly poolService: PoolService,
+  ) {}
 
   /**
    * A special group is for the handful of people it was made for, so it is
    * absent rather than locked for everyone else — a tile that refuses to open
-   * invites the question this is trying not to raise.
+   * invites the question this is trying not to raise. Imports are never listed.
    */
-  static isVisible(type: TrackGroupType, user: UserEntity | null): boolean {
+  static isListable(type: TrackGroupType, user: UserEntity | null): boolean {
+    if (type === TrackGroupType.IMPORTED) {
+      return false;
+    }
     if (type !== TrackGroupType.SPECIAL) {
       return true;
     }
     return !!user?.spotifyUserId && user.isTrusted;
+  }
+
+  async canSee(
+    group: Pick<TrackGroup, 'id' | 'type'>,
+    user: UserEntity | null,
+  ): Promise<boolean> {
+    if (group.type === TrackGroupType.IMPORTED) {
+      return !!user && this.repository.isMember(user.id, group.id);
+    }
+    return TrackGroupService.isListable(group.type, user);
+  }
+
+  /** Missing and not-yours are the same 404, so an id cannot probe for a set. */
+  async requireVisible(
+    id: string,
+    user: UserEntity | null,
+  ): Promise<TrackGroup> {
+    const group = await this.repository.findById(id);
+    if (!group || !(await this.canSee(group, user))) {
+      throw new NotFoundException(`No track group ${id}`);
+    }
+    return group;
+  }
+
+  @Transactional({ timeout: 60_000 })
+  async replaceMembers(
+    trackGroupId: string,
+    members: SetMemberDto[],
+  ): Promise<void> {
+    const created = members.flatMap((member) =>
+      member.create ? [{ id: member.trackId, ...member.create }] : [],
+    );
+
+    await this.trackRepository.createMissing(
+      created.map(
+        ({
+          id,
+          isrc,
+          name,
+          artistName,
+          albumName,
+          albumUrl,
+          albumImageUrl,
+        }) => ({
+          id,
+          isrc,
+          name,
+          artistName,
+          albumName,
+          albumUrl,
+          albumImageUrl,
+        }),
+      ),
+    );
+    await this.poolService.addGroupOnly(
+      created.map(({ id, isrc, year, fame }) => ({ id, isrc, year, fame })),
+    );
+    await this.repository.replaceTracks(
+      trackGroupId,
+      members.map((member) => member.trackId),
+    );
+    this.poolService.forget(trackGroupId);
   }
 
   async list(type: TrackGroupType, country?: string): Promise<TrackGroupDto[]> {
@@ -76,7 +149,7 @@ export class TrackGroupService {
   async bySlug(slug: string, user: UserEntity | null): Promise<TrackGroupDto> {
     const group = await this.repository.findBySlugWithCount(slug);
 
-    if (!group || !TrackGroupService.isVisible(group.type, user)) {
+    if (!group || !(await this.canSee(group, user))) {
       throw new NotFoundException(`No track group ${slug}`);
     }
 

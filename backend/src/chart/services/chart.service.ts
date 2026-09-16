@@ -1,34 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { AppLoggerService } from '../../logger/logger.service';
-import {
-  CHARTS,
-  CHART_PACE_MS,
-  CHART_SIZE,
-  type ChartSource,
-} from '../chart.constants';
-import {
-  ChartRepository,
-  type ChartMember,
-} from '../repositories/chart.repository';
-
-const DEEZER = 'https://api.deezer.com';
-
-interface DeezerPlaylistTrack {
-  id?: number;
-  title?: string;
-  isrc?: string;
-  rank?: number;
-  preview?: string;
-  artist?: { name?: string };
-  album?: {
-    id?: number;
-    title?: string;
-    cover_xl?: string;
-    cover_big?: string;
-  };
-}
-
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+import { CHARTS, CHART_SIZE, type ChartSource } from '../chart.constants';
+import { ChartRepository } from '../repositories/chart.repository';
+import { DeezerClient } from '../../playlist-import/providers/deezer/client';
+import { DeezerMembersService } from '../../playlist-import/providers/deezer/members.service';
+import { TrackGroupService } from '../../track-group/services/track-group.service';
+import type { SetMemberDto } from '../../track-group/dto/set-member.dto';
+import { Transactional } from '@transaction/transactional.decorator';
 
 @Injectable()
 export class ChartService {
@@ -36,6 +14,9 @@ export class ChartService {
 
   constructor(
     private readonly repository: ChartRepository,
+    private readonly deezer: DeezerClient,
+    private readonly deezerMembers: DeezerMembersService,
+    private readonly trackGroupService: TrackGroupService,
     appLogger: AppLoggerService,
   ) {
     this.logger = appLogger.child(ChartService.name);
@@ -79,70 +60,34 @@ export class ChartService {
   }
 
   private async refresh(chart: ChartSource): Promise<number> {
-    const body = await this.deezer<{ data?: DeezerPlaylistTrack[] }>(
-      `${DEEZER}/playlist/${chart.playlistId}/tracks?limit=${CHART_SIZE}`,
+    const tracks = await this.deezer.playlistTracks(
+      chart.playlistId,
+      CHART_SIZE,
     );
-    // No ISRC means no way to tell whether the pool already holds the song,
-    // and the pool is deduped by ISRC. Better dropped than entered twice.
-    const raw = (body?.data ?? [])
-      .filter((track) => track.id && track.preview)
-      .map((track) => ({
-        ...track,
-        normIsrc: (track.isrc ?? '').replace(/[^a-z0-9]/gi, '').toUpperCase(),
-      }))
-      .filter((track) => track.normIsrc);
+    const members = tracks.ok
+      ? await this.deezerMembers.resolve(tracks.body)
+      : [];
 
-    if (!raw.length) {
+    if (!members.length) {
       this.logger.warn(`No tracks for ${chart.slug}; keeping the previous set`);
       return 0;
     }
 
-    const existing = await this.repository.poolIdsByIsrc(
-      raw.map((track) => track.normIsrc),
-    );
+    await this.store(chart, members);
+    return members.length;
+  }
 
-    const members: ChartMember[] = [];
-    const seen = new Set<string>();
-
-    for (const track of raw) {
-      // The pool canonicalises to the most-streamed upload, so the chart's copy
-      // of a song it already holds has a different id and the same ISRC. The
-      // entry plays as the row the pool already has.
-      const poolId = existing.get(track.normIsrc);
-      const trackId = poolId ?? `dz:${track.id}`;
-
-      // A chart can list two uploads of one song; the group holds it once.
-      if (seen.has(trackId)) {
-        continue;
-      }
-      seen.add(trackId);
-
-      if (poolId) {
-        members.push({ trackId });
-        continue;
-      }
-
-      // A year costs a request, and only a song the pool has never seen needs
-      // one asked for.
-      members.push({
-        trackId,
-        create: {
-          isrc: track.normIsrc,
-          name: track.title ?? '',
-          artistName: track.artist?.name ?? '',
-          albumName: track.album?.title ?? '',
-          albumUrl: `https://www.deezer.com/album/${track.album?.id}`,
-          albumImageUrl: track.album?.cover_xl ?? track.album?.cover_big,
-          fame: track.rank ?? 0,
-          year: await this.releaseYear(track.id!),
-        },
-      });
-    }
-
-    return this.repository.replaceChart(
-      { slug: chart.slug, name: chart.name },
-      members,
-    );
+  /** Replaced whole, so a retry never layers last week under this week. */
+  @Transactional({ timeout: 60_000 })
+  private async store(
+    chart: ChartSource,
+    members: SetMemberDto[],
+  ): Promise<void> {
+    const groupId = await this.repository.upsertChart({
+      slug: chart.slug,
+      name: chart.name,
+    });
+    await this.trackGroupService.replaceMembers(groupId, members);
   }
 
   /** Whether a refresh should run at boot rather than waiting for Monday. */
@@ -151,43 +96,5 @@ export class ChartService {
       CHARTS.map((chart) => this.repository.countMembers(chart.name)),
     );
     return counts.some((count) => count === 0);
-  }
-
-  private async releaseYear(trackId: number): Promise<number> {
-    const track = await this.deezer<{ release_date?: string }>(
-      `${DEEZER}/track/${trackId}`,
-    );
-    const year = Number(track?.release_date?.slice(0, 4));
-    return Number.isFinite(year) && year > 1900
-      ? year
-      : new Date().getFullYear();
-  }
-
-  /**
-   * Deezer answers 200 with an error body when it is throttling, so a missing
-   * payload is not the same as an empty result.
-   */
-  private async deezer<T>(url: string, attempts = 4): Promise<T | null> {
-    for (let attempt = 0; attempt < attempts; attempt++) {
-      try {
-        const response = await fetch(url, {
-          headers: { 'Accept-Language': 'en' },
-          signal: AbortSignal.timeout(10_000),
-        });
-        if (response.ok) {
-          const body = (await response.json()) as T & {
-            error?: Record<string, unknown>;
-          };
-          if (!body?.error) {
-            await sleep(CHART_PACE_MS);
-            return body;
-          }
-        }
-      } catch {
-        // Falls through to the backoff below.
-      }
-      await sleep(1000 * (attempt + 1));
-    }
-    return null;
   }
 }

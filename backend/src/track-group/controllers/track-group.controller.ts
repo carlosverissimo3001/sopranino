@@ -29,7 +29,7 @@ export class TrackGroupController {
     const type = query.type ?? TrackGroupType.DECADE;
     const user = await this.currentUser(req);
 
-    if (!TrackGroupService.isVisible(type, user)) {
+    if (!TrackGroupService.isListable(type, user)) {
       // Empty rather than forbidden: whether a group exists is itself the
       // thing being kept back.
       return [];

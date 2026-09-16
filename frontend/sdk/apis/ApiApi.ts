@@ -37,6 +37,8 @@ import type {
   GauntletRunStateDto,
   GuessDto,
   GuessResultDto,
+  ImportPlaylistControllerDto,
+  ImportedSetDto,
   KickPlayerDto,
   LoginDto,
   MultiplayerRoundStateDto,
@@ -118,6 +120,10 @@ import {
     GuessDtoToJSON,
     GuessResultDtoFromJSON,
     GuessResultDtoToJSON,
+    ImportPlaylistControllerDtoFromJSON,
+    ImportPlaylistControllerDtoToJSON,
+    ImportedSetDtoFromJSON,
+    ImportedSetDtoToJSON,
     KickPlayerDtoFromJSON,
     KickPlayerDtoToJSON,
     LoginDtoFromJSON,
@@ -407,6 +413,14 @@ export interface PlaylistControllerGetMyPlaylistsRequest {
 
 export interface PlaylistControllerGetPlaylistByIdRequest {
     id: string;
+}
+
+export interface PlaylistImportControllerImportRequest {
+    importPlaylistControllerDto: ImportPlaylistControllerDto;
+}
+
+export interface PlaylistImportControllerLeaveRequest {
+    trackGroupId: string;
 }
 
 export interface SearchControllerSearchTracksRequest {
@@ -2576,6 +2590,110 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async playlistControllerGetPlaylistById(requestParameters: PlaylistControllerGetPlaylistByIdRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PlaylistDto> {
         const response = await this.playlistControllerGetPlaylistByIdRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Import a public playlist as a private set
+     */
+    async playlistImportControllerImportRaw(requestParameters: PlaylistImportControllerImportRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ImportedSetDto>> {
+        if (requestParameters['importPlaylistControllerDto'] == null) {
+            throw new runtime.RequiredError(
+                'importPlaylistControllerDto',
+                'Required parameter "importPlaylistControllerDto" was null or undefined when calling playlistImportControllerImport().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/me/imports`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: ImportPlaylistControllerDtoToJSON(requestParameters['importPlaylistControllerDto']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ImportedSetDtoFromJSON(jsonValue));
+    }
+
+    /**
+     * Import a public playlist as a private set
+     */
+    async playlistImportControllerImport(requestParameters: PlaylistImportControllerImportRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ImportedSetDto> {
+        const response = await this.playlistImportControllerImportRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Remove an import from this player
+     */
+    async playlistImportControllerLeaveRaw(requestParameters: PlaylistImportControllerLeaveRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters['trackGroupId'] == null) {
+            throw new runtime.RequiredError(
+                'trackGroupId',
+                'Required parameter "trackGroupId" was null or undefined when calling playlistImportControllerLeave().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/me/imports/{trackGroupId}`;
+        urlPath = urlPath.replace(`{${"trackGroupId"}}`, encodeURIComponent(String(requestParameters['trackGroupId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Remove an import from this player
+     */
+    async playlistImportControllerLeave(requestParameters: PlaylistImportControllerLeaveRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.playlistImportControllerLeaveRaw(requestParameters, initOverrides);
+    }
+
+    /**
+     * Playlists this player imported
+     */
+    async playlistImportControllerListRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ImportedSetDto>>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/me/imports`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ImportedSetDtoFromJSON));
+    }
+
+    /**
+     * Playlists this player imported
+     */
+    async playlistImportControllerList(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ImportedSetDto>> {
+        const response = await this.playlistImportControllerListRaw(initOverrides);
         return await response.value();
     }
 

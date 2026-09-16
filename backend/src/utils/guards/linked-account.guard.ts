@@ -13,12 +13,7 @@ import { SESSION_COOKIE_NAME } from '../../consts';
 /**
  * Any credential will do, unlike SpotifyLinkedGuard: this asks whether the
  * player has an account at all. Spotify is the only one today, so the two
- * agree; hasCredential is where CAR-188's email logins will make them differ.
- *
- * The speed-run sits behind it because a run is built on a Spotify playlist, so
- * there is nothing for a player without a library to run against — drop it
- * there once the pool can feed a run. Multiplayer no longer needs it: a room
- * with an unlinked player runs on the curated pool.
+ * agree;
  */
 @Injectable()
 export class LinkedAccountGuard implements CanActivate {

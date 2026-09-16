@@ -1,13 +1,17 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { TrackGroupType } from '@prisma/client';
-import { IsEnum, IsOptional } from 'class-validator';
+import { IsIn, IsOptional } from 'class-validator';
+
+const LISTABLE_TYPES = Object.values(TrackGroupType).filter(
+  (type) => type !== TrackGroupType.IMPORTED,
+);
 
 export class ListTrackGroupsDto {
   @ApiPropertyOptional({
-    enum: TrackGroupType,
-    description: 'Which axis to list. Only DECADE is populated today.',
+    enum: LISTABLE_TYPES,
+    description: 'Which axis to list',
   })
   @IsOptional()
-  @IsEnum(TrackGroupType)
+  @IsIn(LISTABLE_TYPES)
   type?: TrackGroupType;
 }
