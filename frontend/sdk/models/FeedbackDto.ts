@@ -93,7 +93,8 @@ export interface FeedbackDto {
  */
 export const FeedbackDtoKindEnum = {
     Bug: 'BUG',
-    Suggestion: 'SUGGESTION'
+    Suggestion: 'SUGGESTION',
+    ArtistRequest: 'ARTIST_REQUEST'
 } as const;
 export type FeedbackDtoKindEnum = typeof FeedbackDtoKindEnum[keyof typeof FeedbackDtoKindEnum];
 

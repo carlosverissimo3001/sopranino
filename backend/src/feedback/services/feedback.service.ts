@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { FeedbackKind } from '@prisma/client';
 import { AuthService } from '../../auth/services/auth.service';
 import { EmailService } from '../../email/services/email.service';
 import { INBOUND_FORWARD_TO } from '../../inbound/consts';
@@ -9,9 +10,13 @@ import {
   FEEDBACK_NOTIFY_DAILY_KEY,
   FEEDBACK_NOTIFY_DAILY_LIMIT,
   FEEDBACK_NOTIFY_TTL_SECONDS,
+  FEEDBACK_REQUEST_MAX,
 } from '../consts';
 import { reportReceivedEmail } from '../emails/report-received.email';
 import { paginate } from '../../utils/pagination/paginate';
+import { normalizeLoose } from '../../utils/text';
+import { ArtistRequestPageDto } from '../dto/artist-request.dto';
+import { GetArtistRequestsDto } from '../dto/get-artist-requests.dto';
 import { CreateFeedbackControllerDto } from '../dto/create-feedback-controller.dto';
 import { FeedbackDto } from '../dto/feedback.dto';
 import { FeedbackPageDto } from '../dto/feedback-page.dto';
@@ -47,10 +52,21 @@ export class FeedbackService {
       return;
     }
 
+    const isRequest = body.kind === FeedbackKind.ARTIST_REQUEST;
+    // The DTO's cap is the long-form one; a name has its own, and a conditional
+    // @MaxLength would need @ValidateIf, which skips every validator after it.
+    if (isRequest && body.message.length > FEEDBACK_REQUEST_MAX) {
+      throw new BadRequestException(
+        `A request can be at most ${FEEDBACK_REQUEST_MAX} characters`,
+      );
+    }
+
     const user = await this.userFor(sessionId);
     const report = {
       kind: body.kind,
       message: body.message,
+      // Only requests are ever grouped, so only requests carry the key.
+      normalizedMessage: isRequest ? normalizeLoose(body.message) : undefined,
       email: body.email,
       pagePath: body.pagePath,
       appVersion: body.appVersion,
@@ -103,6 +119,15 @@ export class FeedbackService {
   async list(dto: GetFeedbackDto): Promise<FeedbackPageDto> {
     const { items, total } = await this.feedbackRepository.findPage(dto);
     return paginate(items.map(FeedbackDto.fromEntity), total, dto);
+  }
+
+  async listRequests(dto: GetArtistRequestsDto): Promise<ArtistRequestPageDto> {
+    const { items, total } = await this.feedbackRepository.findRequestPage(dto);
+    return paginate(items, total, dto);
+  }
+
+  setRequestResolved(key: string, resolved: boolean): Promise<void> {
+    return this.feedbackRepository.setRequestResolved(key, resolved);
   }
 
   async setResolved(id: string, resolved: boolean): Promise<FeedbackDto> {

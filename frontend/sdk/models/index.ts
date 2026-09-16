@@ -3,6 +3,8 @@
 export * from './ActualTrackDto';
 export * from './AdminUserDto';
 export * from './AdminUsersPageDto';
+export * from './ArtistRequestDto';
+export * from './ArtistRequestPageDto';
 export * from './AuthMeResponseDto';
 export * from './ChangePasswordDto';
 export * from './ConfirmEmailDto';
@@ -75,6 +77,7 @@ export * from './TrackEntity';
 export * from './TrackGroupDto';
 export * from './TrackMetadataVo';
 export * from './TrackOptionDto';
+export * from './UpdateArtistRequestsDto';
 export * from './UpdateAvatarSourceDto';
 export * from './UpdateFeedbackDto';
 export * from './UpdateRoomSettingsControllerDto';

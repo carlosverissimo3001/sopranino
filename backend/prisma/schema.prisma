@@ -418,14 +418,16 @@ model TrackGroupTrack {
 enum FeedbackKind {
   BUG
   SUGGESTION
+  ARTIST_REQUEST
 }
 
 model Feedback {
   id String @id @default(uuid())
 
-  kind    FeedbackKind
-  message String
-  email   String?
+  kind              FeedbackKind
+  message           String
+  normalizedMessage String?      @map("normalized_message")
+  email             String?
 
   userId String? @map("user_id")
   user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
@@ -439,5 +441,6 @@ model Feedback {
 
   @@index([createdAt])
   @@index([kind, resolvedAt])
+  @@index([kind, normalizedMessage])
   @@map("feedback")
 }

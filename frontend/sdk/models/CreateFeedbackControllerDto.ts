@@ -63,7 +63,8 @@ export interface CreateFeedbackControllerDto {
  */
 export const CreateFeedbackControllerDtoKindEnum = {
     Bug: 'BUG',
-    Suggestion: 'SUGGESTION'
+    Suggestion: 'SUGGESTION',
+    ArtistRequest: 'ARTIST_REQUEST'
 } as const;
 export type CreateFeedbackControllerDtoKindEnum = typeof CreateFeedbackControllerDtoKindEnum[keyof typeof CreateFeedbackControllerDtoKindEnum];
 
