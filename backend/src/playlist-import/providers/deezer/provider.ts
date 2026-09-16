@@ -33,8 +33,14 @@ export class DeezerProvider implements PlaylistProvider {
       });
       const location = response.headers.get('location');
       if (!location) return null;
-      const target = new URL(location, parsed.shortUrl);
-      if (DEEZER_SHORT_HOSTS.includes(target.hostname)) return null;
+      let target = new URL(location, parsed.shortUrl);
+      // Deezer lands on its own link page first, with the playlist in `dest`.
+      if (DEEZER_SHORT_HOSTS.includes(target.hostname)) {
+        const dest = target.searchParams.get('dest');
+        if (!dest) return null;
+        target = new URL(dest);
+        if (DEEZER_SHORT_HOSTS.includes(target.hostname)) return null;
+      }
       const resolved = parsePlaylistLink(this.source, target.href);
       return resolved && 'externalId' in resolved ? resolved.externalId : null;
     } catch {

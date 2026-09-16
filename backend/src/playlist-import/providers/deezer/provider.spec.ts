@@ -39,6 +39,32 @@ describe('DeezerProvider', () => {
       );
     });
 
+    // What link.deezer.com actually answers: its own page, with the playlist in `dest`.
+    it('reads the playlist out of the landing page a short link redirects to', async () => {
+      const dest = encodeURIComponent(
+        'https://www.deezer.com/playlist/15761961641?host=1&utm_source=user_sharing',
+      );
+      fetchMock.mockResolvedValue(
+        redirectTo(`https://link.deezer.com/?awf=${dest}&dest=${dest}`),
+      );
+
+      await expect(
+        provider.resolveId('https://link.deezer.com/s/34q4AVpwJOJYCStpiK2YD'),
+      ).resolves.toBe('15761961641');
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('refuses a landing page whose dest is not a Deezer playlist', async () => {
+      const dest = encodeURIComponent('https://evil.example/playlist/42');
+      fetchMock.mockResolvedValue(
+        redirectTo(`https://link.deezer.com/?dest=${dest}`),
+      );
+
+      await expect(
+        provider.resolveId('https://link.deezer.com/s/30abc'),
+      ).resolves.toBeNull();
+    });
+
     // A short link is somewhere Deezer sends us, not somewhere a player points the server.
     it.each([
       'https://evil.example/playlist/42',
