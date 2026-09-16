@@ -61,3 +61,12 @@ export function normalizeText(value: string): string {
 export function compareText(a: string, b: string): boolean {
   return normalizeText(a.toLowerCase()) === normalizeText(b.toLowerCase());
 }
+
+export function normalizeLoose(value: string): string {
+  return normalizeText(value)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim();
+}

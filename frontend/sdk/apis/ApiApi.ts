@@ -17,6 +17,7 @@ import * as runtime from '../runtime';
 import type {
   AdminUserDto,
   AdminUsersPageDto,
+  ArtistRequestPageDto,
   AuthMeResponseDto,
   ChangePasswordDto,
   ConfirmEmailDto,
@@ -76,6 +77,8 @@ import {
     AdminUserDtoToJSON,
     AdminUsersPageDtoFromJSON,
     AdminUsersPageDtoToJSON,
+    ArtistRequestPageDtoFromJSON,
+    ArtistRequestPageDtoToJSON,
     AuthMeResponseDtoFromJSON,
     AuthMeResponseDtoToJSON,
     ChangePasswordDtoFromJSON,
@@ -190,6 +193,11 @@ export interface AdminControllerCreateStreakQuestionRequest {
 
 export interface AdminControllerDeleteStreakQuestionRequest {
     id: string;
+}
+
+export interface AdminControllerListArtistRequestsRequest {
+    page?: number;
+    limit?: number;
 }
 
 export interface AdminControllerListFeedbackRequest {
@@ -499,6 +507,43 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async adminControllerDeleteStreakQuestion(requestParameters: AdminControllerDeleteStreakQuestionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
         await this.adminControllerDeleteStreakQuestionRaw(requestParameters, initOverrides);
+    }
+
+    /**
+     * Artists players asked for, most asked first
+     */
+    async adminControllerListArtistRequestsRaw(requestParameters: AdminControllerListArtistRequestsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ArtistRequestPageDto>> {
+        const queryParameters: any = {};
+
+        if (requestParameters['page'] != null) {
+            queryParameters['page'] = requestParameters['page'];
+        }
+
+        if (requestParameters['limit'] != null) {
+            queryParameters['limit'] = requestParameters['limit'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/admin/feedback/requests`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ArtistRequestPageDtoFromJSON(jsonValue));
+    }
+
+    /**
+     * Artists players asked for, most asked first
+     */
+    async adminControllerListArtistRequests(requestParameters: AdminControllerListArtistRequestsRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ArtistRequestPageDto> {
+        const response = await this.adminControllerListArtistRequestsRaw(requestParameters, initOverrides);
+        return await response.value();
     }
 
     /**
@@ -2891,7 +2936,8 @@ export class ApiApi extends runtime.BaseAPI {
  */
 export const AdminControllerListFeedbackKindEnum = {
     Bug: 'BUG',
-    Suggestion: 'SUGGESTION'
+    Suggestion: 'SUGGESTION',
+    ArtistRequest: 'ARTIST_REQUEST'
 } as const;
 export type AdminControllerListFeedbackKindEnum = typeof AdminControllerListFeedbackKindEnum[keyof typeof AdminControllerListFeedbackKindEnum];
 /**

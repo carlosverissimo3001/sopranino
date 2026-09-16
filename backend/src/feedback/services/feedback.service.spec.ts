@@ -1,3 +1,4 @@
+import { BadRequestException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { FeedbackKind } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
@@ -5,7 +6,7 @@ import { AuthService } from '../../auth/services/auth.service';
 import { EmailService } from '../../email/services/email.service';
 import { AppLoggerService } from '../../logger/logger.service';
 import { RedisService } from '../../redis/redis.service';
-import { FEEDBACK_NOTIFY_DAILY_LIMIT } from '../consts';
+import { FEEDBACK_NOTIFY_DAILY_LIMIT, FEEDBACK_REQUEST_MAX } from '../consts';
 import { CreateFeedbackControllerDto } from '../dto/create-feedback-controller.dto';
 import { GetFeedbackDto } from '../dto/get-feedback.dto';
 import { FeedbackRepository } from '../repositories/feedback.repository';
@@ -17,6 +18,7 @@ describe('FeedbackService', () => {
   const repository = {
     create: jest.fn(),
     findPage: jest.fn(),
+    findRequestPage: jest.fn(),
     setResolved: jest.fn(),
   };
   const auth = { getUserBySessionId: jest.fn() };
@@ -132,6 +134,66 @@ describe('FeedbackService', () => {
       await service.submit({ body: body(), userAgent: 'x'.repeat(2000) });
 
       expect(repository.create.mock.calls[0][0].userAgent).toHaveLength(512);
+    });
+  });
+
+  describe('artist requests', () => {
+    const request = (message: string) =>
+      body({ kind: FeedbackKind.ARTIST_REQUEST, message });
+
+    it('keys a request so spellings of it group together', async () => {
+      await service.submit({ body: request('Tyler, The Creator') });
+
+      expect(repository.create.mock.calls[0][0].normalizedMessage).toBe(
+        'tyler the creator',
+      );
+    });
+
+    it('leaves a bug report unkeyed, since nothing groups those', async () => {
+      await service.submit({ body: body() });
+
+      expect(
+        repository.create.mock.calls[0][0].normalizedMessage,
+      ).toBeUndefined();
+    });
+
+    // The route is open to guests; a name is not a place to write an essay.
+    it('refuses a request longer than a name', async () => {
+      await expect(
+        service.submit({ body: request('a'.repeat(FEEDBACK_REQUEST_MAX + 1)) }),
+      ).rejects.toThrow(BadRequestException);
+
+      expect(repository.create).not.toHaveBeenCalled();
+    });
+
+    it('takes one exactly at the cap', async () => {
+      await service.submit({ body: request('a'.repeat(FEEDBACK_REQUEST_MAX)) });
+
+      expect(repository.create).toHaveBeenCalled();
+    });
+
+    // A long bug report is still a bug report.
+    it('leaves the long-form cap alone for other kinds', async () => {
+      await service.submit({ body: body({ message: 'a'.repeat(500) }) });
+
+      expect(repository.create).toHaveBeenCalled();
+    });
+
+    it('pages the queue', async () => {
+      repository.findRequestPage.mockResolvedValue({
+        items: [
+          { name: 'Tyler, The Creator', count: 3, lastAskedAt: new Date(0) },
+        ],
+        total: 1,
+      });
+
+      const page = await service.listRequests({ page: 1, limit: 10 });
+
+      expect(page.items[0]).toMatchObject({
+        name: 'Tyler, The Creator',
+        count: 3,
+      });
+      expect(page.meta.totalItems).toBe(1);
     });
   });
 

@@ -6,6 +6,7 @@ All URIs are relative to *http://localhost*
 |------------- | ------------- | -------------|
 | [**adminControllerCreateStreakQuestion**](ApiApi.md#admincontrollercreatestreakquestion) | **POST** /admin/streak-questions | Create a streak quiz question |
 | [**adminControllerDeleteStreakQuestion**](ApiApi.md#admincontrollerdeletestreakquestion) | **DELETE** /admin/streak-questions/{id} | Soft-delete a streak quiz question |
+| [**adminControllerListArtistRequests**](ApiApi.md#admincontrollerlistartistrequests) | **GET** /admin/feedback/requests | Artists players asked for, most asked first |
 | [**adminControllerListFeedback**](ApiApi.md#admincontrollerlistfeedback) | **GET** /admin/feedback | List player reports, newest first |
 | [**adminControllerListStreakQuestions**](ApiApi.md#admincontrollerliststreakquestions) | **GET** /admin/streak-questions | List all streak quiz questions |
 | [**adminControllerListUsers**](ApiApi.md#admincontrollerlistusers) | **GET** /admin/users | List users, paged |
@@ -208,6 +209,78 @@ example().catch(console.error);
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 
+## adminControllerListArtistRequests
+
+> ArtistRequestPageDto adminControllerListArtistRequests(page, limit)
+
+Artists players asked for, most asked first
+
+### Example
+
+```ts
+import {
+  Configuration,
+  ApiApi,
+} from '';
+import type { AdminControllerListArtistRequestsRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: cookie
+    apiKey: "YOUR API KEY",
+  });
+  const api = new ApiApi(config);
+
+  const body = {
+    // number (optional)
+    page: 8.14,
+    // number (optional)
+    limit: 8.14,
+  } satisfies AdminControllerListArtistRequestsRequest;
+
+  try {
+    const data = await api.adminControllerListArtistRequests(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **page** | `number` |  | [Optional] [Defaults to `1`] |
+| **limit** | `number` |  | [Optional] [Defaults to `10`] |
+
+### Return type
+
+[**ArtistRequestPageDto**](ArtistRequestPageDto.md)
+
+### Authorization
+
+[cookie](../README.md#cookie)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** |  |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
 ## adminControllerListFeedback
 
 > FeedbackPageDto adminControllerListFeedback(page, limit, kind, resolved)
@@ -236,7 +309,7 @@ async function example() {
     page: 8.14,
     // number (optional)
     limit: 8.14,
-    // 'BUG' | 'SUGGESTION' (optional)
+    // 'BUG' | 'SUGGESTION' | 'ARTIST_REQUEST' (optional)
     kind: kind_example,
     // boolean | Only resolved, or only open, reports (optional)
     resolved: true,
@@ -261,7 +334,7 @@ example().catch(console.error);
 |------------- | ------------- | ------------- | -------------|
 | **page** | `number` |  | [Optional] [Defaults to `1`] |
 | **limit** | `number` |  | [Optional] [Defaults to `10`] |
-| **kind** | `BUG`, `SUGGESTION` |  | [Optional] [Defaults to `undefined`] [Enum: BUG, SUGGESTION] |
+| **kind** | `BUG`, `SUGGESTION`, `ARTIST_REQUEST` |  | [Optional] [Defaults to `undefined`] [Enum: BUG, SUGGESTION, ARTIST_REQUEST] |
 | **resolved** | `boolean` | Only resolved, or only open, reports | [Optional] [Defaults to `undefined`] |
 
 ### Return type

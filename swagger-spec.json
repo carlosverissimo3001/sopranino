@@ -1456,7 +1456,8 @@
             "schema": {
               "enum": [
                 "BUG",
-                "SUGGESTION"
+                "SUGGESTION",
+                "ARTIST_REQUEST"
               ],
               "type": "string"
             }
@@ -1489,6 +1490,55 @@
           }
         ],
         "summary": "List player reports, newest first",
+        "tags": [
+          "Api"
+        ]
+      }
+    },
+    "/admin/feedback/requests": {
+      "get": {
+        "operationId": "AdminController_listArtistRequests",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArtistRequestPageDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Artists players asked for, most asked first",
         "tags": [
           "Api"
         ]
@@ -4087,7 +4137,8 @@
             "type": "string",
             "enum": [
               "BUG",
-              "SUGGESTION"
+              "SUGGESTION",
+              "ARTIST_REQUEST"
             ]
           },
           "message": {
@@ -4145,6 +4196,46 @@
           "meta"
         ]
       },
+      "ArtistRequestDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "As most recently typed, not the grouping key"
+          },
+          "count": {
+            "type": "number",
+            "description": "How many people have asked for it"
+          },
+          "lastAskedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "count",
+          "lastAskedAt"
+        ]
+      },
+      "ArtistRequestPageDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ArtistRequestDto"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMetaDto"
+          }
+        },
+        "required": [
+          "items",
+          "meta"
+        ]
+      },
       "UpdateFeedbackDto": {
         "type": "object",
         "properties": {
@@ -4164,7 +4255,8 @@
             "type": "string",
             "enum": [
               "BUG",
-              "SUGGESTION"
+              "SUGGESTION",
+              "ARTIST_REQUEST"
             ]
           },
           "message": {

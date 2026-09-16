@@ -31,6 +31,8 @@ import { GetAdminUsersDto } from '../dto/get-admin-users.dto';
 import { FeedbackService } from '../../feedback/services/feedback.service';
 import { FeedbackDto } from '../../feedback/dto/feedback.dto';
 import { FeedbackPageDto } from '../../feedback/dto/feedback-page.dto';
+import { ArtistRequestPageDto } from '../../feedback/dto/artist-request.dto';
+import { PaginationQueryDto } from '../../utils/pagination/pagination-query.dto';
 import { GetFeedbackDto } from '../../feedback/dto/get-feedback.dto';
 import { UpdateFeedbackDto } from '../../feedback/dto/update-feedback.dto';
 
@@ -110,6 +112,16 @@ export class AdminController {
   @ApiResponse({ status: 200, type: FeedbackPageDto })
   async listFeedback(@Query() dto: GetFeedbackDto): Promise<FeedbackPageDto> {
     return this.feedbackService.list(dto);
+  }
+
+  @Get('feedback/requests')
+  @ApiCookieAuth()
+  @ApiOperation({ summary: 'Artists players asked for, most asked first' })
+  @ApiResponse({ status: 200, type: ArtistRequestPageDto })
+  async listArtistRequests(
+    @Query() dto: PaginationQueryDto,
+  ): Promise<ArtistRequestPageDto> {
+    return this.feedbackService.listRequests(dto);
   }
 
   @Patch('feedback/:id')
