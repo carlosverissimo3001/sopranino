@@ -2,6 +2,7 @@
 
 import { AskForASet } from './AskForASet';
 import { useTrackGroups } from '@/hooks/track-groups/useTrackGroups';
+import { usePlayableImports } from '@/hooks/imports/useMyImports';
 import { TrackGroupDtoTypeEnum } from '@/sdk';
 import type { TrackGroupDto } from '@/sdk';
 
@@ -25,7 +26,9 @@ export function SetChips({
   const { data: genres = [] } = useTrackGroups(TrackGroupDtoTypeEnum.Genre);
   const { data: charts = [] } = useTrackGroups(TrackGroupDtoTypeEnum.Chart);
   const { data: special = [] } = useTrackGroups(TrackGroupDtoTypeEnum.Special);
+  const imported = usePlayableImports();
   const sections = [
+    { label: 'Imported', sets: imported },
     { label: 'Artists', sets: artists },
     { label: 'Decades', sets: decades },
     { label: 'Genres', sets: genres },

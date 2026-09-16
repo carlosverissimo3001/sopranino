@@ -8,6 +8,9 @@ import {
  * Follows TanStack Query best practices for hierarchical keys
  */
 export const queryKeys = {
+  imports: {
+    mine: ['imports', 'mine'] as const,
+  },
   // Game-related queries
   game: {
     all: ['game'] as const,
