@@ -79,6 +79,12 @@ export interface ImportedSetDto {
      * @memberof ImportedSetDto
      */
     staleSince?: Date;
+    /**
+     * When this player added it
+     * @type {Date}
+     * @memberof ImportedSetDto
+     */
+    addedAt?: Date;
 }
 
 
@@ -142,6 +148,7 @@ export function ImportedSetDtoFromJSONTyped(json: any, ignoreDiscriminator: bool
         'externalUrl': json['externalUrl'],
         'pending': json['pending'],
         'staleSince': json['staleSince'] == null ? undefined : (new Date(json['staleSince'])),
+        'addedAt': json['addedAt'] == null ? undefined : (new Date(json['addedAt'])),
     };
 }
 
@@ -166,6 +173,7 @@ export function ImportedSetDtoToJSONTyped(value?: ImportedSetDto | null, ignoreD
         'externalUrl': value['externalUrl'],
         'pending': value['pending'],
         'staleSince': value['staleSince'] == null ? value['staleSince'] : value['staleSince'].toISOString(),
+        'addedAt': value['addedAt'] == null ? value['addedAt'] : value['addedAt'].toISOString(),
     };
 }
 

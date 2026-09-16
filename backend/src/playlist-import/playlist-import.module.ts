@@ -7,6 +7,9 @@ import { PoolModule } from '../pool/pool.module';
 import { RedisModule } from '../redis/redis.module';
 import { PlaylistImportConsumer } from './consumers/playlist-import.consumer';
 import { PlaylistImportController } from './controllers/playlist-import.controller';
+import { MyPlaylistsController } from './controllers/my-playlists.controller';
+import { MyPlaylistsService } from './services/my-playlists.service';
+import { PlaylistModule } from '../playlist/playlist.module';
 import { DeezerClient } from './providers/deezer/client';
 import { DeezerMembersService } from './providers/deezer/members.service';
 import { TrackGroupModule } from '../track-group/track-group.module';
@@ -22,12 +25,13 @@ import { PlaylistImportService } from './services/playlist-import.service';
     AuthModule,
     PoolModule,
     TrackGroupModule,
+    PlaylistModule,
     BullModule.registerQueue({
       name: PLAYLIST_IMPORT_QUEUE,
       defaultJobOptions: JOB_OPTIONS_WITH_BACKOFF,
     }),
   ],
-  controllers: [PlaylistImportController],
+  controllers: [PlaylistImportController, MyPlaylistsController],
   providers: [
     DeezerClient,
     DeezerMembersService,
@@ -39,6 +43,7 @@ import { PlaylistImportService } from './services/playlist-import.service';
     },
     PlaylistImportRepository,
     PlaylistImportService,
+    MyPlaylistsService,
     PlaylistImportConsumer,
   ],
   exports: [DeezerClient, DeezerMembersService],

@@ -42,12 +42,14 @@ import type {
   KickPlayerDto,
   LoginDto,
   MultiplayerRoundStateDto,
+  MyPlaylistsDto,
   OpenRoomsDto,
   PasswordResetResultDto,
   PatchUserDto,
   PersonalBestDto,
   PlayedTodayDto,
   PlaylistDto,
+  PlaylistSortBy,
   PlaylistsResponseDto,
   QuizNextResponseDto,
   QuizResultDto,
@@ -130,6 +132,8 @@ import {
     LoginDtoToJSON,
     MultiplayerRoundStateDtoFromJSON,
     MultiplayerRoundStateDtoToJSON,
+    MyPlaylistsDtoFromJSON,
+    MyPlaylistsDtoToJSON,
     OpenRoomsDtoFromJSON,
     OpenRoomsDtoToJSON,
     PasswordResetResultDtoFromJSON,
@@ -142,6 +146,8 @@ import {
     PlayedTodayDtoToJSON,
     PlaylistDtoFromJSON,
     PlaylistDtoToJSON,
+    PlaylistSortByFromJSON,
+    PlaylistSortByToJSON,
     PlaylistsResponseDtoFromJSON,
     PlaylistsResponseDtoToJSON,
     QuizNextResponseDtoFromJSON,
@@ -401,6 +407,10 @@ export interface MultiplayerControllerToggleReadyRequest {
 export interface MultiplayerControllerUpdateRoomSettingsRequest {
     id: string;
     updateRoomSettingsControllerDto: UpdateRoomSettingsControllerDto;
+}
+
+export interface MyPlaylistsControllerListRequest {
+    sortBy?: PlaylistSortBy;
 }
 
 export interface PlaylistControllerGetMyPlaylistsRequest {
@@ -2504,6 +2514,39 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async multiplayerControllerUpdateRoomSettings(requestParameters: MultiplayerControllerUpdateRoomSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RoomDto> {
         const response = await this.multiplayerControllerUpdateRoomSettingsRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * A player\'s Spotify and imported playlists, in one list
+     */
+    async myPlaylistsControllerListRaw(requestParameters: MyPlaylistsControllerListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<MyPlaylistsDto>> {
+        const queryParameters: any = {};
+
+        if (requestParameters['sortBy'] != null) {
+            queryParameters['sortBy'] = requestParameters['sortBy'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/me/playlists`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => MyPlaylistsDtoFromJSON(jsonValue));
+    }
+
+    /**
+     * A player\'s Spotify and imported playlists, in one list
+     */
+    async myPlaylistsControllerList(requestParameters: MyPlaylistsControllerListRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<MyPlaylistsDto> {
+        const response = await this.myPlaylistsControllerListRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

@@ -1,42 +1,42 @@
 
-# ImportedSetDto
+# PlaylistItemDto
 
 
 ## Properties
 
 Name | Type
 ------------ | -------------
+`kind` | [PlaylistItemKind](PlaylistItemKind.md)
 `id` | string
-`type` | string
 `name` | string
-`slug` | string
-`trackCount` | number
 `imageUrl` | string
-`source` | string
+`trackCount` | number
 `externalUrl` | string
+`owner` | string
+`slug` | string
+`source` | string
 `pending` | boolean
 `staleSince` | Date
-`addedAt` | Date
 
 ## Example
 
 ```typescript
-import type { ImportedSetDto } from ''
+import type { PlaylistItemDto } from ''
 
 // TODO: Update the object below with actual values
 const example = {
+  "kind": null,
   "id": null,
-  "type": null,
-  "name": 1980s,
-  "slug": 1980s,
-  "trackCount": 490,
+  "name": null,
   "imageUrl": null,
-  "source": null,
+  "trackCount": null,
   "externalUrl": null,
+  "owner": null,
+  "slug": null,
+  "source": null,
   "pending": null,
   "staleSince": null,
-  "addedAt": null,
-} satisfies ImportedSetDto
+} satisfies PlaylistItemDto
 
 console.log(example)
 
@@ -45,7 +45,7 @@ const exampleJSON: string = JSON.stringify(example)
 console.log(exampleJSON)
 
 // Parse the JSON string back to an object
-const exampleParsed = JSON.parse(exampleJSON) as ImportedSetDto
+const exampleParsed = JSON.parse(exampleJSON) as PlaylistItemDto
 console.log(exampleParsed)
 ```
 

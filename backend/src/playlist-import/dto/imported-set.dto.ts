@@ -17,4 +17,7 @@ export class ImportedSetDto extends TrackGroupDto {
       'When the playlist stopped being readable; its last songs are kept',
   })
   staleSince?: Date;
+
+  @ApiPropertyOptional({ description: 'When this player added it' })
+  addedAt?: Date;
 }
