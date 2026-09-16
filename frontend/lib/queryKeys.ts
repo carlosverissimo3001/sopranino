@@ -72,6 +72,8 @@ export const queryKeys = {
     usersList: (params: object) => ['admin', 'users', params] as const,
     feedback: ['admin', 'feedback'] as const,
     feedbackList: (params: object) => ['admin', 'feedback', params] as const,
+    artistRequests: (params: object) =>
+      ['admin', 'feedback', 'requests', params] as const,
   },
   // Multiplayer queries
   multiplayer: {

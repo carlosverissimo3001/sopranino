@@ -1,15 +1,38 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Bug, Inbox, Lightbulb, Loader2 } from 'lucide-react';
+import { Bug, Inbox, Lightbulb, Loader2, Mic2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { FilterChip } from '@/components/admin/FilterChip';
 import { Pagination } from '@/components/ui/Pagination';
+import { useAdminArtistRequests } from '@/hooks/admin/useAdminArtistRequests';
 import { useAdminFeedback } from '@/hooks/admin/useAdminFeedback';
+import { useAdminUpdateArtistRequests } from '@/hooks/admin/useAdminUpdateArtistRequests';
 import { useAdminUpdateFeedback } from '@/hooks/admin/useAdminUpdateFeedback';
-import { FeedbackDtoKindEnum as Kind, type FeedbackDto } from '@/sdk';
+import {
+  FeedbackDtoKindEnum as Kind,
+  type ArtistRequestDto,
+  type FeedbackDto,
+} from '@/sdk';
 
 const PAGE_SIZE = 20;
+
+const KIND_BADGE: Record<
+  Kind,
+  { Icon: typeof Bug; label: string; tone: string }
+> = {
+  [Kind.Bug]: { Icon: Bug, label: 'Bug', tone: 'bg-red-500/15 text-red-300' },
+  [Kind.Suggestion]: {
+    Icon: Lightbulb,
+    label: 'Idea',
+    tone: 'bg-amber-500/15 text-amber-300',
+  },
+  [Kind.ArtistRequest]: {
+    Icon: Mic2,
+    label: 'Request',
+    tone: 'bg-spotify-green/15 text-spotify-green',
+  },
+};
 
 type Status = 'open' | 'resolved' | 'all';
 
@@ -17,21 +40,31 @@ export function ReportsAdmin() {
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState<Status>('open');
   const [kind, setKind] = useState<Kind | null>(null);
+  const [isRequests, setIsRequests] = useState(false);
 
   useEffect(() => {
     setPage(1);
-  }, [status, kind]);
+  }, [status, kind, isRequests]);
 
-  const { data, isLoading, error } = useAdminFeedback({
+  const feedback = useAdminFeedback({
     page,
     limit: PAGE_SIZE,
     kind: kind ?? undefined,
     resolved: status === 'all' ? undefined : status === 'resolved',
   });
+  const resolved = status === 'all' ? undefined : status === 'resolved';
+  const requests = useAdminArtistRequests(
+    { page, limit: PAGE_SIZE, resolved },
+    isRequests,
+  );
   const update = useAdminUpdateFeedback();
+  const updateRequests = useAdminUpdateArtistRequests();
 
-  const reports = data?.items ?? [];
+  const { data, isLoading, error } = isRequests ? requests : feedback;
+  const reports = isRequests ? [] : (feedback.data?.items ?? []);
+  const asked = isRequests ? (requests.data?.items ?? []) : [];
   const meta = data?.meta;
+  const isEmpty = !isLoading && !error && reports.length + asked.length === 0;
 
   return (
     <div>
@@ -77,12 +110,22 @@ export function ReportsAdmin() {
           >
             Ideas
           </FilterChip>
+          <FilterChip
+            isActive={isRequests}
+            onClick={() => {
+              setIsRequests(!isRequests);
+              setKind(null);
+            }}
+            activeClasses="bg-spotify-green/15 text-spotify-green"
+          >
+            Requests
+          </FilterChip>
         </div>
       </div>
 
       {error && (
         <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-400">
-          Failed to load reports.
+          Failed to load {isRequests ? 'requests' : 'reports'}.
         </div>
       )}
 
@@ -90,13 +133,33 @@ export function ReportsAdmin() {
         <Loader2 className="mx-auto my-10 h-6 w-6 animate-spin text-spotify-green" />
       )}
 
-      {!isLoading && !error && reports.length === 0 && (
+      {isEmpty && (
         <p className="py-10 text-center text-sm text-fg/50">
-          {status === 'open' ? 'Nothing open.' : 'No reports here.'}
+          {isRequests && status !== 'resolved'
+            ? 'Nobody is waiting on an artist.'
+            : status === 'open'
+              ? 'Nothing open.'
+              : 'No reports here.'}
         </p>
       )}
 
       <ul className="space-y-2">
+        {asked.map((request) => (
+          <RequestRow
+            key={request.key}
+            request={request}
+            isUpdating={
+              updateRequests.isPending &&
+              updateRequests.variables?.key === request.key
+            }
+            onToggle={() =>
+              updateRequests.mutate(
+                { key: request.key, resolved: !request.resolved },
+                { onError: (err) => toast.error(err.message) },
+              )
+            }
+          />
+        ))}
         {reports.map((report) => (
           <ReportRow
             key={report.id}
@@ -125,6 +188,44 @@ export function ReportsAdmin() {
   );
 }
 
+function RequestRow({
+  request,
+  isUpdating,
+  onToggle,
+}: {
+  request: ArtistRequestDto;
+  isUpdating: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <li
+      className={`flex items-center gap-3 rounded-xl border border-fg/10 bg-fg/[0.03] p-4 ${request.resolved ? 'opacity-60' : ''}`}
+    >
+      <Mic2 className="h-4 w-4 shrink-0 text-spotify-green" />
+      <p className="min-w-0 flex-1 break-words text-sm font-semibold text-fg">
+        {request.name}
+      </p>
+      <time
+        className="shrink-0 text-xs text-fg/40"
+        dateTime={new Date(request.lastAskedAt).toISOString()}
+      >
+        {new Date(request.lastAskedAt).toLocaleDateString()}
+      </time>
+      <span className="shrink-0 rounded-full bg-spotify-green/15 px-2.5 py-0.5 text-xs font-bold tabular-nums text-spotify-green">
+        {request.count}
+      </span>
+      <button
+        type="button"
+        onClick={onToggle}
+        disabled={isUpdating}
+        className="shrink-0 rounded-full border border-fg/15 px-3 py-1 text-xs font-semibold text-fg/70 transition-colors hover:border-fg/30 hover:text-fg disabled:opacity-50"
+      >
+        {isUpdating ? '...' : request.resolved ? 'Reopen' : 'Resolve'}
+      </button>
+    </li>
+  );
+}
+
 function ReportRow({
   report,
   isUpdating,
@@ -134,8 +235,7 @@ function ReportRow({
   isUpdating: boolean;
   onToggle: () => void;
 }) {
-  const isBug = report.kind === Kind.Bug;
-  const Icon = isBug ? Bug : Lightbulb;
+  const { Icon, label, tone } = KIND_BADGE[report.kind];
 
   return (
     <li
@@ -144,14 +244,10 @@ function ReportRow({
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2 text-xs text-fg/50">
           <span
-            className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-semibold ${
-              isBug
-                ? 'bg-red-500/15 text-red-300'
-                : 'bg-amber-500/15 text-amber-300'
-            }`}
+            className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-semibold ${tone}`}
           >
             <Icon className="h-3 w-3" />
-            {isBug ? 'Bug' : 'Idea'}
+            {label}
           </span>
           <time dateTime={new Date(report.createdAt).toISOString()}>
             {new Date(report.createdAt).toLocaleString()}

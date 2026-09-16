@@ -2,6 +2,7 @@
 
 import { memo, useState } from 'react';
 import { motion } from 'framer-motion';
+import { AskForASet } from '@/components/features/track-group/AskForASet';
 import { TrackGroupCard } from '@/components/track-group/TrackGroupCard';
 import { PlaylistSkeleton } from '@/components/playlist/PlaylistSkeleton';
 import { useTrackGroups } from '@/hooks/track-groups/useTrackGroups';
@@ -93,6 +94,11 @@ function CuratedGroupsComponent({ defaultOpen }: CuratedGroupsProps) {
       actions={tabs || undefined}
       defaultOpen={defaultOpen}
     >
+      {kind.label === 'Artist' && (
+        <div className="mx-auto -mt-2 mb-3 flex min-h-[29px] max-w-[1200px] items-center sm:-mt-4">
+          <AskForASet />
+        </div>
+      )}
       <motion.div
         key={kind.label}
         initial={{ opacity: 0 }}
