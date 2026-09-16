@@ -14,9 +14,9 @@ import {
 } from '../consts';
 import { reportReceivedEmail } from '../emails/report-received.email';
 import { paginate } from '../../utils/pagination/paginate';
-import { PaginationQueryDto } from '../../utils/pagination/pagination-query.dto';
 import { normalizeLoose } from '../../utils/text';
 import { ArtistRequestPageDto } from '../dto/artist-request.dto';
+import { GetArtistRequestsDto } from '../dto/get-artist-requests.dto';
 import { CreateFeedbackControllerDto } from '../dto/create-feedback-controller.dto';
 import { FeedbackDto } from '../dto/feedback.dto';
 import { FeedbackPageDto } from '../dto/feedback-page.dto';
@@ -121,9 +121,13 @@ export class FeedbackService {
     return paginate(items.map(FeedbackDto.fromEntity), total, dto);
   }
 
-  async listRequests(dto: PaginationQueryDto): Promise<ArtistRequestPageDto> {
+  async listRequests(dto: GetArtistRequestsDto): Promise<ArtistRequestPageDto> {
     const { items, total } = await this.feedbackRepository.findRequestPage(dto);
     return paginate(items, total, dto);
+  }
+
+  setRequestResolved(key: string, resolved: boolean): Promise<void> {
+    return this.feedbackRepository.setRequestResolved(key, resolved);
   }
 
   async setResolved(id: string, resolved: boolean): Promise<FeedbackDto> {

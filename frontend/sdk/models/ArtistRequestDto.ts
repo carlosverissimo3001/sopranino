@@ -20,6 +20,12 @@ import { mapValues } from '../runtime';
  */
 export interface ArtistRequestDto {
     /**
+     * What the asks are grouped by; pass it back to resolve them
+     * @type {string}
+     * @memberof ArtistRequestDto
+     */
+    key: string;
+    /**
      * As most recently typed, not the grouping key
      * @type {string}
      * @memberof ArtistRequestDto
@@ -37,15 +43,23 @@ export interface ArtistRequestDto {
      * @memberof ArtistRequestDto
      */
     lastAskedAt: Date;
+    /**
+     * Every ask under the name has been resolved
+     * @type {boolean}
+     * @memberof ArtistRequestDto
+     */
+    resolved: boolean;
 }
 
 /**
  * Check if a given object implements the ArtistRequestDto interface.
  */
 export function instanceOfArtistRequestDto(value: object): value is ArtistRequestDto {
+    if (!('key' in value) || value['key'] === undefined) return false;
     if (!('name' in value) || value['name'] === undefined) return false;
     if (!('count' in value) || value['count'] === undefined) return false;
     if (!('lastAskedAt' in value) || value['lastAskedAt'] === undefined) return false;
+    if (!('resolved' in value) || value['resolved'] === undefined) return false;
     return true;
 }
 
@@ -59,9 +73,11 @@ export function ArtistRequestDtoFromJSONTyped(json: any, ignoreDiscriminator: bo
     }
     return {
         
+        'key': json['key'],
         'name': json['name'],
         'count': json['count'],
         'lastAskedAt': (new Date(json['lastAskedAt'])),
+        'resolved': json['resolved'],
     };
 }
 
@@ -76,9 +92,11 @@ export function ArtistRequestDtoToJSONTyped(value?: ArtistRequestDto | null, ign
 
     return {
         
+        'key': value['key'],
         'name': value['name'],
         'count': value['count'],
         'lastAskedAt': value['lastAskedAt'].toISOString(),
+        'resolved': value['resolved'],
     };
 }
 

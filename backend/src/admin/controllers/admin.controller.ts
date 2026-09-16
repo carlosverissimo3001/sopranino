@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Delete,
+  HttpCode,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -32,7 +33,8 @@ import { FeedbackService } from '../../feedback/services/feedback.service';
 import { FeedbackDto } from '../../feedback/dto/feedback.dto';
 import { FeedbackPageDto } from '../../feedback/dto/feedback-page.dto';
 import { ArtistRequestPageDto } from '../../feedback/dto/artist-request.dto';
-import { PaginationQueryDto } from '../../utils/pagination/pagination-query.dto';
+import { GetArtistRequestsDto } from '../../feedback/dto/get-artist-requests.dto';
+import { UpdateArtistRequestsDto } from '../../feedback/dto/update-artist-requests.dto';
 import { GetFeedbackDto } from '../../feedback/dto/get-feedback.dto';
 import { UpdateFeedbackDto } from '../../feedback/dto/update-feedback.dto';
 
@@ -119,9 +121,22 @@ export class AdminController {
   @ApiOperation({ summary: 'Artists players asked for, most asked first' })
   @ApiResponse({ status: 200, type: ArtistRequestPageDto })
   async listArtistRequests(
-    @Query() dto: PaginationQueryDto,
+    @Query() dto: GetArtistRequestsDto,
   ): Promise<ArtistRequestPageDto> {
     return this.feedbackService.listRequests(dto);
+  }
+
+  // Before feedback/:id, or "requests" is taken for an id.
+  @Patch('feedback/requests')
+  @HttpCode(204)
+  @ApiCookieAuth()
+  @ApiOperation({ summary: 'Resolve or reopen every ask for one artist' })
+  @ApiResponse({ status: 204 })
+  @ApiResponse({ status: 404, description: 'Nobody asked for it' })
+  async updateArtistRequests(
+    @Body() dto: UpdateArtistRequestsDto,
+  ): Promise<void> {
+    await this.feedbackService.setRequestResolved(dto.key, dto.resolved);
   }
 
   @Patch('feedback/:id')

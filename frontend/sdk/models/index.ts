@@ -77,6 +77,7 @@ export * from './TrackEntity';
 export * from './TrackGroupDto';
 export * from './TrackMetadataVo';
 export * from './TrackOptionDto';
+export * from './UpdateArtistRequestsDto';
 export * from './UpdateAvatarSourceDto';
 export * from './UpdateFeedbackDto';
 export * from './UpdateRoomSettingsControllerDto';

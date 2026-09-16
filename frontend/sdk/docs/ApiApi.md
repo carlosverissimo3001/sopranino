@@ -10,6 +10,7 @@ All URIs are relative to *http://localhost*
 | [**adminControllerListFeedback**](ApiApi.md#admincontrollerlistfeedback) | **GET** /admin/feedback | List player reports, newest first |
 | [**adminControllerListStreakQuestions**](ApiApi.md#admincontrollerliststreakquestions) | **GET** /admin/streak-questions | List all streak quiz questions |
 | [**adminControllerListUsers**](ApiApi.md#admincontrollerlistusers) | **GET** /admin/users | List users, paged |
+| [**adminControllerUpdateArtistRequests**](ApiApi.md#admincontrollerupdateartistrequests) | **PATCH** /admin/feedback/requests | Resolve or reopen every ask for one artist |
 | [**adminControllerUpdateFeedback**](ApiApi.md#admincontrollerupdatefeedback) | **PATCH** /admin/feedback/{id} | Resolve or reopen a player report |
 | [**adminControllerUpdateStreakQuestion**](ApiApi.md#admincontrollerupdatestreakquestion) | **PATCH** /admin/streak-questions/{id} | Update a streak quiz question |
 | [**adminControllerUpdateUserRole**](ApiApi.md#admincontrollerupdateuserrole) | **PATCH** /admin/users/{id} | Update user role flags |
@@ -211,7 +212,7 @@ example().catch(console.error);
 
 ## adminControllerListArtistRequests
 
-> ArtistRequestPageDto adminControllerListArtistRequests(page, limit)
+> ArtistRequestPageDto adminControllerListArtistRequests(page, limit, resolved)
 
 Artists players asked for, most asked first
 
@@ -237,6 +238,8 @@ async function example() {
     page: 8.14,
     // number (optional)
     limit: 8.14,
+    // boolean | Only asks already acted on, or only open ones (optional)
+    resolved: true,
   } satisfies AdminControllerListArtistRequestsRequest;
 
   try {
@@ -258,6 +261,7 @@ example().catch(console.error);
 |------------- | ------------- | ------------- | -------------|
 | **page** | `number` |  | [Optional] [Defaults to `1`] |
 | **limit** | `number` |  | [Optional] [Defaults to `10`] |
+| **resolved** | `boolean` | Only asks already acted on, or only open ones | [Optional] [Defaults to `undefined`] |
 
 ### Return type
 
@@ -503,6 +507,76 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** |  |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## adminControllerUpdateArtistRequests
+
+> adminControllerUpdateArtistRequests(updateArtistRequestsDto)
+
+Resolve or reopen every ask for one artist
+
+### Example
+
+```ts
+import {
+  Configuration,
+  ApiApi,
+} from '';
+import type { AdminControllerUpdateArtistRequestsRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: cookie
+    apiKey: "YOUR API KEY",
+  });
+  const api = new ApiApi(config);
+
+  const body = {
+    // UpdateArtistRequestsDto
+    updateArtistRequestsDto: ...,
+  } satisfies AdminControllerUpdateArtistRequestsRequest;
+
+  try {
+    const data = await api.adminControllerUpdateArtistRequests(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **updateArtistRequestsDto** | [UpdateArtistRequestsDto](UpdateArtistRequestsDto.md) |  | |
+
+### Return type
+
+`void` (Empty response body)
+
+### Authorization
+
+[cookie](../README.md#cookie)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: Not defined
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **204** |  |  -  |
+| **404** | Nobody asked for it |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 

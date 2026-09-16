@@ -1519,6 +1519,15 @@
               "default": 10,
               "type": "number"
             }
+          },
+          {
+            "name": "resolved",
+            "required": false,
+            "in": "query",
+            "description": "Only asks already acted on, or only open ones",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -1539,6 +1548,37 @@
           }
         ],
         "summary": "Artists players asked for, most asked first",
+        "tags": [
+          "Api"
+        ]
+      },
+      "patch": {
+        "operationId": "AdminController_updateArtistRequests",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateArtistRequestsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": "Nobody asked for it"
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Resolve or reopen every ask for one artist",
         "tags": [
           "Api"
         ]
@@ -4199,6 +4239,10 @@
       "ArtistRequestDto": {
         "type": "object",
         "properties": {
+          "key": {
+            "type": "string",
+            "description": "What the asks are grouped by; pass it back to resolve them"
+          },
           "name": {
             "type": "string",
             "description": "As most recently typed, not the grouping key"
@@ -4210,12 +4254,18 @@
           "lastAskedAt": {
             "format": "date-time",
             "type": "string"
+          },
+          "resolved": {
+            "type": "boolean",
+            "description": "Every ask under the name has been resolved"
           }
         },
         "required": [
+          "key",
           "name",
           "count",
-          "lastAskedAt"
+          "lastAskedAt",
+          "resolved"
         ]
       },
       "ArtistRequestPageDto": {
@@ -4234,6 +4284,23 @@
         "required": [
           "items",
           "meta"
+        ]
+      },
+      "UpdateArtistRequestsDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "The grouping key, as the requests list returns it"
+          },
+          "resolved": {
+            "type": "boolean",
+            "description": "Resolved once the set exists, or reopened"
+          }
+        },
+        "required": [
+          "key",
+          "resolved"
         ]
       },
       "UpdateFeedbackDto": {

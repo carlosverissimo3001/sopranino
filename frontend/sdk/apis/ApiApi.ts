@@ -63,6 +63,7 @@ import type {
   SubmitQuizAnswerDto,
   TrackGroupDto,
   TrackOptionDto,
+  UpdateArtistRequestsDto,
   UpdateAvatarSourceDto,
   UpdateFeedbackDto,
   UpdateRoomSettingsControllerDto,
@@ -169,6 +170,8 @@ import {
     TrackGroupDtoToJSON,
     TrackOptionDtoFromJSON,
     TrackOptionDtoToJSON,
+    UpdateArtistRequestsDtoFromJSON,
+    UpdateArtistRequestsDtoToJSON,
     UpdateAvatarSourceDtoFromJSON,
     UpdateAvatarSourceDtoToJSON,
     UpdateFeedbackDtoFromJSON,
@@ -198,6 +201,7 @@ export interface AdminControllerDeleteStreakQuestionRequest {
 export interface AdminControllerListArtistRequestsRequest {
     page?: number;
     limit?: number;
+    resolved?: boolean;
 }
 
 export interface AdminControllerListFeedbackRequest {
@@ -215,6 +219,10 @@ export interface AdminControllerListUsersRequest {
     isAdmin?: boolean;
     sortBy?: AdminControllerListUsersSortByEnum;
     sortOrder?: AdminControllerListUsersSortOrderEnum;
+}
+
+export interface AdminControllerUpdateArtistRequestsRequest {
+    updateArtistRequestsDto: UpdateArtistRequestsDto;
 }
 
 export interface AdminControllerUpdateFeedbackRequest {
@@ -523,6 +531,10 @@ export class ApiApi extends runtime.BaseAPI {
             queryParameters['limit'] = requestParameters['limit'];
         }
 
+        if (requestParameters['resolved'] != null) {
+            queryParameters['resolved'] = requestParameters['resolved'];
+        }
+
         const headerParameters: runtime.HTTPHeaders = {};
 
 
@@ -675,6 +687,44 @@ export class ApiApi extends runtime.BaseAPI {
     async adminControllerListUsers(requestParameters: AdminControllerListUsersRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminUsersPageDto> {
         const response = await this.adminControllerListUsersRaw(requestParameters, initOverrides);
         return await response.value();
+    }
+
+    /**
+     * Resolve or reopen every ask for one artist
+     */
+    async adminControllerUpdateArtistRequestsRaw(requestParameters: AdminControllerUpdateArtistRequestsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters['updateArtistRequestsDto'] == null) {
+            throw new runtime.RequiredError(
+                'updateArtistRequestsDto',
+                'Required parameter "updateArtistRequestsDto" was null or undefined when calling adminControllerUpdateArtistRequests().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/admin/feedback/requests`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'PATCH',
+            headers: headerParameters,
+            query: queryParameters,
+            body: UpdateArtistRequestsDtoToJSON(requestParameters['updateArtistRequestsDto']),
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Resolve or reopen every ask for one artist
+     */
+    async adminControllerUpdateArtistRequests(requestParameters: AdminControllerUpdateArtistRequestsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.adminControllerUpdateArtistRequestsRaw(requestParameters, initOverrides);
     }
 
     /**

@@ -1,5 +1,5 @@
 
-# ArtistRequestDto
+# UpdateArtistRequestsDto
 
 
 ## Properties
@@ -7,24 +7,18 @@
 Name | Type
 ------------ | -------------
 `key` | string
-`name` | string
-`count` | number
-`lastAskedAt` | Date
 `resolved` | boolean
 
 ## Example
 
 ```typescript
-import type { ArtistRequestDto } from ''
+import type { UpdateArtistRequestsDto } from ''
 
 // TODO: Update the object below with actual values
 const example = {
   "key": null,
-  "name": null,
-  "count": null,
-  "lastAskedAt": null,
   "resolved": null,
-} satisfies ArtistRequestDto
+} satisfies UpdateArtistRequestsDto
 
 console.log(example)
 
@@ -33,7 +27,7 @@ const exampleJSON: string = JSON.stringify(example)
 console.log(exampleJSON)
 
 // Parse the JSON string back to an object
-const exampleParsed = JSON.parse(exampleJSON) as ArtistRequestDto
+const exampleParsed = JSON.parse(exampleJSON) as UpdateArtistRequestsDto
 console.log(exampleParsed)
 ```
 

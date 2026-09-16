@@ -2,8 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { FeedbackKind, Prisma } from '@prisma/client';
 import { PrismaService } from '@prisma/prisma.service';
 import { skipTake } from '../../utils/pagination/paginate';
-import { PaginationQueryDto } from '../../utils/pagination/pagination-query.dto';
 import { CreateFeedbackDto } from '../dto/create-feedback.dto';
+import { GetArtistRequestsDto } from '../dto/get-artist-requests.dto';
 import { GetFeedbackDto } from '../dto/get-feedback.dto';
 
 /** Requests keyed to nothing at all cannot be grouped, so they are left out. */
@@ -46,11 +46,19 @@ export class FeedbackRepository {
    * The queue: what was asked for, and by how many. Ordered by count, since a
    * name ten people typed is worth more than the one typed a minute ago.
    */
-  async findRequestPage(dto: PaginationQueryDto) {
+  async findRequestPage(dto: GetArtistRequestsDto) {
+    const where: Prisma.FeedbackWhereInput = {
+      ...GROUPABLE_REQUESTS,
+      ...(dto.resolved !== undefined && {
+        resolvedAt: dto.resolved ? { not: null } : null,
+      }),
+    };
+
     const grouped = await this.prisma.feedback.groupBy({
       by: ['normalizedMessage'],
-      where: GROUPABLE_REQUESTS,
-      _count: { _all: true },
+      where,
+      // Counting resolvedAt counts only the resolved asks, which is the tell.
+      _count: { _all: true, resolvedAt: true },
       _max: { createdAt: true },
       orderBy: [{ _count: { id: 'desc' } }, { _max: { createdAt: 'desc' } }],
       ...skipTake(dto),
@@ -61,6 +69,13 @@ export class FeedbackRepository {
       FROM feedback
       WHERE kind = 'ARTIST_REQUEST'::"FeedbackKind"
         AND normalized_message IS NOT NULL
+        ${
+          dto.resolved === undefined
+            ? Prisma.empty
+            : dto.resolved
+              ? Prisma.sql`AND resolved_at IS NOT NULL`
+              : Prisma.sql`AND resolved_at IS NULL`
+        }
     `;
 
     if (!grouped.length) {
@@ -71,7 +86,7 @@ export class FeedbackRepository {
     // for each key is fetched back to show.
     const keys = grouped.map((row) => row.normalizedMessage as string);
     const spellings = await this.prisma.feedback.findMany({
-      where: { ...GROUPABLE_REQUESTS, normalizedMessage: { in: keys } },
+      where: { ...where, normalizedMessage: { in: keys } },
       orderBy: { createdAt: 'desc' },
       select: { normalizedMessage: true, message: true },
     });
@@ -87,13 +102,34 @@ export class FeedbackRepository {
     const items = grouped.map((row) => {
       const key = row.normalizedMessage as string;
       return {
+        key,
         name: newest.get(key) ?? key,
         count: row._count._all,
         lastAskedAt: row._max.createdAt as Date,
+        resolved: row._count.resolvedAt === row._count._all,
       };
     });
 
     return { items, total };
+  }
+
+  /** Every ask under one name at once: resolving means the set now exists. */
+  async setRequestResolved(key: string, resolved: boolean): Promise<void> {
+    const byKey = {
+      kind: FeedbackKind.ARTIST_REQUEST,
+      normalizedMessage: key,
+    };
+    const { count } = await this.prisma.feedback.updateMany({
+      where: { ...byKey, resolvedAt: resolved ? null : { not: null } },
+      data: { resolvedAt: resolved ? new Date() : null },
+    });
+    // Nothing changed is fine when it was already so; not when nobody asked.
+    if (
+      count === 0 &&
+      (await this.prisma.feedback.count({ where: byKey })) === 0
+    ) {
+      throw new NotFoundException('Request not found');
+    }
   }
 
   async setResolved(id: string, resolved: boolean) {
