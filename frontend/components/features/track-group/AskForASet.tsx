@@ -54,6 +54,7 @@ export function AskForASet({ variant = 'line' }: AskForASetProps) {
     >
       <label className="min-w-0 flex-1">
         <span className="sr-only">Artist name</span>
+        {/* Important, to beat the global 16px input rule; maximumScale already stops the iOS zoom it guards against. */}
         <input
           type="text"
           value={name}
@@ -61,7 +62,7 @@ export function AskForASet({ variant = 'line' }: AskForASetProps) {
           maxLength={NAME_MAX}
           autoFocus
           placeholder="Which artist?"
-          className="block w-full min-w-0 rounded-full border border-fg/10 bg-fg/5 px-3 py-1.5 text-xs text-fg placeholder:text-fg/30 focus:border-spotify-green/40 focus:outline-none"
+          className="block w-full min-w-0 rounded-full border border-fg/10 bg-fg/5 px-3 py-1.5 !text-[10px] text-fg placeholder:text-fg/30 focus:border-spotify-green/40 focus:outline-none"
         />
       </label>
 
