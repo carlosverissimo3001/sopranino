@@ -15,6 +15,7 @@ export interface SourceInfo {
     panel: string;
     step: string;
     badge: string;
+    mark: string;
   };
 }
 
@@ -37,6 +38,7 @@ export const PLAYLIST_SOURCES: Record<Source, SourceInfo> = {
       panel: 'border-[#A238FF]/30 bg-[#A238FF]/[0.06]',
       step: 'bg-[#A238FF]/20 text-[#7B1FD6] dark:text-[#C98BFF]',
       badge: 'bg-[#A238FF]',
+      mark: 'text-[#A238FF]',
     },
   },
   [Source.Spotify]: {
@@ -55,6 +57,7 @@ export const PLAYLIST_SOURCES: Record<Source, SourceInfo> = {
       panel: 'border-spotify-green/30 bg-spotify-green/[0.06]',
       step: 'bg-spotify-green/20 text-spotify-green',
       badge: 'bg-spotify-green',
+      mark: 'text-spotify-green',
     },
   },
   [Source.AppleMusic]: {
@@ -75,6 +78,7 @@ export const PLAYLIST_SOURCES: Record<Source, SourceInfo> = {
       panel: 'border-[#FA2D48]/30 bg-[#FA2D48]/[0.06]',
       step: 'bg-[#FA2D48]/20 text-[#C4122A] dark:text-[#FF6B7F]',
       badge: 'bg-[#FA2D48]',
+      mark: 'text-[#FA2D48]',
     },
   },
 };

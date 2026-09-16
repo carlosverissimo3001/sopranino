@@ -7,8 +7,12 @@ import Link from 'next/link';
 import { Play, ListMusic } from 'lucide-react';
 import type { TrackGroupDto } from '@/sdk';
 import { useImageColor } from '@/hooks/misc/useImageColor';
+import { SourceMark } from '@/components/features/imports/SourceMark';
+import type { PlaylistSource } from '@/lib/playlist-links';
 
 interface TrackGroupCardProps {
+  /** Where it comes from, shown beside the track count. */
+  source?: PlaylistSource;
   group: TrackGroupDto;
   onHover?: (color: string | null) => void;
 }
@@ -18,7 +22,11 @@ interface TrackGroupCardProps {
  * typography. Only what fills it differs, because to a player these are the
  * same kind of thing — somewhere to start a round from.
  */
-function TrackGroupCardComponent({ group, onHover }: TrackGroupCardProps) {
+function TrackGroupCardComponent({
+  group,
+  onHover,
+  source,
+}: TrackGroupCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const ambientColor = useImageColor(group.imageUrl, {
     fallback: 'rgba(30, 215, 96, 0.15)',
@@ -77,7 +85,11 @@ function TrackGroupCardComponent({ group, onHover }: TrackGroupCardProps) {
 
             <div className="mt-1.5 flex items-center gap-2 sm:gap-3 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.1em] sm:tracking-[0.15em] text-fg/30">
               <div className="flex items-center gap-1.5">
-                <ListMusic className="w-3 h-3 opacity-60" />
+                {source ? (
+                  <SourceMark source={source} />
+                ) : (
+                  <ListMusic className="w-3 h-3 opacity-60" />
+                )}
                 <span>{group.trackCount} tracks</span>
               </div>
             </div>

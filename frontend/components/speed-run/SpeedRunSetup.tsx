@@ -5,16 +5,18 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ListMusic, Shuffle, Trophy, Check } from 'lucide-react';
-import { useMyPlaylists } from '@/hooks/playlists/useMyPlaylists';
-import { useMe } from '@/hooks/auth/useMe';
+import {
+  isPlayable,
+  useMyPlaylistLibrary,
+} from '@/hooks/playlists/useMyPlaylistLibrary';
 import { useTrackGroups } from '@/hooks/track-groups/useTrackGroups';
-import { usePlayableImports } from '@/hooks/imports/useMyImports';
 import { AskForASet } from '@/components/features/track-group/AskForASet';
 import { DIFFICULTIES } from '@/lib/difficulty';
 import {
   StartRunDtoDifficultyEnum as GauntletDifficulty,
   StartRunDtoSourceEnum,
   TrackGroupDtoTypeEnum,
+  PlaylistItemKind,
 } from '@/sdk';
 import type { StartRunDto } from '@/sdk';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -100,16 +102,13 @@ export function SpeedRunSetup({
   const [selectedDifficulty, setSelectedDifficulty] =
     useState<GauntletDifficulty>(GauntletDifficulty.Medium);
 
-  // Only a linked library has playlists to list, and asking without one is a
-  // request that can only fail - a 401 for a visitor with no session at all.
-  const { data: user } = useMe();
-  const { data: playlistsData, isLoading: isLoadingPlaylists } = useMyPlaylists(
-    {
-      limit: 50,
-      enabled: !!user?.hasLinkedAccount,
-    },
+  // Disabled for a visitor without an account, which leaves both lists empty.
+  const { data: library, isLoading: isLoadingPlaylists } =
+    useMyPlaylistLibrary();
+  const playable = (library?.items ?? []).filter(isPlayable);
+  const playlists = playable.filter(
+    (item) => item.kind === PlaylistItemKind.Spotify,
   );
-  const playlists = playlistsData?.items ?? [];
   // One kind per query, since that is what the endpoint takes. A kind with no
   // groups drops out, so genres cost nothing until the pool has any and the
   // picker needs no change when it does — a new kind is one line here.
@@ -117,7 +116,9 @@ export function SpeedRunSetup({
   const { data: decades } = useTrackGroups(TrackGroupDtoTypeEnum.Decade);
   const { data: genres } = useTrackGroups(TrackGroupDtoTypeEnum.Genre);
   const { data: charts } = useTrackGroups(TrackGroupDtoTypeEnum.Chart);
-  const imported = usePlayableImports();
+  const imported = playable.filter(
+    (item) => item.kind === PlaylistItemKind.Imported,
+  );
   const kinds = [
     { label: 'Artists', groups: artists },
     { label: 'Decades', groups: decades },

@@ -17,6 +17,6 @@ export function useRemoveImport() {
       }
     },
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: queryKeys.imports.mine }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.imports.all }),
   });
 }

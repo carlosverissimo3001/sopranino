@@ -6,15 +6,11 @@ import { motion } from 'framer-motion';
 import { useMe } from '@/hooks/auth/useMe';
 import { consumeAuthReturnUrl, peekAuthReturnUrl } from '@/lib/auth-return';
 import { StreakFreezePrompt } from '@/components/streak/StreakFreezePrompt';
-import { useMyPlaylists } from '@/hooks/playlists/useMyPlaylists';
 import { useLogout } from '@/hooks/auth/useLogout';
-import { usePlaylistFilters } from '@/hooks/playlists/usePlaylistFilters';
 import { useAuthError } from '@/hooks/auth/useAuthError';
 import { ErrorBanner } from '@/components/ui/ErrorBanner';
 import { AppHeader } from '@/components/features/AppHeader';
 import { GameModesGallery } from '@/components/features/GameModesGallery';
-import { PlaylistFilters } from '@/components/features/playlist/PlaylistFilters';
-import { PlaylistGrid } from '@/components/features/playlist/PlaylistGrid';
 import { LandingGame } from '@/components/features/LandingGame';
 import { AppFooter } from '@/components/features/AppFooter';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -22,9 +18,8 @@ import { useTimezoneSync } from '@/hooks/user-preferences/useTimezoneSync';
 import { useSpotifyReturnMark } from '@/hooks/auth/useSpotifyReturnMark';
 import { UnverifiedEmailBanner } from '@/components/auth/UnverifiedEmailBanner';
 import { TrackGroupView } from '@/components/features/track-group/TrackGroupView';
-import { ImportedPlaylists } from '@/components/features/imports/ImportedPlaylists';
+import { YourPlaylists } from '@/components/features/playlists/YourPlaylists';
 import { CuratedGroups } from '@/components/features/track-group/CuratedGroups';
-import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { TrackGroupDtoTypeEnum } from '@/sdk';
 
 export function HomeClient({
@@ -34,7 +29,6 @@ export function HomeClient({
   canSignIn: boolean;
   hasSession: boolean;
 }) {
-  const playlistFilters = usePlaylistFilters();
   const { error } = useAuthError();
 
   const { data: user, isLoading: isLoadingUser } = useMe();
@@ -69,21 +63,12 @@ export function HomeClient({
       }
     }
   }, [hasSpotify]);
-  const { data: playlistsResponse, isLoading: isLoadingPlaylists } =
-    useMyPlaylists({
-      onlyPublic: playlistFilters.visibility === 'public',
-      onlyPrivate: playlistFilters.visibility === 'private',
-      sortBy: playlistFilters.sortBy,
-      enabled: hasSpotify,
-    });
   const logoutMutation = useLogout();
   const [streakDismissed, setStreakDismissed] = useState(false);
 
   const handleLogout = async () => {
     logoutMutation.mutate();
   };
-
-  const playlists = playlistsResponse?.items || [];
 
   // Latched for the visit: the first round mints a session, and the page must
   // not turn into the home grid under a player halfway through it. A cookie
@@ -164,48 +149,10 @@ export function HomeClient({
             >
               <GameModesGallery />
 
-              {/* The playlist grid is the one thing a Spotify credential
-                  buys, so it is the one thing a guest's home leaves out. */}
-              {hasSpotify && (
-                <CollapsibleSection
-                  title={
-                    <>
-                      Your <span className="text-spotify-green">Spotify</span>{' '}
-                      Playlists
-                    </>
-                  }
-                  titleLabel="Your Spotify Playlists"
-                  badge={
-                    !isLoadingPlaylists && (
-                      <span className="text-sm sm:text-lg font-mono text-spotify-green/70 font-light tracking-tighter shrink-0">
-                        /{playlists.length.toString().padStart(2, '0')}
-                      </span>
-                    )
-                  }
-                  actions={
-                    <PlaylistFilters
-                      visibility={playlistFilters.visibility}
-                      onVisibilityChange={playlistFilters.setVisibility}
-                      sortBy={playlistFilters.sortBy}
-                      onSortByChange={playlistFilters.setSortBy}
-                    />
-                  }
-                >
-                  <PlaylistGrid
-                    playlists={playlists}
-                    isLoading={isLoadingPlaylists}
-                    onClearFilters={playlistFilters.clearFilters}
-                  />
-                </CollapsibleSection>
-              )}
+              <YourPlaylists defaultOpen />
 
-              {/* Open for someone with no library of their own, since it is all
-                  they have to browse; folded away for someone whose own
-                  playlists are already on screen. */}
               {/* Rendered for everyone: the server answers with nothing for
                   anyone it is not for, and nothing renders nothing. */}
-              <ImportedPlaylists defaultOpen={!hasSpotify} />
-
               <TrackGroupView
                 type={TrackGroupDtoTypeEnum.Special}
                 title="Special"

@@ -7,14 +7,22 @@ import Link from 'next/link';
 import { Play, ListMusic, Pin } from 'lucide-react';
 import type { PlaylistDto } from '@/sdk';
 import { useImageColor } from '@/hooks/misc/useImageColor';
+import { SourceMark } from '@/components/features/imports/SourceMark';
+import type { PlaylistSource } from '@/lib/playlist-links';
 
 interface PlaylistCardProps {
-  playlist: PlaylistDto;
+  /** Where it comes from, shown beside the track count. */
+  source?: PlaylistSource;
+  playlist: Pick<PlaylistDto, 'id' | 'name' | 'imageUrl' | 'totalTracks'>;
   index: number;
   onHover?: (color: string | null) => void;
 }
 
-function PlaylistCardComponent({ playlist, onHover }: PlaylistCardProps) {
+function PlaylistCardComponent({
+  playlist,
+  onHover,
+  source,
+}: PlaylistCardProps) {
   const imageUrl = playlist.imageUrl;
   const [isHovered, setIsHovered] = useState(false);
   const ambientColor = useImageColor(imageUrl, {
@@ -84,7 +92,11 @@ function PlaylistCardComponent({ playlist, onHover }: PlaylistCardProps) {
 
             <div className="mt-1.5 flex items-center flex-nowrap overflow-hidden gap-2 sm:gap-3 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.1em] sm:tracking-[0.15em] text-fg/30">
               <div className="flex items-center gap-1.5 shrink-0">
-                <ListMusic className="w-3 h-3 opacity-60" />
+                {source ? (
+                  <SourceMark source={source} />
+                ) : (
+                  <ListMusic className="w-3 h-3 opacity-60" />
+                )}
                 <span className="whitespace-nowrap">
                   {playlist.totalTracks} tracks
                 </span>
