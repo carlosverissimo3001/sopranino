@@ -1,0 +1,65 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { PlaylistSource } from '@prisma/client';
+import { IsEnum } from 'class-validator';
+import { IsNotNullableOptional } from '@utils/decorators/notNullableOptional.decorator';
+import { PLAYLIST_SORT_BY } from '../../playlist/consts';
+
+export enum PlaylistItemKind {
+  SPOTIFY = 'SPOTIFY',
+  IMPORTED = 'IMPORTED',
+}
+
+export class GetMyPlaylistsDto {
+  @ApiPropertyOptional({ enum: PLAYLIST_SORT_BY, enumName: 'PlaylistSortBy' })
+  @IsNotNullableOptional()
+  @IsEnum(PLAYLIST_SORT_BY)
+  sortBy?: PLAYLIST_SORT_BY = PLAYLIST_SORT_BY.DEFAULT;
+}
+
+export class PlaylistItemDto {
+  @ApiProperty({ enum: PlaylistItemKind, enumName: 'PlaylistItemKind' })
+  kind: PlaylistItemKind;
+
+  @ApiProperty({
+    description: 'The Spotify playlist id, or the set id of an import',
+  })
+  id: string;
+
+  @ApiProperty()
+  name: string;
+
+  @ApiPropertyOptional()
+  imageUrl?: string;
+
+  @ApiProperty()
+  trackCount: number;
+
+  @ApiProperty({ description: 'The playlist on its own service' })
+  externalUrl: string;
+
+  @ApiPropertyOptional({ description: "The Spotify owner's name" })
+  owner?: string;
+
+  @ApiPropertyOptional({ description: 'Imports: the set page' })
+  slug?: string;
+
+  @ApiPropertyOptional({ enum: PlaylistSource })
+  source?: PlaylistSource;
+
+  @ApiPropertyOptional({ description: 'Imports: songs not read yet' })
+  pending?: boolean;
+
+  @ApiPropertyOptional()
+  staleSince?: Date;
+}
+
+export class MyPlaylistsDto {
+  @ApiProperty({ type: [PlaylistItemDto] })
+  items: PlaylistItemDto[];
+
+  @ApiProperty({
+    description:
+      'Spotify could not be read this time; imports are still listed',
+  })
+  spotifyUnavailable: boolean;
+}

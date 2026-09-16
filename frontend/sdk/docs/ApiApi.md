@@ -56,6 +56,7 @@ All URIs are relative to *http://localhost*
 | [**multiplayerControllerSubmitGuess**](ApiApi.md#multiplayercontrollersubmitguess) | **POST** /multiplayer/rooms/{id}/guess | Submit a guess for the current round |
 | [**multiplayerControllerToggleReady**](ApiApi.md#multiplayercontrollertoggleready) | **POST** /multiplayer/rooms/{id}/ready | Toggle ready status for current player |
 | [**multiplayerControllerUpdateRoomSettings**](ApiApi.md#multiplayercontrollerupdateroomsettings) | **PATCH** /multiplayer/rooms/{id}/settings | Rename a room or change whether it is listed |
+| [**myPlaylistsControllerList**](ApiApi.md#myplaylistscontrollerlist) | **GET** /me/playlists | A player\&#39;s Spotify and imported playlists, in one list |
 | [**playlistControllerGetMyPlaylists**](ApiApi.md#playlistcontrollergetmyplaylists) | **GET** /playlists/me | Get current user\&#39;s playlists |
 | [**playlistControllerGetPlaylistById**](ApiApi.md#playlistcontrollergetplaylistbyid) | **GET** /playlists/{id} | Get playlist by ID |
 | [**playlistImportControllerImport**](ApiApi.md#playlistimportcontrollerimport) | **POST** /me/imports | Import a public playlist as a private set |
@@ -3647,6 +3648,75 @@ example().catch(console.error);
 ### HTTP request headers
 
 - **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** |  |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## myPlaylistsControllerList
+
+> MyPlaylistsDto myPlaylistsControllerList(sortBy)
+
+A player\&#39;s Spotify and imported playlists, in one list
+
+### Example
+
+```ts
+import {
+  Configuration,
+  ApiApi,
+} from '';
+import type { MyPlaylistsControllerListRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: cookie
+    apiKey: "YOUR API KEY",
+  });
+  const api = new ApiApi(config);
+
+  const body = {
+    // PlaylistSortBy (optional)
+    sortBy: ...,
+  } satisfies MyPlaylistsControllerListRequest;
+
+  try {
+    const data = await api.myPlaylistsControllerList(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **sortBy** | `PlaylistSortBy` |  | [Optional] [Defaults to `undefined`] [Enum: default, name, tracks] |
+
+### Return type
+
+[**MyPlaylistsDto**](MyPlaylistsDto.md)
+
+### Authorization
+
+[cookie](../README.md#cookie)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
 - **Accept**: `application/json`
 
 

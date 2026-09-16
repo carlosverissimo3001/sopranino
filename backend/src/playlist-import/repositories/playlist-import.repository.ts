@@ -66,12 +66,19 @@ export class PlaylistImportRepository {
     });
   }
 
-  listForUser(userId: string): Promise<ImportedGroup[]> {
-    return this.prisma.trackGroup.findMany({
-      where: { type: TrackGroupType.IMPORTED, members: { some: { userId } } },
-      include: withImport,
-      orderBy: { name: 'asc' },
+  /** Newest first, by when this player added each one. */
+  async listForUser(
+    userId: string,
+  ): Promise<(ImportedGroup & { addedAt: Date })[]> {
+    const memberships = await this.prisma.trackGroupMember.findMany({
+      where: { userId, trackGroup: { type: TrackGroupType.IMPORTED } },
+      orderBy: { createdAt: 'desc' },
+      include: { trackGroup: { include: withImport } },
     });
+    return memberships.map(({ trackGroup, createdAt }) => ({
+      ...trackGroup,
+      addedAt: createdAt,
+    }));
   }
 
   /** False when the player was not a member. */

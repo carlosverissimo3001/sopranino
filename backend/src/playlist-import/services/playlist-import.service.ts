@@ -164,7 +164,7 @@ export class PlaylistImportService {
         .map((group) => this.enqueueFill(group.id)),
     );
 
-    return groups.map((group) => this.toDto(group));
+    return groups.map((group) => this.toDto(group, group.addedAt));
   }
 
   /** The set goes with its last member; past games keep their tracks. */
@@ -251,7 +251,7 @@ export class PlaylistImportService {
     );
   }
 
-  private toDto(group: ImportedGroup): ImportedSetDto {
+  private toDto(group: ImportedGroup, addedAt?: Date): ImportedSetDto {
     const imported = group.import!;
     return {
       id: group.id,
@@ -264,6 +264,7 @@ export class PlaylistImportService {
       externalUrl: EXTERNAL_URLS[imported.source](imported.externalId),
       pending: !imported.refreshedAt,
       staleSince: imported.staleSince ?? undefined,
+      addedAt,
     };
   }
 }

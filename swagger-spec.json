@@ -2823,6 +2823,42 @@
           "Api"
         ]
       }
+    },
+    "/me/playlists": {
+      "get": {
+        "operationId": "MyPlaylistsController_list",
+        "parameters": [
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/PlaylistSortBy"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyPlaylistsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "A player's Spotify and imported playlists, in one list",
+        "tags": [
+          "Api"
+        ]
+      }
     }
   },
   "info": {
@@ -5740,6 +5776,11 @@
             "format": "date-time",
             "type": "string",
             "description": "When the playlist stopped being readable; its last songs are kept"
+          },
+          "addedAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "When this player added it"
           }
         },
         "required": [
@@ -5772,6 +5813,100 @@
         "required": [
           "source",
           "link"
+        ]
+      },
+      "PlaylistSortBy": {
+        "type": "string",
+        "enum": [
+          "default",
+          "name",
+          "tracks"
+        ]
+      },
+      "PlaylistItemKind": {
+        "type": "string",
+        "enum": [
+          "SPOTIFY",
+          "IMPORTED"
+        ]
+      },
+      "PlaylistItemDto": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PlaylistItemKind"
+              }
+            ]
+          },
+          "id": {
+            "type": "string",
+            "description": "The Spotify playlist id, or the set id of an import"
+          },
+          "name": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "trackCount": {
+            "type": "number"
+          },
+          "externalUrl": {
+            "type": "string",
+            "description": "The playlist on its own service"
+          },
+          "owner": {
+            "type": "string",
+            "description": "The Spotify owner's name"
+          },
+          "slug": {
+            "type": "string",
+            "description": "Imports: the set page"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "DEEZER",
+              "SPOTIFY",
+              "APPLE_MUSIC"
+            ]
+          },
+          "pending": {
+            "type": "boolean",
+            "description": "Imports: songs not read yet"
+          },
+          "staleSince": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "id",
+          "name",
+          "trackCount",
+          "externalUrl"
+        ]
+      },
+      "MyPlaylistsDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlaylistItemDto"
+            }
+          },
+          "spotifyUnavailable": {
+            "type": "boolean",
+            "description": "Spotify could not be read this time; imports are still listed"
+          }
+        },
+        "required": [
+          "items",
+          "spotifyUnavailable"
         ]
       }
     }
