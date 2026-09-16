@@ -39,6 +39,8 @@ export * from './GuessDto';
 export * from './GuessHistoryDto';
 export * from './GuessResultDto';
 export * from './HintDto';
+export * from './ImportPlaylistControllerDto';
+export * from './ImportedSetDto';
 export * from './KickPlayerDto';
 export * from './LastfmDataVo';
 export * from './LoginDto';

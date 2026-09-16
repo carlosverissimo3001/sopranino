@@ -46,6 +46,22 @@ export class TrackGroupRepository {
       }));
   }
 
+  async replaceTracks(trackGroupId: string, trackIds: string[]): Promise<void> {
+    await this.prisma.trackGroupTrack.deleteMany({ where: { trackGroupId } });
+    await this.prisma.trackGroupTrack.createMany({
+      data: trackIds.map((trackId) => ({ trackId, trackGroupId })),
+      skipDuplicates: true,
+    });
+  }
+
+  async isMember(userId: string, trackGroupId: string): Promise<boolean> {
+    const member = await this.prisma.trackGroupMember.findUnique({
+      where: { userId_trackGroupId: { userId, trackGroupId } },
+      select: { userId: true },
+    });
+    return !!member;
+  }
+
   /** The ids in a group that are also in the pool, which is what guests play. */
   async trackIdsInPool(groupId: string): Promise<string[]> {
     const rows = await this.prisma.trackGroupTrack.findMany({

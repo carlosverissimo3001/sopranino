@@ -52,6 +52,11 @@ export class TrackRepository {
     return mapTrack(track);
   }
 
+  async createMissing(tracks: Prisma.TrackCreateManyInput[]): Promise<void> {
+    if (!tracks.length) return;
+    await this.prisma.track.createMany({ data: tracks, skipDuplicates: true });
+  }
+
   async updateMetadata(id: string, metadata: TrackMetadataVo): Promise<void> {
     await this.prisma.track.update({
       where: { id },

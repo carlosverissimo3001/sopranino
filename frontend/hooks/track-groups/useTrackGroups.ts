@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queryKeys';
 import { api } from '@/sdk/client';
-import { ResponseError, TrackGroupDtoTypeEnum } from '@/sdk';
+import { ResponseError, TrackGroupControllerListTypeEnum } from '@/sdk';
 import type { TrackGroupDto } from '@/sdk';
 
 /**
@@ -11,7 +11,7 @@ import type { TrackGroupDto } from '@/sdk';
  * it is never gated on one.
  */
 export function useTrackGroups(
-  type: TrackGroupDtoTypeEnum = TrackGroupDtoTypeEnum.Decade,
+  type: TrackGroupControllerListTypeEnum = TrackGroupControllerListTypeEnum.Decade,
 ) {
   return useQuery<TrackGroupDto[]>({
     queryKey: queryKeys.trackGroups.byType(type),

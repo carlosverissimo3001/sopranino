@@ -22,6 +22,7 @@ import { GauntletModule } from './gauntlet/gauntlet.module';
 import { DemoModule } from './demo/demo.module';
 import { ChartModule } from './chart/chart.module';
 import { TrackGroupModule } from './track-group/track-group.module';
+import { PlaylistImportModule } from './playlist-import/playlist-import.module';
 import { BullModule } from '@nestjs/bullmq';
 import { GAME_CLEANUP_QUEUE, JOB_OPTIONS_WITH_BACKOFF } from './consts';
 
@@ -50,6 +51,7 @@ import { GAME_CLEANUP_QUEUE, JOB_OPTIONS_WITH_BACKOFF } from './consts';
     DemoModule,
     ChartModule,
     TrackGroupModule,
+    PlaylistImportModule,
     FeedbackModule,
     InboundModule,
     BullModule.forRootAsync({

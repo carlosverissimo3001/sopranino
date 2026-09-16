@@ -51,7 +51,8 @@ export interface StartRunDto {
  */
 export const StartRunDtoSourceEnum = {
     Playlist: 'PLAYLIST',
-    Curated: 'CURATED'
+    Curated: 'CURATED',
+    Imported: 'IMPORTED'
 } as const;
 export type StartRunDtoSourceEnum = typeof StartRunDtoSourceEnum[keyof typeof StartRunDtoSourceEnum];
 

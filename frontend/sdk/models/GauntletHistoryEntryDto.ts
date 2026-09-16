@@ -88,7 +88,8 @@ export type GauntletHistoryEntryDtoDifficultyEnum = typeof GauntletHistoryEntryD
  */
 export const GauntletHistoryEntryDtoSourceEnum = {
     Playlist: 'PLAYLIST',
-    Curated: 'CURATED'
+    Curated: 'CURATED',
+    Imported: 'IMPORTED'
 } as const;
 export type GauntletHistoryEntryDtoSourceEnum = typeof GauntletHistoryEntryDtoSourceEnum[keyof typeof GauntletHistoryEntryDtoSourceEnum];
 

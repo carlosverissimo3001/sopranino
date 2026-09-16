@@ -3,12 +3,25 @@ import { NotFoundException } from '@nestjs/common';
 import { TrackGroupType } from '@prisma/client';
 import { TrackGroupRepository } from '../repositories/track-group.repository';
 import { TrackGroupService } from './track-group.service';
+import { TrackRepository } from '@tracks/repositories/track.repository';
+import { PoolService } from '@/pool/services/pool.service';
+
+jest.mock('@transaction/transaction.store', () => ({
+  ...jest.requireActual('@transaction/transaction.store'),
+  getBasePrismaClient: () => ({
+    $transaction: (fn: (tx: unknown) => Promise<unknown>) => fn({}),
+  }),
+}));
 
 const mockRepository = {
   listWithCounts: jest.fn(),
   findById: jest.fn(),
   findBySlugWithCount: jest.fn(),
+  isMember: jest.fn(),
+  replaceTracks: jest.fn(),
 };
+const mockTracks = { createMissing: jest.fn() };
+const mockPool = { addGroupOnly: jest.fn(), forget: jest.fn() };
 
 const EIGHTIES = {
   id: 'group-1',
@@ -40,6 +53,8 @@ async function build() {
     providers: [
       TrackGroupService,
       { provide: TrackGroupRepository, useValue: mockRepository },
+      { provide: TrackRepository, useValue: mockTracks },
+      { provide: PoolService, useValue: mockPool },
     ],
   }).compile();
   return module.get(TrackGroupService);
@@ -253,33 +268,134 @@ describe('TrackGroupService', () => {
     } as never;
 
     it('shows an ordinary group to anyone, signed in or not', () => {
-      expect(TrackGroupService.isVisible(TrackGroupType.DECADE, null)).toBe(
+      expect(TrackGroupService.isListable(TrackGroupType.DECADE, null)).toBe(
         true,
       );
     });
 
     it('shows a special group to a trusted Spotify account', () => {
       expect(
-        TrackGroupService.isVisible(TrackGroupType.SPECIAL, spotifyTrusted),
+        TrackGroupService.isListable(TrackGroupType.SPECIAL, spotifyTrusted),
       ).toBe(true);
     });
 
     it('hides it from an untrusted Spotify account', () => {
       expect(
-        TrackGroupService.isVisible(TrackGroupType.SPECIAL, spotifyUntrusted),
+        TrackGroupService.isListable(TrackGroupType.SPECIAL, spotifyUntrusted),
       ).toBe(false);
     });
 
     it('hides it from a trusted account with no Spotify', () => {
       expect(
-        TrackGroupService.isVisible(TrackGroupType.SPECIAL, trustedNoSpotify),
+        TrackGroupService.isListable(TrackGroupType.SPECIAL, trustedNoSpotify),
       ).toBe(false);
     });
 
     it('hides it from a visitor with no session at all', () => {
-      expect(TrackGroupService.isVisible(TrackGroupType.SPECIAL, null)).toBe(
+      expect(TrackGroupService.isListable(TrackGroupType.SPECIAL, null)).toBe(
         false,
       );
+    });
+  });
+
+  describe('an imported set', () => {
+    const imported = {
+      ...EIGHTIES,
+      id: 'import-1',
+      type: TrackGroupType.IMPORTED,
+    };
+    const player = { id: 'user-1' } as never;
+
+    it('is never listed, not even to a trusted account', () => {
+      expect(
+        TrackGroupService.isListable(TrackGroupType.IMPORTED, {
+          spotifyUserId: 's',
+          isTrusted: true,
+        } as never),
+      ).toBe(false);
+    });
+
+    it('opens for a member', async () => {
+      mockRepository.findById.mockResolvedValue(imported);
+      mockRepository.isMember.mockResolvedValue(true);
+      const service = await build();
+
+      await expect(service.requireVisible('import-1', player)).resolves.toBe(
+        imported,
+      );
+      expect(mockRepository.isMember).toHaveBeenCalledWith(
+        'user-1',
+        'import-1',
+      );
+    });
+
+    it('is missing for anyone else', async () => {
+      mockRepository.findById.mockResolvedValue(imported);
+      mockRepository.isMember.mockResolvedValue(false);
+      const service = await build();
+
+      await expect(service.requireVisible('import-1', player)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('is missing for a visitor, without asking who is a member', async () => {
+      mockRepository.findBySlugWithCount.mockResolvedValue(imported);
+      const service = await build();
+
+      await expect(service.bySlug('1980s', null)).rejects.toThrow(
+        NotFoundException,
+      );
+      expect(mockRepository.isMember).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('replacing a set', () => {
+    it('creates only the songs the pool lacks, and swaps the list whole', async () => {
+      const service = await build();
+      const song = {
+        isrc: 'ISRC1',
+        name: 'Song',
+        artistName: 'Artist',
+        albumName: 'Album',
+        albumUrl: 'https://www.deezer.com/album/9',
+        albumImageUrl: 'https://example.test/a.jpg',
+        fame: 500,
+        year: 2024,
+      };
+
+      await service.replaceMembers('group-1', [
+        { trackId: 'dz:1', create: song },
+        { trackId: 'dz:2' },
+      ]);
+
+      expect(mockTracks.createMissing).toHaveBeenCalledWith([
+        {
+          id: 'dz:1',
+          isrc: 'ISRC1',
+          name: 'Song',
+          artistName: 'Artist',
+          albumName: 'Album',
+          albumUrl: 'https://www.deezer.com/album/9',
+          albumImageUrl: 'https://example.test/a.jpg',
+        },
+      ]);
+      expect(mockPool.addGroupOnly).toHaveBeenCalledWith([
+        { id: 'dz:1', isrc: 'ISRC1', year: 2024, fame: 500 },
+      ]);
+      expect(mockRepository.replaceTracks).toHaveBeenCalledWith('group-1', [
+        'dz:1',
+        'dz:2',
+      ]);
+    });
+
+    // A set's candidates are cached; stale ones would draw from the old list.
+    it('forgets the cached candidates', async () => {
+      const service = await build();
+
+      await service.replaceMembers('group-1', []);
+
+      expect(mockPool.forget).toHaveBeenCalledWith('group-1');
     });
   });
 });

@@ -109,7 +109,21 @@ describe('GameService', () => {
   const mockPoolService = { pickTrack: jest.fn() };
   const mockDailyTrackService = { today: jest.fn() };
 
-  const mockTrackGroupService = { requireById: jest.fn(), list: jest.fn() };
+  const mockTrackGroupService = {
+    requireById: jest.fn(),
+    // The real rule over the mocked lookup, so hidden sets stay hidden here too.
+    requireVisible: jest.fn(
+      async (id: string, user: never): Promise<unknown> => {
+        const group: { type: TrackGroupType } =
+          await mockTrackGroupService.requireById(id);
+        if (!TrackGroupService.isListable(group.type, user)) {
+          throw new NotFoundException(`No track group ${id}`);
+        }
+        return group;
+      },
+    ),
+    list: jest.fn(),
+  };
 
   const CHOICES = [
     {

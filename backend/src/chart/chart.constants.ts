@@ -36,6 +36,3 @@ export const CHART_SIZE = 50;
 
 export const CHART_REFRESH_CRON = '0 6 * * 1';
 export const CHART_REFRESH_TZ = 'Europe/Lisbon';
-
-/** Deezer allows roughly 50 requests per 5s; this stays well under. */
-export const CHART_PACE_MS = 120;

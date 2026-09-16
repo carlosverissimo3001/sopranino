@@ -280,7 +280,20 @@ describe('GauntletService and the source a run draws from', () => {
   };
   const playlistService = { getPlaylistFirstTracks: jest.fn() };
   const poolService = { pickTrack: jest.fn() };
-  const trackGroupService = { requireById: jest.fn() };
+  const trackGroupService = {
+    requireById: jest.fn(),
+    // The real rule over the mocked lookup, so hidden sets stay hidden here too.
+    requireVisible: jest.fn(
+      async (id: string, user: never): Promise<unknown> => {
+        const group: { type: TrackGroupType } =
+          await trackGroupService.requireById(id);
+        if (!TrackGroupService.isListable(group.type, user)) {
+          throw new NotFoundException(`No track group ${id}`);
+        }
+        return group;
+      },
+    ),
+  };
   const trackService = {
     playableUrl: jest.fn(),
     getTrackWithPreview: jest.fn(),
@@ -482,6 +495,43 @@ describe('GauntletService and the source a run draws from', () => {
         }),
       ),
     ).rejects.toThrow(NotFoundException);
+  });
+
+  // Played like any set, ranked like none: the leaderboard only reads CURATED.
+  it('keeps a run on an imported set off the leaderboard', async () => {
+    trackGroupService.requireVisible.mockResolvedValueOnce({
+      id: GROUP,
+      type: TrackGroupType.IMPORTED,
+    });
+
+    await service.startRun(
+      SESSION_ID,
+      startDto({
+        source: GauntletSource.CURATED,
+        playlistId: undefined,
+        trackGroupId: GROUP,
+      }),
+    );
+
+    expect(repo.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source: GauntletSource.IMPORTED,
+        sourceId: GROUP,
+      }),
+    );
+  });
+
+  it('draws an imported run from its set', async () => {
+    repo.findById.mockResolvedValue(
+      run({ source: GauntletSource.IMPORTED, sourceId: GROUP }),
+    );
+
+    await service.submitGuess(SESSION_ID, RUN_ID, { trackId: 'track-1' });
+
+    expect(poolService.pickTrack).toHaveBeenCalledWith(
+      expect.arrayContaining([]),
+      GROUP,
+    );
   });
 
   it('draws a curated run from the pool, never from a playlist', async () => {

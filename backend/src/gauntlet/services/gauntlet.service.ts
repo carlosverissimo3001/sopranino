@@ -9,6 +9,7 @@ import {
   GauntletEndReason,
   GauntletRunStatus,
   GauntletSource,
+  TrackGroupType,
 } from '@prisma/client';
 import { Transactional } from '@transaction/transactional.decorator';
 import { AuthService } from '@auth/services/auth.service';
@@ -79,12 +80,14 @@ export class GauntletService {
 
     // Listing hides a group this player is not meant to have; starting one has
     // to say so too, or the id is the only thing keeping them out.
-    if (trackGroupId) {
-      const group = await this.trackGroupService.requireById(trackGroupId);
-      if (!TrackGroupService.isVisible(group.type, user)) {
-        throw new NotFoundException(`No track group ${trackGroupId}`);
-      }
-    }
+    const group = trackGroupId
+      ? await this.trackGroupService.requireVisible(trackGroupId, user)
+      : null;
+    // Played like any set, ranked like none: an import is songs its player chose.
+    const runSource =
+      group?.type === TrackGroupType.IMPORTED
+        ? GauntletSource.IMPORTED
+        : source;
 
     // Resume a run only when it is the one being asked for. A player who picks
     // a different source has moved on; handing back the old run would replay a
@@ -92,7 +95,7 @@ export class GauntletService {
     const existing = await this.gauntletRunRepository.findActiveRun(userId);
     const wanted = trackGroupId ?? playlistId ?? null;
     const isSameSource =
-      existing?.source === source && (existing?.sourceId ?? null) === wanted;
+      existing?.source === runSource && (existing?.sourceId ?? null) === wanted;
 
     const existingPreview =
       existing && isSameSource && existing.currentTrack
@@ -122,7 +125,7 @@ export class GauntletService {
     const run = await this.gauntletRunRepository.create({
       userId,
       difficulty,
-      source,
+      source: runSource,
       sourceId: trackGroupId ?? playlistId ?? null,
     });
     const snippetDuration = GAUNTLET_SNIPPET_DURATIONS[difficulty];
@@ -513,7 +516,10 @@ export class GauntletService {
     run: GauntletRunEntity,
     usedTrackIds: string[],
   ): Promise<{ trackId: string; previewUrl: string }> {
-    if (run.source === GauntletSource.CURATED) {
+    if (
+      run.source === GauntletSource.CURATED ||
+      run.source === GauntletSource.IMPORTED
+    ) {
       return this.pickPoolTrack(run.sourceId, usedTrackIds);
     }
 

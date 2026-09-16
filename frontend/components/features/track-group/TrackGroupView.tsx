@@ -6,11 +6,11 @@ import { TrackGroupCard } from '@/components/track-group/TrackGroupCard';
 import { PlaylistSkeleton } from '@/components/playlist/PlaylistSkeleton';
 import { useTrackGroups } from '@/hooks/track-groups/useTrackGroups';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
-import { TrackGroupDtoTypeEnum } from '@/sdk';
+import { TrackGroupControllerListTypeEnum } from '@/sdk';
 
 interface TrackGroupViewProps {
   defaultOpen: boolean;
-  type?: TrackGroupDtoTypeEnum;
+  type?: TrackGroupControllerListTypeEnum;
   title?: string;
 }
 
@@ -25,7 +25,7 @@ interface TrackGroupViewProps {
  */
 function TrackGroupViewComponent({
   defaultOpen,
-  type = TrackGroupDtoTypeEnum.Decade,
+  type = TrackGroupControllerListTypeEnum.Decade,
   title = 'Curated playlists',
 }: TrackGroupViewProps) {
   const { data: groups, isPending, isError } = useTrackGroups(type);

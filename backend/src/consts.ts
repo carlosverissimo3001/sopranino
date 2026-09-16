@@ -33,12 +33,14 @@ export const GAME_CLEANUP_QUEUE = 'game-cleanup';
 export const CHART_REFRESH_QUEUE = 'chart-refresh';
 export const DAILY_TRACK_QUEUE = 'daily-track';
 export const ROOM_CLEANUP_QUEUE = 'room-cleanup';
+export const PLAYLIST_IMPORT_QUEUE = 'playlist-import';
 
 // Jobs
 export const CLEAN_UP_ABANDONED_GAMES_JOB = 'abandoned-games-task';
 export const REFRESH_CHARTS_JOB = 'refresh-charts';
 export const FILL_DAILY_TRACK_JOB = 'fill-daily-track';
 export const EXPIRE_ABANDONED_ROOMS_JOB = 'expire-abandoned-rooms';
+export const FILL_PLAYLIST_IMPORT_JOB = 'fill-playlist-import';
 export const JOB_OPTIONS_WITH_BACKOFF: JobsOptions = {
   attempts: 3,
   backoff: {
@@ -56,6 +58,7 @@ export type JobDataMap = {
   [REFRESH_CHARTS_JOB]: Record<string, never>;
   [FILL_DAILY_TRACK_JOB]: Record<string, never>;
   [EXPIRE_ABANDONED_ROOMS_JOB]: Record<string, never>;
+  [FILL_PLAYLIST_IMPORT_JOB]: { trackGroupId: string };
 };
 
 export type JobNames = keyof JobDataMap;

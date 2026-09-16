@@ -203,11 +203,11 @@ export class RoomService {
       if (!trackGroupId) {
         throw new BadRequestException('Pick a set to play from');
       }
-      const group = await this.trackGroupService.requireById(trackGroupId);
-      // Same answer as a missing set: a room is no way to learn a private one exists.
-      if (!TrackGroupService.isVisible(group.type, user)) {
-        throw new NotFoundException(`No track group ${trackGroupId}`);
-      }
+      // Checked against the host alone: guests only hear the songs.
+      const group = await this.trackGroupService.requireVisible(
+        trackGroupId,
+        user,
+      );
       groupId = group.id;
     }
 
