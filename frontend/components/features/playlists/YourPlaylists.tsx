@@ -10,7 +10,7 @@ import { ImportPanel } from '@/components/features/imports/ImportPanel';
 import { ImportedPlaylistCard } from '@/components/features/imports/ImportedPlaylistCard';
 import { SourceTiles } from '@/components/features/imports/SourceTiles';
 import { useMe } from '@/hooks/auth/useMe';
-import { canImport } from '@/hooks/imports/useMyImports';
+import { canImport } from '@/lib/can-import';
 import { usePlaylistFilters } from '@/hooks/playlists/usePlaylistFilters';
 import { useMyPlaylistLibrary } from '@/hooks/playlists/useMyPlaylistLibrary';
 import { PlaylistSource } from '@/lib/playlist-links';
@@ -69,7 +69,7 @@ export function YourPlaylists({ defaultOpen }: { defaultOpen: boolean }) {
         ) : (
           <Plus className="h-3.5 w-3.5" />
         )}
-        {isAdding ? 'Close' : 'Add playlist'}
+        {isAdding ? 'Close' : 'Import'}
       </button>
     </div>
   );

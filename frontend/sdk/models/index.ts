@@ -57,7 +57,6 @@ export * from './PlaylistDto';
 export * from './PlaylistItemDto';
 export * from './PlaylistItemKind';
 export * from './PlaylistSortBy';
-export * from './PlaylistsResponseDto';
 export * from './QuizNextResponseDto';
 export * from './QuizQuestionDto';
 export * from './QuizResultDto';

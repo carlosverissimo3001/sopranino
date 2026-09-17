@@ -1,7 +1,4 @@
-import {
-  PlaylistControllerGetMyPlaylistsSortByEnum as PlaylistSortBy,
-  StartRunDtoDifficultyEnum as GauntletDifficulty,
-} from '@sdk';
+import { StartRunDtoDifficultyEnum as GauntletDifficulty } from '@sdk';
 
 /**
  * Centralized query keys factory for consistent cache invalidation
@@ -10,7 +7,6 @@ import {
 export const queryKeys = {
   imports: {
     all: ['imports'] as const,
-    mine: ['imports', 'mine'] as const,
     library: (sortBy: string) => ['imports', 'library', sortBy] as const,
   },
   // Game-related queries
@@ -43,13 +39,6 @@ export const queryKeys = {
   // Playlist-related queries
   playlists: {
     all: ['playlists'] as const,
-    me: (params?: {
-      limit?: number;
-      offset?: number;
-      onlyPublic?: boolean;
-      onlyPrivate?: boolean;
-      sortBy?: PlaylistSortBy;
-    }) => ['playlists', 'me', params] as const,
     detail: (playlistId: string) => ['playlists', playlistId] as const,
   },
   // Auth-related queries

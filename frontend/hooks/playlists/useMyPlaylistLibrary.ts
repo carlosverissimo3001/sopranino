@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useMe } from '@/hooks/auth/useMe';
-import { canImport } from '@/hooks/imports/useMyImports';
+import { canImport } from '@/lib/can-import';
 import { queryKeys } from '@/lib/queryKeys';
 import { api } from '@/sdk/client';
 import {

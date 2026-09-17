@@ -50,7 +50,6 @@ import type {
   PlayedTodayDto,
   PlaylistDto,
   PlaylistSortBy,
-  PlaylistsResponseDto,
   QuizNextResponseDto,
   QuizResultDto,
   RequestPasswordResetDto,
@@ -148,8 +147,6 @@ import {
     PlaylistDtoToJSON,
     PlaylistSortByFromJSON,
     PlaylistSortByToJSON,
-    PlaylistsResponseDtoFromJSON,
-    PlaylistsResponseDtoToJSON,
     QuizNextResponseDtoFromJSON,
     QuizNextResponseDtoToJSON,
     QuizResultDtoFromJSON,
@@ -411,14 +408,6 @@ export interface MultiplayerControllerUpdateRoomSettingsRequest {
 
 export interface MyPlaylistsControllerListRequest {
     sortBy?: PlaylistSortBy;
-}
-
-export interface PlaylistControllerGetMyPlaylistsRequest {
-    limit?: number;
-    offset?: number;
-    onlyPublic?: boolean;
-    onlyPrivate?: boolean;
-    sortBy?: PlaylistControllerGetMyPlaylistsSortByEnum;
 }
 
 export interface PlaylistControllerGetPlaylistByIdRequest {
@@ -2551,55 +2540,6 @@ export class ApiApi extends runtime.BaseAPI {
     }
 
     /**
-     * Get current user\'s playlists
-     */
-    async playlistControllerGetMyPlaylistsRaw(requestParameters: PlaylistControllerGetMyPlaylistsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PlaylistsResponseDto>> {
-        const queryParameters: any = {};
-
-        if (requestParameters['limit'] != null) {
-            queryParameters['limit'] = requestParameters['limit'];
-        }
-
-        if (requestParameters['offset'] != null) {
-            queryParameters['offset'] = requestParameters['offset'];
-        }
-
-        if (requestParameters['onlyPublic'] != null) {
-            queryParameters['onlyPublic'] = requestParameters['onlyPublic'];
-        }
-
-        if (requestParameters['onlyPrivate'] != null) {
-            queryParameters['onlyPrivate'] = requestParameters['onlyPrivate'];
-        }
-
-        if (requestParameters['sortBy'] != null) {
-            queryParameters['sortBy'] = requestParameters['sortBy'];
-        }
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-
-        let urlPath = `/playlists/me`;
-
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => PlaylistsResponseDtoFromJSON(jsonValue));
-    }
-
-    /**
-     * Get current user\'s playlists
-     */
-    async playlistControllerGetMyPlaylists(requestParameters: PlaylistControllerGetMyPlaylistsRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PlaylistsResponseDto> {
-        const response = await this.playlistControllerGetMyPlaylistsRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
      * Get playlist by ID
      */
     async playlistControllerGetPlaylistByIdRaw(requestParameters: PlaylistControllerGetPlaylistByIdRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PlaylistDto>> {
@@ -2709,35 +2649,6 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async playlistImportControllerLeave(requestParameters: PlaylistImportControllerLeaveRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
         await this.playlistImportControllerLeaveRaw(requestParameters, initOverrides);
-    }
-
-    /**
-     * Playlists this player imported
-     */
-    async playlistImportControllerListRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ImportedSetDto>>> {
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-
-        let urlPath = `/me/imports`;
-
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ImportedSetDtoFromJSON));
-    }
-
-    /**
-     * Playlists this player imported
-     */
-    async playlistImportControllerList(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ImportedSetDto>> {
-        const response = await this.playlistImportControllerListRaw(initOverrides);
-        return await response.value();
     }
 
     /**
@@ -3226,15 +3137,6 @@ export const GauntletControllerGetLeaderboardDifficultyEnum = {
     Expert: 'EXPERT'
 } as const;
 export type GauntletControllerGetLeaderboardDifficultyEnum = typeof GauntletControllerGetLeaderboardDifficultyEnum[keyof typeof GauntletControllerGetLeaderboardDifficultyEnum];
-/**
- * @export
- */
-export const PlaylistControllerGetMyPlaylistsSortByEnum = {
-    Default: 'default',
-    Name: 'name',
-    Tracks: 'tracks'
-} as const;
-export type PlaylistControllerGetMyPlaylistsSortByEnum = typeof PlaylistControllerGetMyPlaylistsSortByEnum[keyof typeof PlaylistControllerGetMyPlaylistsSortByEnum];
 /**
  * @export
  */

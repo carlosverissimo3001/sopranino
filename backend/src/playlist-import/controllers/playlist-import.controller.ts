@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
   HttpCode,
   Param,
   ParseUUIDPipe,
@@ -31,15 +30,6 @@ import { PlaylistImportService } from '../services/playlist-import.service';
 @Controller('me/imports')
 export class PlaylistImportController {
   constructor(private readonly playlistImportService: PlaylistImportService) {}
-
-  @Get()
-  @UseGuards(SignedUpGuard)
-  @ApiCookieAuth()
-  @ApiOperation({ summary: 'Playlists this player imported' })
-  @ApiResponse({ status: 200, type: [ImportedSetDto] })
-  list(@SessionId() sessionId: string): Promise<ImportedSetDto[]> {
-    return this.playlistImportService.list(sessionId);
-  }
 
   @Post()
   @UseGuards(SignedUpGuard, ThrottlerGuard)
