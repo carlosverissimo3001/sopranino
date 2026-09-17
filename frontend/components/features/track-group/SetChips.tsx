@@ -111,7 +111,8 @@ export function SetChips({
         ))}
       </div>
 
-      <AskForASet />
+      {/* It asks for a missing artist, so it belongs with the artists. */}
+      {shown.label === 'Artists' && <AskForASet />}
     </div>
   );
 }
