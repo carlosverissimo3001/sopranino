@@ -54,18 +54,11 @@ export function YourPlaylists({ defaultOpen }: { defaultOpen: boolean }) {
 
   const actions = hasItems && (
     <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-3">
-      <PlaylistFilters
-        kinds={hasBoth ? KINDS : undefined}
-        kind={filters.kind}
-        onKindChange={filters.setKind}
-        sortBy={filters.sortBy}
-        onSortByChange={filters.setSortBy}
-      />
       <button
         type="button"
         onClick={() => setIsAdding(!isAdding)}
         aria-expanded={isAdding}
-        className="inline-flex h-8 items-center gap-1.5 rounded-full bg-fg/10 px-3 text-xs font-bold text-fg transition-colors hover:bg-fg/15 sm:h-9"
+        className="inline-flex h-8 items-center gap-1.5 px-1 text-xs font-bold text-fg/60 transition-colors hover:text-fg sm:h-9"
       >
         {isAdding ? (
           <X className="h-3.5 w-3.5" />
@@ -74,6 +67,13 @@ export function YourPlaylists({ defaultOpen }: { defaultOpen: boolean }) {
         )}
         {isAdding ? 'Close' : 'Import'}
       </button>
+      <PlaylistFilters
+        kinds={hasBoth ? KINDS : undefined}
+        kind={filters.kind}
+        onKindChange={filters.setKind}
+        sortBy={filters.sortBy}
+        onSortByChange={filters.setSortBy}
+      />
     </div>
   );
 

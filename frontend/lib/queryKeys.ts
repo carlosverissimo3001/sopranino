@@ -8,6 +8,7 @@ export const queryKeys = {
   imports: {
     all: ['imports'] as const,
     library: (sortBy: string) => ['imports', 'library', sortBy] as const,
+    quota: ['imports', 'quota'] as const,
   },
   // Game-related queries
   game: {

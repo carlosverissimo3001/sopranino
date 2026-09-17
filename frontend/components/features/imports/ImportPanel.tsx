@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useImportPlaylist } from '@/hooks/imports/useImportPlaylist';
+import { useImportQuota } from '@/hooks/imports/useImportQuota';
 import {
   detectPlaylistSource,
   linkSourceFor,
@@ -26,6 +27,7 @@ export function ImportPanel({
   disabled = false,
 }: ImportPanelProps) {
   const submit = useImportPlaylist();
+  const { data: quota } = useImportQuota(!disabled);
   const [link, setLink] = useState('');
   const info = PLAYLIST_SOURCES[source];
   // A service we can't read is imported from its copy, so the link is the copy's.
@@ -34,8 +36,13 @@ export function ImportPanel({
 
   const pasted = detectPlaylistSource(link);
   const pastedInfo = pasted ? PLAYLIST_SOURCES[pasted] : null;
+  const spent = quota?.left === 0;
   const canSend =
-    !disabled && pasted === wanted && info.supported && !submit.isPending;
+    !disabled &&
+    !spent &&
+    pasted === wanted &&
+    info.supported &&
+    !submit.isPending;
 
   const send = (e: FormEvent) => {
     e.preventDefault();
@@ -57,15 +64,17 @@ export function ImportPanel({
 
   const problem = disabled
     ? 'Verify your email to import playlists.'
-    : pasted && pasted !== wanted && PLAYLIST_SOURCES[pasted].via === wanted
-      ? `Copy it to ${wantedInfo.name} with TuneMyMusic first, then paste the ${wantedInfo.name} link.`
-      : pastedInfo && !pastedInfo.supported
-        ? `${pastedInfo.name} playlists can't be imported yet.`
-        : link.trim() && !pasted
-          ? `That isn't a ${wantedInfo.name} playlist link.`
-          : submit.isError
-            ? submit.error.message
-            : null;
+    : spent
+      ? 'No playlist reads left today. Playlists someone else already imported can still be added.'
+      : pasted && pasted !== wanted && PLAYLIST_SOURCES[pasted].via === wanted
+        ? `Copy it to ${wantedInfo.name} with TuneMyMusic first, then paste the ${wantedInfo.name} link.`
+        : pastedInfo && !pastedInfo.supported
+          ? `${pastedInfo.name} playlists can't be imported yet.`
+          : link.trim() && !pasted
+            ? `That isn't a ${wantedInfo.name} playlist link.`
+            : submit.isError
+              ? submit.error.message
+              : null;
 
   return (
     <form
@@ -141,7 +150,7 @@ export function ImportPanel({
         {problem ??
           (info.via
             ? `The copy stands alone: songs added on ${info.name} reach it when you transfer again. Free up to 500 songs.`
-            : 'Public playlists only, one new a day. Playlists someone else already imported can still be added.')}
+            : `Public playlists only.${quota ? ` ${quota.left} of ${quota.limit} reads left today.` : ''}`)}
       </p>
     </form>
   );

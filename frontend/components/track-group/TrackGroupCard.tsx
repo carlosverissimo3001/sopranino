@@ -4,17 +4,19 @@ import { memo, useState } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Play, ListMusic } from 'lucide-react';
+import { Play, ListMusic, Loader2 } from 'lucide-react';
 import type { TrackGroupDto } from '@/sdk';
 import { useImageColor } from '@/hooks/misc/useImageColor';
 import { SourceMark } from '@/components/features/imports/SourceMark';
-import { PLAYLIST_SOURCES, type PlaylistSource } from '@/lib/playlist-links';
+import type { PlaylistSource } from '@/lib/playlist-links';
 
 interface TrackGroupCardProps {
   /** Where it comes from, shown beside the track count. */
   source?: PlaylistSource;
-  /** The service holding the copy we read, when `source` is where it started. */
+  /** The service holding the copy, tucked behind `source` to mark it as one. */
   via?: PlaylistSource;
+  /** Takes the count's place while its songs are being read. */
+  busyLabel?: string;
   group: TrackGroupDto;
   onHover?: (color: string | null) => void;
 }
@@ -29,6 +31,7 @@ function TrackGroupCardComponent({
   onHover,
   source,
   via,
+  busyLabel,
 }: TrackGroupCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const ambientColor = useImageColor(group.imageUrl, {
@@ -89,13 +92,28 @@ function TrackGroupCardComponent({
             <div className="mt-1.5 flex items-center gap-2 sm:gap-3 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.1em] sm:tracking-[0.15em] text-fg/30">
               <div className="flex items-center gap-1.5">
                 {source ? (
-                  <SourceMark source={source} />
+                  <span className="flex items-center">
+                    {via && (
+                      // Behind and dimmed: the pair is one mark, not two.
+                      <SourceMark source={via} className="-mr-1 opacity-50" />
+                    )}
+                    <SourceMark
+                      source={source}
+                      className="relative rounded-full ring-1 ring-surface"
+                    />
+                  </span>
                 ) : (
-                  <ListMusic className="w-3 h-3 opacity-60" />
+                  <ListMusic className="w-3.5 h-3.5 opacity-60" />
                 )}
-                <span>{group.trackCount} tracks</span>
+                {busyLabel ? (
+                  <span className="flex items-center gap-1.5 normal-case tracking-normal">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    {busyLabel}
+                  </span>
+                ) : (
+                  <span>{group.trackCount} tracks</span>
+                )}
               </div>
-              {via && <span>via {PLAYLIST_SOURCES[via].name}</span>}
             </div>
           </div>
         </div>

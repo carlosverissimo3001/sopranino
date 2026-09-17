@@ -26,7 +26,7 @@ export function useMyPlaylistLibrary(
     enabled: canImport(user),
     staleTime: THIRTY_MINUTES,
     refetchInterval: (query) =>
-      query.state.data?.items.some((item) => item.pending)
+      query.state.data?.items.some((item) => item.pending || item.refreshing)
         ? PENDING_POLL_MS
         : false,
   });
