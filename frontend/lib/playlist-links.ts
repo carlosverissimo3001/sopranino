@@ -6,6 +6,8 @@ export interface SourceInfo {
   name: string;
   hosts: string[];
   supported: boolean;
+  /** Imported as a copy on this service, since we can't read the original. */
+  via?: Source;
   steps: string[];
   example: string;
   /** Full class strings, so Tailwind sees every one of them. */
@@ -44,13 +46,14 @@ export const PLAYLIST_SOURCES: Record<Source, SourceInfo> = {
   [Source.Spotify]: {
     name: 'Spotify',
     hosts: ['open.spotify.com'],
-    supported: false,
+    supported: true,
+    via: Source.Deezer,
     steps: [
-      'Open the playlist in Spotify',
-      'Tap Share, then Copy link to playlist',
-      'Paste the link here',
+      'Copy the playlist to Deezer with TuneMyMusic, a free tool',
+      'Open the copy in Deezer, tap Share, then Copy link',
+      'Paste the Deezer link here',
     ],
-    example: 'https://open.spotify.com/playlist/…',
+    example: 'https://www.deezer.com/playlist/…',
     tone: {
       chipOn: 'border-spotify-green/50 bg-spotify-green/20 text-spotify-green',
       chipOff: 'border-spotify-green/20 bg-spotify-green/5 text-spotify-green',
@@ -63,13 +66,14 @@ export const PLAYLIST_SOURCES: Record<Source, SourceInfo> = {
   [Source.AppleMusic]: {
     name: 'Apple Music',
     hosts: ['music.apple.com'],
-    supported: false,
+    supported: true,
+    via: Source.Deezer,
     steps: [
-      'Open the playlist in Apple Music',
-      'Tap Share, then Copy',
-      'Paste the link here',
+      'Copy the playlist to Deezer with TuneMyMusic, a free tool',
+      'Open the copy in Deezer, tap Share, then Copy link',
+      'Paste the Deezer link here',
     ],
-    example: 'https://music.apple.com/playlist/…',
+    example: 'https://www.deezer.com/playlist/…',
     tone: {
       chipOn:
         'border-[#FA2D48]/50 bg-[#FA2D48]/20 text-[#C4122A] dark:text-[#FF8A99]',
@@ -84,6 +88,13 @@ export const PLAYLIST_SOURCES: Record<Source, SourceInfo> = {
 };
 
 export const SOURCE_ORDER = Object.keys(PLAYLIST_SOURCES) as Source[];
+
+export const TUNEMYMUSIC_URL = 'https://www.tunemymusic.com/';
+
+/** Which service the pasted link has to come from for this pick. */
+export function linkSourceFor(source: Source): Source {
+  return PLAYLIST_SOURCES[source].via ?? source;
+}
 
 /** Which service a pasted link belongs to. The server checks the rest. */
 export function detectPlaylistSource(link: string): Source | null {

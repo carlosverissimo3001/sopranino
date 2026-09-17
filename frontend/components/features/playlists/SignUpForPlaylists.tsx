@@ -6,10 +6,8 @@ import { PLAYLIST_SOURCES, SOURCE_ORDER } from '@/lib/playlist-links';
 // The sentence names only what works today; the rest are shown as coming.
 const SUPPORTED = SOURCE_ORDER.filter(
   (source) => PLAYLIST_SOURCES[source].supported,
-);
-const NAMES = SUPPORTED.map((source) => PLAYLIST_SOURCES[source].name).join(
-  ' or ',
-);
+).map((source) => PLAYLIST_SOURCES[source].name);
+const NAMES = SUPPORTED.join(', ').replace(/, ([^,]*)$/, ' or $1');
 
 /** What a guest gets from an account, where their playlists would be. */
 export function SignUpForPlaylists() {
@@ -33,8 +31,14 @@ export function SignUpForPlaylists() {
                     className="h-3.5 w-3.5 shrink-0"
                   />
                   {info.name}
-                  {!info.supported && (
-                    <span className="font-semibold opacity-70">soon</span>
+                  {info.via ? (
+                    <span className="font-semibold opacity-70">
+                      via {PLAYLIST_SOURCES[info.via].name}
+                    </span>
+                  ) : (
+                    !info.supported && (
+                      <span className="font-semibold opacity-70">soon</span>
+                    )
                   )}
                 </span>
               );

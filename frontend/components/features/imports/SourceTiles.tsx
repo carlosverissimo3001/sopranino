@@ -36,8 +36,14 @@ export function SourceTiles({ selected, onSelect }: SourceTilesProps) {
           >
             <SourceLogo source={source} className="h-3.5 w-3.5 shrink-0" />
             {info.name}
-            {!info.supported && (
-              <span className="font-semibold opacity-70">soon</span>
+            {info.via ? (
+              <span className="font-semibold opacity-70">
+                via {PLAYLIST_SOURCES[info.via].name}
+              </span>
+            ) : (
+              !info.supported && (
+                <span className="font-semibold opacity-70">soon</span>
+              )
             )}
           </button>
         );

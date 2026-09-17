@@ -8,11 +8,13 @@ import { Play, ListMusic } from 'lucide-react';
 import type { TrackGroupDto } from '@/sdk';
 import { useImageColor } from '@/hooks/misc/useImageColor';
 import { SourceMark } from '@/components/features/imports/SourceMark';
-import type { PlaylistSource } from '@/lib/playlist-links';
+import { PLAYLIST_SOURCES, type PlaylistSource } from '@/lib/playlist-links';
 
 interface TrackGroupCardProps {
   /** Where it comes from, shown beside the track count. */
   source?: PlaylistSource;
+  /** The service holding the copy we read, when `source` is where it started. */
+  via?: PlaylistSource;
   group: TrackGroupDto;
   onHover?: (color: string | null) => void;
 }
@@ -26,6 +28,7 @@ function TrackGroupCardComponent({
   group,
   onHover,
   source,
+  via,
 }: TrackGroupCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const ambientColor = useImageColor(group.imageUrl, {
@@ -92,6 +95,7 @@ function TrackGroupCardComponent({
                 )}
                 <span>{group.trackCount} tracks</span>
               </div>
+              {via && <span>via {PLAYLIST_SOURCES[via].name}</span>}
             </div>
           </div>
         </div>
