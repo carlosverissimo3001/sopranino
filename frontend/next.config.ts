@@ -69,6 +69,8 @@ const nextConfig: NextConfig = {
     };
   },
   images: {
+    // The guide's screenshots need more than the default 75.
+    qualities: [75, 90],
     remotePatterns: [
       { protocol: 'https', hostname: 'picsum.photos' },
       { protocol: 'https', hostname: 'i.scdn.co' },

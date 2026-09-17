@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from 'react';
 import { Loader2 } from 'lucide-react';
+import { ImportGuide } from './ImportGuide';
 import { useImportPlaylist } from '@/hooks/imports/useImportPlaylist';
 import { useImportQuota } from '@/hooks/imports/useImportQuota';
 import { useMe } from '@/hooks/auth/useMe';
@@ -88,6 +89,13 @@ export function ImportPanel({
       onSubmit={send}
       className={`rounded-2xl border p-4 transition-colors sm:p-6 ${info.tone.panel}`}
     >
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <p className="text-xs font-bold uppercase tracking-wider text-fg/40">
+          {info.via ? `${info.name}, through Deezer` : `From ${info.name}`}
+        </p>
+        <ImportGuide source={source} />
+      </div>
+
       <ol className="mb-4 space-y-2 sm:mb-5">
         {info.steps.map((step, index) => (
           <li key={step} className="flex items-center gap-3 text-sm text-fg/80">
@@ -148,7 +156,7 @@ export function ImportPanel({
         <button
           type="submit"
           disabled={!canSend}
-          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-spotify-green px-6 py-2.5 text-sm font-semibold text-black transition-colors hover:bg-[#1ed760] disabled:cursor-not-allowed disabled:bg-fg/10 disabled:text-fg/30"
+          className={`inline-flex shrink-0 items-center justify-center gap-2 rounded-full px-6 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:bg-fg/10 disabled:text-fg/30 ${info.tone.cta}`}
         >
           {submit.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
           Import
