@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
+import { GamePage } from '@/components/game/GamePage';
 import { ShuffleGamePage } from '@/components/game/ShuffleGamePage';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import {
@@ -12,6 +13,8 @@ import {
 import { groupHasFameTiers } from '@/lib/fame-tier';
 import { useMe } from '@/hooks/auth/useMe';
 import { setAuthReturnUrl } from '@/lib/auth-return';
+import { spotifyPlaylistIdFrom } from '@/lib/set-routes';
+import { GameStatsDtoModeEnum as GameMode } from '@/sdk';
 
 /**
  * The slug is what is shareable; the id is what starts a round. Resolving one
@@ -23,10 +26,18 @@ export function GroupGameClient({ heading }: { heading?: string }) {
   // would restart the round on the set just picked.
   const params = useParams();
   const [slug] = useState(params.slug as string);
+  // A Spotify playlist is not a track group: its songs are read live with the
+  // player's own token. Same route, same page, different source.
+  const spotifyPlaylistId = spotifyPlaylistIdFrom(slug);
   // By slug rather than by searching a list: the list is one kind of group at
   // a time, so a special one was never in the one this page happened to ask
   // for.
-  const { data: group, isPending, error, refetch } = useTrackGroupBySlug(slug);
+  const {
+    data: group,
+    isPending,
+    error,
+    refetch,
+  } = useTrackGroupBySlug(slug, { enabled: !spotifyPlaylistId });
   const {
     data: user,
     isPending: userPending,
@@ -34,6 +45,10 @@ export function GroupGameClient({ heading }: { heading?: string }) {
     refetch: refetchUser,
   } = useMe();
   const missing = isNotFound(error);
+
+  if (spotifyPlaylistId) {
+    return <GamePage mode={GameMode.All} playlistId={spotifyPlaylistId} />;
+  }
 
   if (isPending || (missing && userPending)) {
     return (

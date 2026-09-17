@@ -29,11 +29,14 @@ export function isNotFound(error: unknown): boolean {
   return error instanceof ResponseError && error.response.status === 404;
 }
 
-export function useTrackGroupBySlug(slug: string) {
+export function useTrackGroupBySlug(
+  slug: string,
+  { enabled = true }: { enabled?: boolean } = {},
+) {
   return useQuery<TrackGroupDto>({
     queryKey: queryKeys.trackGroups.bySlug(slug),
     queryFn: () => api.trackGroupControllerBySlug({ slug }),
-    enabled: !!slug,
+    enabled: enabled && !!slug,
     // A missing set stays missing; anything else may be a passing hiccup.
     retry: (failures, error) => !isNotFound(error) && failures < 2,
     staleTime: 30 * 60 * 1000,

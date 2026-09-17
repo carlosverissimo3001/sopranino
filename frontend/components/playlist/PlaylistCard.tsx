@@ -4,6 +4,7 @@ import { memo, useState } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
+import { spotifySetPath } from '@/lib/set-routes';
 import { Play, ListMusic, Pin } from 'lucide-react';
 import type { PlaylistDto } from '@/sdk';
 import { useImageColor } from '@/hooks/misc/useImageColor';
@@ -34,7 +35,7 @@ function PlaylistCardComponent({
   const glowColor = ambientColor.replace('0.15', '0.1').replace('0.1', '0.08');
 
   return (
-    <Link href={`/playlist/${playlist.id}`}>
+    <Link href={spotifySetPath(playlist.id)}>
       <motion.div
         onMouseEnter={() => {
           setIsHovered(true);
