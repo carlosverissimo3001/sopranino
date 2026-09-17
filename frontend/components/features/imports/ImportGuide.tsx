@@ -99,7 +99,7 @@ export function ImportGuide({ source }: ImportGuideProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <Carousel setApi={setApi} className="w-full">
+        <Carousel setApi={setApi} className="w-full min-w-0">
           <CarouselContent>
             {info.guide.map((slide, index) => (
               <CarouselItem key={slide.title}>
@@ -127,7 +127,7 @@ export function ImportGuide({ source }: ImportGuideProps) {
           <CarouselNext className="-right-3 border-fg/10 bg-surface text-fg hover:bg-fg/10 sm:-right-4" />
         </Carousel>
 
-        <div className="flex items-center justify-between">
+        <div className="flex min-w-0 items-center justify-between gap-3">
           <div className="flex gap-1.5">
             {info.guide.map((slide, index) => (
               <button
