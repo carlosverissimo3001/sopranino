@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -99,8 +100,13 @@ export function SpeedRunSetup({
     StartRunDtoSourceEnum.Curated,
   );
   const [selected, setSelected] = useState<Selection | null>(null);
+  // The leaderboard links here with the difficulty it was showing.
+  const askedDifficulty = useSearchParams().get('difficulty');
   const [selectedDifficulty, setSelectedDifficulty] =
-    useState<GauntletDifficulty>(GauntletDifficulty.Medium);
+    useState<GauntletDifficulty>(
+      DIFFICULTIES.find((d) => d.value === askedDifficulty)?.value ??
+        GauntletDifficulty.Medium,
+    );
 
   // Disabled for a visitor without an account, which leaves both lists empty.
   const { data: library, isLoading: isLoadingPlaylists } =
