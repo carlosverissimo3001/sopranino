@@ -10,16 +10,23 @@ import { SourceLogo } from './SourceLogo';
 interface SourceTilesProps {
   selected: PlaylistSource;
   onSelect: (source: PlaylistSource) => void;
+  /** Left out of the row, e.g. Spotify for a player who already linked it. */
+  without?: PlaylistSource[];
 }
 
-export function SourceTiles({ selected, onSelect }: SourceTilesProps) {
+export function SourceTiles({
+  selected,
+  onSelect,
+  without = [],
+}: SourceTilesProps) {
+  const sources = SOURCE_ORDER.filter((source) => !without.includes(source));
   return (
     <div
       role="radiogroup"
       aria-label="Where the playlist is"
       className="flex flex-wrap gap-2"
     >
-      {SOURCE_ORDER.map((source) => {
+      {sources.map((source) => {
         const info = PLAYLIST_SOURCES[source];
         const isSelected = source === selected;
         return (

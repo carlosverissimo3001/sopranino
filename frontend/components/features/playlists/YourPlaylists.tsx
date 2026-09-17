@@ -11,7 +11,7 @@ import { ImportedPlaylistCard } from '@/components/features/imports/ImportedPlay
 import { SourceTiles } from '@/components/features/imports/SourceTiles';
 import { SignUpForPlaylists } from './SignUpForPlaylists';
 import { useMe } from '@/hooks/auth/useMe';
-import { canImport } from '@/lib/can-import';
+import { canImport, spotifyIsLinked } from '@/lib/can-import';
 import { usePlaylistFilters } from '@/hooks/playlists/usePlaylistFilters';
 import { useMyPlaylistLibrary } from '@/hooks/playlists/useMyPlaylistLibrary';
 import { PlaylistSource } from '@/lib/playlist-links';
@@ -92,7 +92,11 @@ export function YourPlaylists({ defaultOpen }: { defaultOpen: boolean }) {
 
       {showAdder && !isLoading && (
         <div className={`space-y-3 sm:space-y-4 ${hasItems ? 'mb-6' : ''}`}>
-          <SourceTiles selected={source} onSelect={setSource} />
+          <SourceTiles
+            selected={source}
+            onSelect={setSource}
+            without={spotifyIsLinked(user) ? [PlaylistSource.Spotify] : []}
+          />
           <ImportPanel
             source={source}
             onSourceChange={setSource}
