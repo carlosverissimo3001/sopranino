@@ -28,6 +28,7 @@ export const fromImport = (set: ImportedSetDto): PlaylistItemDto => ({
   pending: set.pending,
   staleSince: set.staleSince,
   refreshedAt: set.refreshedAt,
+  refreshing: set.refreshing,
 });
 
 /** Absent for the default order, which keeps each source's own. */

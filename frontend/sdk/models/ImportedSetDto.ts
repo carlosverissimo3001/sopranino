@@ -80,6 +80,12 @@ export interface ImportedSetDto {
      */
     staleSince?: Date;
     /**
+     * Its songs are being read right now
+     * @type {boolean}
+     * @memberof ImportedSetDto
+     */
+    refreshing: boolean;
+    /**
      * When its songs were last read
      * @type {Date}
      * @memberof ImportedSetDto
@@ -147,6 +153,7 @@ export function instanceOfImportedSetDto(value: object): value is ImportedSetDto
     if (!('source' in value) || value['source'] === undefined) return false;
     if (!('externalUrl' in value) || value['externalUrl'] === undefined) return false;
     if (!('pending' in value) || value['pending'] === undefined) return false;
+    if (!('refreshing' in value) || value['refreshing'] === undefined) return false;
     return true;
 }
 
@@ -170,6 +177,7 @@ export function ImportedSetDtoFromJSONTyped(json: any, ignoreDiscriminator: bool
         'externalUrl': json['externalUrl'],
         'pending': json['pending'],
         'staleSince': json['staleSince'] == null ? undefined : (new Date(json['staleSince'])),
+        'refreshing': json['refreshing'],
         'refreshedAt': json['refreshedAt'] == null ? undefined : (new Date(json['refreshedAt'])),
         'origin': json['origin'] == null ? undefined : json['origin'],
         'addedAt': json['addedAt'] == null ? undefined : (new Date(json['addedAt'])),
@@ -197,6 +205,7 @@ export function ImportedSetDtoToJSONTyped(value?: ImportedSetDto | null, ignoreD
         'externalUrl': value['externalUrl'],
         'pending': value['pending'],
         'staleSince': value['staleSince'] == null ? value['staleSince'] : value['staleSince'].toISOString(),
+        'refreshing': value['refreshing'],
         'refreshedAt': value['refreshedAt'] == null ? value['refreshedAt'] : value['refreshedAt'].toISOString(),
         'origin': value['origin'],
         'addedAt': value['addedAt'] == null ? value['addedAt'] : value['addedAt'].toISOString(),

@@ -67,6 +67,7 @@ describe('PlaylistImportService', () => {
     updateAfterFill: jest.fn(),
     markFresh: jest.fn(),
     markStale: jest.fn(),
+    markRefreshing: jest.fn(),
     findMembership: jest.fn(),
   };
   const deezer = {

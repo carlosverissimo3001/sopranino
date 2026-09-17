@@ -5716,6 +5716,10 @@
             "type": "string",
             "description": "When the playlist stopped being readable; its last songs are kept"
           },
+          "refreshing": {
+            "type": "boolean",
+            "description": "Its songs are being read right now"
+          },
           "refreshedAt": {
             "format": "date-time",
             "type": "string",
@@ -5744,7 +5748,8 @@
           "trackCount",
           "source",
           "externalUrl",
-          "pending"
+          "pending",
+          "refreshing"
         ]
       },
       "ImportQuotaDto": {
@@ -5847,6 +5852,10 @@
             "format": "date-time",
             "type": "string",
             "description": "Imports: when its songs were last read"
+          },
+          "refreshing": {
+            "type": "boolean",
+            "description": "Imports: its songs are being read now"
           }
         },
         "required": [

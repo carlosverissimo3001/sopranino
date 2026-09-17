@@ -19,6 +19,7 @@ import { RedisService } from '../../redis/redis.service';
 import {
   IMPORT_DAILY_LIMIT,
   IMPORT_MAX_TRACKS,
+  IMPORT_READ_TIMEOUT_MS,
   IMPORT_QUEUE_CEILING,
   IMPORT_REFRESH_AFTER_MS,
 } from '../consts';
@@ -289,6 +290,7 @@ export class PlaylistImportService {
   }
 
   private async enqueueFill(trackGroupId: string): Promise<void> {
+    await this.repository.markRefreshing(trackGroupId);
     // One job per set at a time; removed when done, or the id would block the
     // next refresh for as long as finished jobs are kept.
     await this.queue.add(
@@ -317,6 +319,10 @@ export class PlaylistImportService {
       source: imported.source,
       externalUrl: EXTERNAL_URLS[imported.source](imported.externalId),
       pending: !imported.refreshedAt,
+      refreshing:
+        !!imported.refreshingSince &&
+        Date.now() - imported.refreshingSince.getTime() <
+          IMPORT_READ_TIMEOUT_MS,
       staleSince: imported.staleSince ?? undefined,
       refreshedAt: imported.refreshedAt ?? undefined,
       origin: membership.origin,

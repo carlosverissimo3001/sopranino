@@ -15,6 +15,9 @@ export const IMPORT_REFRESH_AFTER_MS = 60 * 60 * 1000;
 
 export const IMPORT_QUEUE_CEILING = 20;
 
+/** Past this a read is taken as lost, so a card stops saying it is reading. */
+export const IMPORT_READ_TIMEOUT_MS = 5 * 60 * 1000;
+
 export const importSlug = (source: string, externalId: string) =>
   `${source.toLowerCase().replace(/_/g, '-')}-${externalId}`;
 

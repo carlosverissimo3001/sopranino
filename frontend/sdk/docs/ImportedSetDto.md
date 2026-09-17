@@ -16,6 +16,7 @@ Name | Type
 `externalUrl` | string
 `pending` | boolean
 `staleSince` | Date
+`refreshing` | boolean
 `refreshedAt` | Date
 `origin` | string
 `addedAt` | Date
@@ -37,6 +38,7 @@ const example = {
   "externalUrl": null,
   "pending": null,
   "staleSince": null,
+  "refreshing": null,
   "refreshedAt": null,
   "origin": null,
   "addedAt": null,

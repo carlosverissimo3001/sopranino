@@ -128,6 +128,7 @@ export class PlaylistImportRepository {
           update: {
             checksum: update.checksum ?? null,
             refreshedAt: new Date(),
+            refreshingSince: null,
             staleSince: null,
           },
         },
@@ -135,17 +136,32 @@ export class PlaylistImportRepository {
     });
   }
 
+  async markRefreshing(trackGroupId: string): Promise<void> {
+    await this.prisma.playlistImport.updateMany({
+      where: { trackGroupId },
+      data: { refreshingSince: new Date() },
+    });
+  }
+
   async markFresh(trackGroupId: string): Promise<void> {
     await this.prisma.playlistImport.update({
       where: { trackGroupId },
-      data: { refreshedAt: new Date(), staleSince: null },
+      data: {
+        refreshedAt: new Date(),
+        refreshingSince: null,
+        staleSince: null,
+      },
     });
   }
 
   async markStale(trackGroupId: string): Promise<void> {
     await this.prisma.playlistImport.updateMany({
       where: { trackGroupId, staleSince: null },
-      data: { staleSince: new Date(), refreshedAt: new Date() },
+      data: {
+        staleSince: new Date(),
+        refreshedAt: new Date(),
+        refreshingSince: null,
+      },
     });
   }
 }
