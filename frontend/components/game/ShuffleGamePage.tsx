@@ -153,6 +153,19 @@ export function ShuffleGamePage({
 
   const idle = deferStart && !gameState;
 
+  // A replace, not a navigation: the round carries on. It follows the song on
+  // screen, so a pick waiting for the next one does not rewrite the address of
+  // what is still playing.
+  useEffect(() => {
+    if (!syncUrl) return;
+    const path = playingPlaylistId
+      ? spotifySetPath(playingPlaylistId)
+      : playingSet?.slug
+        ? `/group/${playingSet.slug}`
+        : '/shuffle';
+    window.history.replaceState(null, '', path);
+  }, [syncUrl, playingPlaylistId, playingSet?.slug]);
+
   if (!idle && isLoading) return <GameScreenLoading />;
   if (error) return <GameScreenError error={error} />;
   if (!idle && !gameState) return null;
@@ -263,27 +276,10 @@ export function ShuffleGamePage({
                   [playlist.id]: playlist.name,
                 }));
                 handlePlaylistChange(playlist.id);
-                if (syncUrl) {
-                  window.history.replaceState(
-                    null,
-                    '',
-                    playlist.slug
-                      ? `/group/${playlist.slug}`
-                      : spotifySetPath(playlist.id),
-                  );
-                }
               }}
-              onTrackGroupChange={(groupId, hasTiers, slug) => {
+              onTrackGroupChange={(groupId, hasTiers) => {
                 setTiersApply(hasTiers);
                 handleTrackGroupChange(groupId);
-                // A replace, not a navigation: the round carries on.
-                if (syncUrl) {
-                  window.history.replaceState(
-                    null,
-                    '',
-                    slug ? `/group/${slug}` : '/shuffle',
-                  );
-                }
               }}
             />
             {/* One line for where the round stands and how hard it is. */}

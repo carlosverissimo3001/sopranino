@@ -44,6 +44,27 @@ export function SetChips({
       isPlayable(item) &&
       (onPickPlaylist || item.kind === PlaylistItemKind.Imported),
   );
+  // An import is a track group with a playlist's clothes on; only a Spotify
+  // playlist takes the other path.
+  const pick = (set: TrackGroupDto | PlaylistItemDto) => {
+    if ('kind' in set && set.kind === PlaylistItemKind.Spotify) {
+      onPickPlaylist?.(set);
+      return;
+    }
+    onPick(
+      'kind' in set
+        ? ({
+            id: set.id,
+            name: set.name,
+            slug: set.slug ?? '',
+            type: TrackGroupDtoTypeEnum.Imported,
+            trackCount: set.trackCount,
+            imageUrl: set.imageUrl,
+          } satisfies TrackGroupDto)
+        : set,
+    );
+  };
+
   const byName = (a: { name: string }, b: { name: string }) =>
     a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
   // Inside the Playlists tab, what a player imported sits apart from what
@@ -133,11 +154,7 @@ export function SetChips({
                   type="button"
                   aria-pressed={selectedId === set.id}
                   disabled={disabled}
-                  onClick={() =>
-                    'kind' in set && onPickPlaylist
-                      ? onPickPlaylist(set)
-                      : onPick(set as TrackGroupDto)
-                  }
+                  onClick={() => pick(set)}
                   className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-50 sm:px-2.5 sm:py-1 sm:text-[11px] ${
                     selectedId === set.id
                       ? 'bg-spotify-green/20 text-spotify-green'
