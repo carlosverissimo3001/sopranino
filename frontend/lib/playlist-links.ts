@@ -31,6 +31,8 @@ export interface SourceInfo {
     step: string;
     badge: string;
     mark: string;
+    /** The Import button, in the service's own colour. */
+    cta: string;
   };
 }
 
@@ -80,6 +82,7 @@ export const PLAYLIST_SOURCES: Record<Source, SourceInfo> = {
       step: 'bg-[#A238FF]/20 text-[#7B1FD6] dark:text-[#C98BFF]',
       badge: 'bg-[#A238FF]',
       mark: 'text-[#A238FF]',
+      cta: 'bg-[#A238FF] text-white hover:bg-[#B45CFF]',
     },
   },
   [Source.Spotify]: {
@@ -128,7 +131,7 @@ export const PLAYLIST_SOURCES: Record<Source, SourceInfo> = {
         title: 'Paste the Deezer link here',
         caption: 'Songs you add on Spotify reach it when you transfer again.',
         shotOf: 'The Sopranino import panel with the Deezer link pasted',
-        image: 'guides/sopranino-pasted.webp',
+        image: 'guides/sopranino-pasted-spotify.webp',
       },
     ],
     example: 'https://www.deezer.com/playlist/…',
@@ -139,6 +142,7 @@ export const PLAYLIST_SOURCES: Record<Source, SourceInfo> = {
       step: 'bg-spotify-green/20 text-spotify-green',
       badge: 'bg-spotify-green',
       mark: 'text-spotify-green',
+      cta: 'bg-spotify-green text-black hover:bg-[#1ed760]',
     },
   },
   [Source.AppleMusic]: {
@@ -188,7 +192,7 @@ export const PLAYLIST_SOURCES: Record<Source, SourceInfo> = {
         caption:
           'Songs you add on Apple Music reach it when you transfer again.',
         shotOf: 'The Sopranino import panel with the Deezer link pasted',
-        image: 'guides/sopranino-pasted.webp',
+        image: 'guides/sopranino-pasted-apple.webp',
       },
     ],
     example: 'https://www.deezer.com/playlist/…',
@@ -201,6 +205,7 @@ export const PLAYLIST_SOURCES: Record<Source, SourceInfo> = {
       step: 'bg-[#FA2D48]/20 text-[#C4122A] dark:text-[#FF6B7F]',
       badge: 'bg-[#FA2D48]',
       mark: 'text-[#FA2D48]',
+      cta: 'bg-[#FA2D48] text-white hover:bg-[#FF4A61]',
     },
   },
 };
