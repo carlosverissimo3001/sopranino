@@ -6,7 +6,7 @@
 
 <p align="center">
   A full-stack, real-time music guessing game.<br/>
-  Solo play, daily streaks, endless speed-run, and live multiplayer rooms.<br/>
+  Play your own playlists, chase a daily streak, run an endless speed-run, or race friends live.<br/>
   Play it at <a href="https://sopranino.app">sopranino.app</a> - no account needed.
 </p>
 
@@ -21,6 +21,7 @@
   <img src="https://img.shields.io/badge/Prisma-7-2d3748?logo=prisma&logoColor=white" alt="Prisma 7" />
   <img src="https://img.shields.io/badge/Deezer%20API-A238FF?logo=deezer&logoColor=white" alt="Deezer API" />
   <img src="https://img.shields.io/badge/Spotify%20API-1DB954?logo=spotify&logoColor=white" alt="Spotify Web API" />
+  <img src="https://img.shields.io/badge/BullMQ-EA2027?logo=redis&logoColor=white" alt="BullMQ" />
 </p>
 
 ---
@@ -46,7 +47,9 @@
 
 Sopranino is a music guessing game. The core loop: you hear a snippet that starts at **0.1 seconds** and grows with every wrong guess or skip - up to 12 seconds across 6 rounds. Nail the track early for more points.
 
-The music comes from **Deezer**: a curated pool of ~6,000 tracks, every preview, the genre labels, and weekly country charts. **Spotify** is what links your own library - your playlists, your Liked Songs, and the search behind the guess box. You do not need either account to play.
+The music comes from **Deezer**: a curated pool of ~6,000 tracks, every preview, the genre labels, and weekly country charts. **Spotify** links your own library - your playlists, your Liked Songs, and the search behind the guess box. You do not need either account to play.
+
+Since 2.0, your own music no longer depends on linking an account: paste a link to a public **Deezer** playlist and its songs become a private set only you can play. Playlists on **Spotify**, **Apple Music** and **YouTube Music** get there by being copied to Deezer first, with a free transfer tool, and the app walks you through it step by step.
 
 It started as a random idea me and a friend had while playing Songless and Bandle and ended up as an application with four distinct game modes, a real-time multiplayer layer, a daily streak system and much more...
 
@@ -55,6 +58,7 @@ It started as a random idea me and a friend had while playing Songless and Bandl
 - **End-to-end type safety** - NestJS emits an OpenAPI spec on build, and the frontend consumes an auto-generated TypeScript SDK. DTOs change once, types propagate everywhere.
 - **Real-time multiplayer** - Socket.io gateway with session-validated connections, presence tracking, debounced disconnects, and per-round state synced through TanStack Query cache invalidation.
 - **Security-first auth** - Spotify OAuth with PKCE (no client secret leaves the backend). Refresh tokens are stored **AES-256-GCM encrypted** in Postgres; access tokens live in Redis. Sessions are opaque IDs in httpOnly cookies.
+- **Playlist imports without the quota** - Spotify's extended quota needs a company with 250k monthly users, so imports go through Deezer's public API instead: a pasted link becomes a private set, deduped across players, refreshed on a checksum, and rate limited per player.
 - **Operational polish** - BullMQ background jobs, session-scoped rate limiting, ownership checks on every game endpoint, structured logging with request context, and a transactional decorator backed by `AsyncLocalStorage`.
 - **Thoughtful UX** - Web Audio API amplitude tracking drives a reactive play button (no React re-renders), Framer Motion for every transition with `reducedMotion` honored, image-derived ambient glows, and progressive album-art preloading so wins feel instant.
 
@@ -64,7 +68,7 @@ It started as a random idea me and a friend had while playing Songless and Bandl
 
 ### 🎵 Playlist mode
 
-Pick any playlist from your Spotify library (or your Liked Songs). No Spotify? Play a **curated set** instead - by decade, by genre, or one of the weekly country charts - all drawn from the Deezer pool. The game picks a random track and plays progressively longer snippets across 6 rounds.
+Pick any playlist from your Spotify library (or your Liked Songs), or **import one** by pasting a public Deezer playlist link - including a Spotify, Apple Music or YouTube Music playlist copied over to Deezer. No account at all? Play a **curated set** instead - by decade, by genre, or one of the weekly country charts - all drawn from the Deezer pool. The game picks a random track and plays progressively longer snippets across 6 rounds.
 
 | Round    | 1    | 2    | 3   | 4   | 5   | 6   |
 | -------- | ---- | ---- | --- | --- | --- | --- |
@@ -161,8 +165,9 @@ Create a room, share the invite code, and race your friends live. The host picks
 │  ┌──────────────────────────────────────────────────────────┐ │
 │  │  PostgreSQL 16  (users · games · rooms · stats · tracks) │ │
 │  │  Redis 7  (sessions · PKCE · throttle · access tokens)   │ │
-│  │  BullMQ queues  (abandoned-game cleanup · cron)          │ │
+│  │  BullMQ queues  (abandoned-game cleanup · imports · cron)│ │
 │  │  Cloudinary  (avatars)  ·  Spotify Web API  (tracks)     │ │
+│  │  Deezer public API  (pool · charts · playlist imports)   │ │
 │  └──────────────────────────────────────────────────────────┘ │
 └───────────────────────────────────────────────────────────────┘
 ```
@@ -225,6 +230,19 @@ Safari blocks `audio.play()` outside a user gesture and tears down the audio con
 ### Optimistic updates (without the "flashes wrong then correct" bug)
 
 Submitting a guess optimistically adds it to the `guesses` list so the UI feels instant. Early on, a race condition would briefly render the guess as "Wrong" before the server's actual `Correct/Artist/Album` result arrived (PR #62). The fix: the optimistic guess carries a `pending` flag that suppresses the color-coded result row until the real mutation settles. Small, but a huge feel improvement.
+
+### Playlist imports, and the Spotify quota wall
+
+Reading somebody's playlist from a link needs Spotify's extended quota, which since 2025 is granted only to registered organizations with 250k monthly active users. That is not a bar a side project clears, so 2.0 takes the route that is open: **Deezer's public API**, which serves a playlist, its tracks, their ISRCs and 30-second previews without a token at all.
+
+Paste a public Deezer playlist link and the backend resolves it (including `link.deezer.com` short links), creates a private `TrackGroup` of type `IMPORTED`, and fills it on a BullMQ queue. What that buys:
+
+- **Deduped by playlist, not by player.** Two people who import the same playlist share one set, joined through a membership row; the second import costs Deezer nothing.
+- **Private by default.** An imported set is visible only to its members, and speed runs on one never reach the leaderboard.
+- **Kept fresh.** Opening the list re-reads any playlist last read over an hour ago, skipping the work when Deezer's checksum is unchanged, and a player can ask for a refresh themselves. Imports and refreshes draw on one allowance of ten reads a day.
+- **A playlist that goes private stops updating** rather than losing its songs.
+
+Spotify, Apple Music and YouTube Music playlists arrive the same way, via a copy on Deezer made with a free transfer tool. The app carries a per-service guide, with screenshots, rather than pretending the detour is not there. Where the copy came from is recorded on the player's own membership row, so the card can say "Spotify playlist, copied to Deezer" for one player and plain Deezer for another.
 
 ### Preview-URL resilience
 
@@ -430,6 +448,7 @@ Some things that are scoped but not built (or only partially built):
 - **E2E tests** with Playwright that cover the full auth → gameplay → history loop
 - **Redis-based pub/sub for multiplayer** so the backend scales horizontally beyond a single Socket.io node
 - **Spotify Premium full-track playback** for Premium users so the 30-second preview limit goes away
+- **Direct Spotify and Apple Music playlist reads**, if Spotify's extended-quota criteria ever come within reach of a side project, so the copy-to-Deezer detour can go
 - **Observability stack** - OpenTelemetry exporters and a proper dashboard (current structured logging is a stepping stone)
 - **A11y pass** - keyboard flow is reasonable but I want screen-reader coverage verified top-to-bottom
 - **Internationalization** - strings are already centralized, just not wired to a locale loader yet
@@ -440,6 +459,6 @@ Some things that are scoped but not built (or only partially built):
 
 This repository is published for portfolio purposes. The code is shared "as is" without warranty; please don't deploy a copy as a commercial service.
 
-Music data is provided by Deezer. Spotify, the Spotify logo, and related marks are trademarks of Spotify AB; Deezer and its marks are trademarks of Deezer S.A. This project is affiliated with neither.
+Music data is provided by Deezer. Spotify, Apple Music, YouTube Music, Deezer and their marks are trademarks of their respective owners: Spotify AB, Apple Inc., Google LLC and Deezer S.A. This project is affiliated with none of them.
 
 ---

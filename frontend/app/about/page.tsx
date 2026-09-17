@@ -100,10 +100,18 @@ export default function AboutPage() {
               music you already know. You do not need either account. This
               project is affiliated with neither company.
             </p>
+            <p>
+              To play your own music you can also paste a link to a public
+              Deezer playlist, and the songs in it become a set only you can
+              see. A playlist on Spotify, Apple Music or YouTube Music gets
+              there by copying it to Deezer first, with a free tool, and the
+              game walks you through it.
+            </p>
             <p className="text-[13px] italic leading-relaxed text-muted-foreground/70">
-              Spotify only lets apps in development link five accounts, which is
-              why the curated pool exists at all: so the game works for everyone
-              else.
+              The detour exists because Spotify only lets apps in development
+              link five accounts, and reading a playlist from a link needs a
+              quota I cannot get. That limit is also why the curated pool exists
+              at all.
             </p>
             <p className="text-fg">
               A <em className="font-medium not-italic">sopranino</em> is the
