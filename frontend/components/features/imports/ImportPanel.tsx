@@ -4,12 +4,14 @@ import { useState, type FormEvent } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useImportPlaylist } from '@/hooks/imports/useImportPlaylist';
 import { useImportQuota } from '@/hooks/imports/useImportQuota';
+import { useMe } from '@/hooks/auth/useMe';
+import { spotifyIsLinked } from '@/lib/can-import';
 import {
   detectPlaylistSource,
   linkSourceFor,
   PLAYLIST_SOURCES,
+  PlaylistSource,
   TUNEMYMUSIC_URL,
-  type PlaylistSource,
 } from '@/lib/playlist-links';
 
 interface ImportPanelProps {
@@ -27,6 +29,7 @@ export function ImportPanel({
   disabled = false,
 }: ImportPanelProps) {
   const submit = useImportPlaylist();
+  const { data: user } = useMe();
   const { data: quota } = useImportQuota(!disabled);
   const [link, setLink] = useState('');
   const info = PLAYLIST_SOURCES[source];
@@ -37,6 +40,8 @@ export function ImportPanel({
   const pasted = detectPlaylistSource(link);
   const pastedInfo = pasted ? PLAYLIST_SOURCES[pasted] : null;
   const spent = quota?.left === 0;
+  // Their own Spotify playlists are already listed, so that pill is not shown.
+  const spotifyLinked = spotifyIsLinked(user);
   const canSend =
     !disabled &&
     !spent &&
@@ -64,17 +69,19 @@ export function ImportPanel({
 
   const problem = disabled
     ? 'Verify your email to import playlists.'
-    : spent
-      ? 'No playlist reads left today. Playlists someone else already imported can still be added.'
-      : pasted && pasted !== wanted && PLAYLIST_SOURCES[pasted].via === wanted
-        ? `Copy it to ${wantedInfo.name} with TuneMyMusic first, then paste the ${wantedInfo.name} link.`
-        : pastedInfo && !pastedInfo.supported
-          ? `${pastedInfo.name} playlists can't be imported yet.`
-          : link.trim() && !pasted
-            ? `That isn't a ${wantedInfo.name} playlist link.`
-            : submit.isError
-              ? submit.error.message
-              : null;
+    : pasted === PlaylistSource.Spotify && spotifyLinked
+      ? 'Your Spotify playlists are already here.'
+      : spent
+        ? 'No playlist reads left today. Playlists someone else already imported can still be added.'
+        : pasted && pasted !== wanted && PLAYLIST_SOURCES[pasted].via === wanted
+          ? `Copy it to ${wantedInfo.name} with TuneMyMusic first, then paste the ${wantedInfo.name} link.`
+          : pastedInfo && !pastedInfo.supported
+            ? `${pastedInfo.name} playlists can't be imported yet.`
+            : link.trim() && !pasted
+              ? `That isn't a ${wantedInfo.name} playlist link.`
+              : submit.isError
+                ? submit.error.message
+                : null;
 
   return (
     <form
@@ -123,7 +130,12 @@ export function ImportPanel({
               if (submit.isError) submit.reset();
               const detected = detectPlaylistSource(next);
               // A Deezer link under a "via Deezer" pick is expected, so it stays put.
-              if (detected && detected !== source && detected !== wanted) {
+              if (
+                detected &&
+                detected !== source &&
+                detected !== wanted &&
+                !(detected === PlaylistSource.Spotify && spotifyLinked)
+              ) {
                 onSourceChange(detected);
               }
             }}
