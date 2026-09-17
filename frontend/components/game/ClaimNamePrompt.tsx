@@ -5,26 +5,7 @@ import { motion } from 'framer-motion';
 import { Pencil } from 'lucide-react';
 import { useMe } from '@/hooks/auth/useMe';
 import { useUpdateProfile } from '@/hooks/auth/useUpdateProfile';
-
-const ASKED_KEY = 'unpaused:name-prompt-asked';
-
-/** Which user we last asked. Per-user, not per-browser: clearing cookies gives
-    the same browser a new identity, and a new identity has not been asked. */
-function readAskedUserId(): string | null {
-  try {
-    return localStorage.getItem(ASKED_KEY);
-  } catch {
-    return null;
-  }
-}
-
-function writeAskedUserId(userId: string) {
-  try {
-    localStorage.setItem(ASKED_KEY, userId);
-  } catch {
-    // A blocked store only costs us the prompt opening again.
-  }
-}
+import { readAskedUserId, writeAskedUserId } from '@/lib/guest-prompts';
 
 /**
  * The first conversion ask, and the only one that costs nothing to say yes to:
@@ -32,7 +13,7 @@ function writeAskedUserId(userId: string) {
  * edit in place, Enter saves, Escape leaves it. Until they choose or say not
  * now, it carries an invitation; after that it is a quiet line.
  */
-export function ClaimNamePrompt() {
+export function ClaimNamePrompt({ onSettled }: { onSettled?: () => void }) {
   const { data: user } = useMe();
   const { mutate: updateProfile, isPending } = useUpdateProfile();
   const [editing, setEditing] = useState(false);
@@ -54,6 +35,7 @@ export function ClaimNamePrompt() {
     if (user) writeAskedUserId(user.userId);
     setDismissed(true);
     setEditing(false);
+    onSettled?.();
   }
 
   function save() {

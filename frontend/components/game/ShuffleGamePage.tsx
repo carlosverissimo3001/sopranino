@@ -11,7 +11,7 @@ import { useWarnOnLeave } from '@/hooks/useWarnOnLeave';
 import { Button } from '@/components/ui/button';
 import { SNIPPET_STEPS } from '@/lib/snippet-timeline';
 import { SongRevealCard } from './SongRevealCard';
-import { ClaimNamePrompt } from './ClaimNamePrompt';
+import { RevealGuestPrompt } from './RevealGuestPrompt';
 import { GameHeader } from './GameHeader';
 import { ShuffleModeNav } from './ShuffleModeNav';
 import { FAME_TIERS } from '@/lib/fame-tier';
@@ -289,7 +289,7 @@ export function ShuffleGamePage({
               tries={gameState.guesses.length}
               // The prompt renders nothing for an account, and the card would
               // still draw its strip.
-              footer={user && !user.hasAccount && <ClaimNamePrompt />}
+              footer={user && !user.hasAccount && <RevealGuestPrompt />}
             />
             {afterReveal}
           </>
