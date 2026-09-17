@@ -4,7 +4,7 @@ import { formatSeconds } from '@/lib/snippet-timeline';
 import { useIsBelowSm } from '@/hooks/useIsBelowSm';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { Search, X, Disc3 } from 'lucide-react';
+import { Search, X, Disc3, Lock } from 'lucide-react';
 import { List, type RowComponentProps } from 'react-window';
 import { StartGameDtoModeEnum as GameMode, TrackOptionDto } from '@/sdk';
 import { MIN_QUERY_LENGTH } from '@/consts/consts';
@@ -144,18 +144,33 @@ export function GuessInput({
                 type="button"
                 role="radio"
                 aria-checked={isSelected}
-                onClick={() => handleSelectTrack(choice)}
-                className={`min-h-[52px] rounded-xl px-3 py-2 text-left sm:min-h-[56px] sm:px-4 sm:py-3 transition-colors touch-manipulation ${
+                disabled={submitPending || disabled}
+                // The second press answers. One press would send a mis-tap on
+                // four targets this close together, and the round ends either
+                // way. Submitting reads the pick from state a render later, so
+                // picking and sending cannot share a press.
+                onClick={() =>
+                  isSelected ? onSubmit() : handleSelectTrack(choice)
+                }
+                // Outlined in amber rather than filled: the tile is held, not
+                // answered, and green stays for what the round scored.
+                className={`relative min-h-[52px] rounded-xl border px-3 py-2 text-left transition-colors touch-manipulation sm:min-h-[56px] sm:px-4 sm:py-3 ${
                   isSelected
-                    ? 'bg-[#1DB954] text-black shadow-lg shadow-[#1DB954]/20'
-                    : 'border border-fg/[0.08] bg-fg/[0.06] text-fg hover:bg-fg/10'
+                    ? 'border-amber-400 bg-amber-400/10 text-fg ring-1 ring-amber-400'
+                    : 'border-fg/[0.08] bg-fg/[0.06] text-fg hover:bg-fg/10'
                 }`}
               >
-                <p className="truncate text-sm font-semibold sm:text-base">
+                {isSelected && (
+                  <Lock
+                    aria-hidden
+                    className="absolute right-2 top-2 h-3.5 w-3.5 text-amber-400 sm:right-3 sm:top-3"
+                  />
+                )}
+                <p className="truncate pr-5 text-sm font-semibold sm:text-base">
                   {choice.name}
                 </p>
                 <p
-                  className={`truncate text-xs sm:text-sm ${isSelected ? 'text-black/70' : 'text-fg/50'}`}
+                  className={`truncate pr-5 text-xs sm:text-sm ${isSelected ? 'text-amber-200/80' : 'text-fg/50'}`}
                 >
                   {choice.artist}
                 </p>
@@ -163,6 +178,16 @@ export function GuessInput({
             );
           })}
         </div>
+      ) : null}
+
+      {choices?.length ? (
+        <p className="text-center text-xs text-fg/40">
+          {submitPending
+            ? 'Checking…'
+            : selectedTrack
+              ? 'Locked in. Press it again to answer'
+              : 'Pick the song'}
+        </p>
       ) : (
         <Popover open={dropdownOpen} modal={false}>
           <div ref={searchRef}>
@@ -282,8 +307,11 @@ export function GuessInput({
       )}
 
       {/* Side by side, but not the same weight: submitting is the move,
-          skipping is the way out. */}
-      <div className="flex items-stretch gap-2">
+          skipping is the way out. Neither belongs on the last round, where the
+          answer is one of four on screen. */}
+      <div
+        className={`flex items-stretch gap-2 ${choices?.length ? 'hidden' : ''}`}
+      >
         <motion.button
           type="button"
           onClick={onSubmit}
