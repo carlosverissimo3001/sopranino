@@ -90,10 +90,12 @@ export function ImportGuide({ source }: ImportGuideProps) {
             />
             {info.name} playlists
           </DialogTitle>
-          <DialogDescription className="text-xs text-fg/50">
+          <DialogDescription
+            className={info.via ? 'text-xs text-fg/50' : 'sr-only'}
+          >
             {info.via
               ? `${info.name} does not let us read a playlist from a link, so the songs come from a copy on ${PLAYLIST_SOURCES[info.via].name}.`
-              : 'Four taps, from the playlist to your first round.'}
+              : `How to copy a ${info.name} playlist link.`}
           </DialogDescription>
         </DialogHeader>
 
