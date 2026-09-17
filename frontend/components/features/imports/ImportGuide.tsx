@@ -37,7 +37,10 @@ function Shot({ slide }: { slide: GuideSlide }) {
           src={`/${slide.image}`}
           alt={slide.shotOf}
           fill
-          sizes="(max-width: 640px) 90vw, 520px"
+          // Must track the dialog's widths, or Next serves a narrower file
+          // and the browser stretches it.
+          sizes="(max-width: 640px) 92vw, (max-width: 1024px) 672px, 768px"
+          quality={90}
           className="object-cover"
         />
       ) : (
@@ -80,7 +83,7 @@ export function ImportGuide({ source }: ImportGuideProps) {
           Show me how
         </button>
       </DialogTrigger>
-      <DialogContent className="max-w-lg border-fg/10 bg-surface">
+      <DialogContent className="max-w-lg border-fg/10 bg-surface sm:max-w-2xl lg:max-w-3xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base">
             <SourceLogo
