@@ -2,6 +2,17 @@ import { ImportPlaylistControllerDtoSourceEnum as Source } from '@/sdk';
 
 export { Source as PlaylistSource };
 
+export interface GuideSlide {
+  /** One thing to do, in the player's words. */
+  title: string;
+  /** What the picture shows, and what it is for. */
+  caption: string;
+  /** What to capture, until the screenshot exists. */
+  shotOf: string;
+  /** Under public/, e.g. guides/deezer-share.png. Absent leaves the frame empty. */
+  image?: string;
+}
+
 export interface SourceInfo {
   name: string;
   hosts: string[];
@@ -9,6 +20,8 @@ export interface SourceInfo {
   /** Imported as a copy on this service, since we can't read the original. */
   via?: Source;
   steps: string[];
+  /** The same path as `steps`, shown one screen at a time with pictures. */
+  guide: GuideSlide[];
   example: string;
   /** Full class strings, so Tailwind sees every one of them. */
   tone: {
@@ -30,6 +43,23 @@ export const PLAYLIST_SOURCES: Record<Source, SourceInfo> = {
       'Open the playlist in Deezer',
       'Tap Share, then Copy link',
       'Paste the link here',
+    ],
+    guide: [
+      {
+        title: 'Open the playlist in Deezer',
+        caption: 'Any public playlist works, yours or somebody else’s.',
+        shotOf: 'A playlist page in Deezer, with its cover and songs',
+      },
+      {
+        title: 'Tap Share, then Copy link',
+        caption: 'Share sits under the three dots beside the play button.',
+        shotOf: 'The Deezer share menu open, with Copy link in view',
+      },
+      {
+        title: 'Paste it here and press Import',
+        caption: 'The songs arrive in a few seconds, and only you see them.',
+        shotOf: 'The Sopranino import panel with a Deezer link pasted',
+      },
     ],
     example: 'https://www.deezer.com/playlist/…',
     tone: {
@@ -53,6 +83,29 @@ export const PLAYLIST_SOURCES: Record<Source, SourceInfo> = {
       'Open the copy in Deezer, tap Share, then Copy link',
       'Paste the Deezer link here',
     ],
+    guide: [
+      {
+        title: 'Open TuneMyMusic and pick Spotify',
+        caption: 'A free tool that copies a playlist between services.',
+        shotOf: 'TuneMyMusic with Spotify chosen as the source',
+      },
+      {
+        title: 'Choose Deezer as the destination',
+        caption:
+          'Sign in to both, then start the transfer. Free up to 500 songs.',
+        shotOf: 'TuneMyMusic with Deezer chosen as the destination',
+      },
+      {
+        title: 'Open the copy in Deezer, Share, Copy link',
+        caption: 'The transfer leaves a new playlist in your Deezer account.',
+        shotOf: 'The copied playlist in Deezer with the share menu open',
+      },
+      {
+        title: 'Paste the Deezer link here',
+        caption: 'Songs you add on Spotify reach it when you transfer again.',
+        shotOf: 'The Sopranino import panel with the Deezer link pasted',
+      },
+    ],
     example: 'https://www.deezer.com/playlist/…',
     tone: {
       chipOn: 'border-spotify-green/50 bg-spotify-green/20 text-spotify-green',
@@ -72,6 +125,30 @@ export const PLAYLIST_SOURCES: Record<Source, SourceInfo> = {
       'Copy the playlist to Deezer with TuneMyMusic, a free tool',
       'Open the copy in Deezer, tap Share, then Copy link',
       'Paste the Deezer link here',
+    ],
+    guide: [
+      {
+        title: 'Open TuneMyMusic and pick Apple Music',
+        caption: 'A free tool that copies a playlist between services.',
+        shotOf: 'TuneMyMusic with Apple Music chosen as the source',
+      },
+      {
+        title: 'Choose Deezer as the destination',
+        caption:
+          'Sign in to both, then start the transfer. Free up to 500 songs.',
+        shotOf: 'TuneMyMusic with Deezer chosen as the destination',
+      },
+      {
+        title: 'Open the copy in Deezer, Share, Copy link',
+        caption: 'The transfer leaves a new playlist in your Deezer account.',
+        shotOf: 'The copied playlist in Deezer with the share menu open',
+      },
+      {
+        title: 'Paste the Deezer link here',
+        caption:
+          'Songs you add on Apple Music reach it when you transfer again.',
+        shotOf: 'The Sopranino import panel with the Deezer link pasted',
+      },
     ],
     example: 'https://www.deezer.com/playlist/…',
     tone: {
