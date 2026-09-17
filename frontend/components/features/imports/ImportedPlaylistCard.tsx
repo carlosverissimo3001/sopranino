@@ -7,6 +7,7 @@ import {
   ListMusic,
   Loader2,
   MoreHorizontal,
+  RefreshCw,
   Trash2,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -17,7 +18,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { TrackGroupCard } from '@/components/track-group/TrackGroupCard';
+import { useRefreshImport } from '@/hooks/imports/useRefreshImport';
 import { useRemoveImport } from '@/hooks/imports/useRemoveImport';
+import { timeAgo } from '@/lib/time-ago';
 import { PLAYLIST_SOURCES } from '@/lib/playlist-links';
 import { SourceMark } from './SourceMark';
 import { TrackGroupDtoTypeEnum, type PlaylistItemDto } from '@/sdk';
@@ -55,6 +58,7 @@ function WaitingCard({ set, line }: { set: PlaylistItemDto; line: string }) {
 
 export function ImportedPlaylistCard({ set }: { set: PlaylistItemDto }) {
   const remove = useRemoveImport();
+  const refresh = useRefreshImport();
   const [isConfirming, setIsConfirming] = useState(false);
   const isEmpty = !set.pending && set.trackCount === 0;
 
@@ -76,10 +80,13 @@ export function ImportedPlaylistCard({ set }: { set: PlaylistItemDto }) {
           }}
           source={set.origin ?? set.source}
           via={set.origin ? set.source : undefined}
+          busyLabel={
+            set.refreshing || refresh.isPending ? 'Reading songs…' : undefined
+          }
         />
       )}
 
-      {set.staleSince && !set.pending && (
+      {set.staleSince && !set.pending && !set.refreshing && (
         <p className="pointer-events-none absolute bottom-4 right-11 text-[11px] text-fg/40 sm:bottom-6 sm:right-14">
           Not updating
         </p>
@@ -103,6 +110,40 @@ export function ImportedPlaylistCard({ set }: { set: PlaylistItemDto }) {
             align="end"
             className="min-w-[180px] border border-fg/10 bg-surface/90 backdrop-blur-md"
           >
+            {/* Out of the way here: on every card it would be noise. */}
+            <div className="px-2 py-1.5 text-[11px] leading-relaxed text-fg/40">
+              {set.origin && set.source && (
+                <p>
+                  {PLAYLIST_SOURCES[set.origin].name} playlist, copied to{' '}
+                  {PLAYLIST_SOURCES[set.source].name}
+                </p>
+              )}
+              <p>
+                {set.refreshing
+                  ? 'Reading songs now'
+                  : set.staleSince
+                    ? 'Not updating any more'
+                    : set.refreshedAt
+                      ? `Updated ${timeAgo(set.refreshedAt)}`
+                      : 'Not read yet'}
+              </p>
+            </div>
+            <DropdownMenuItem
+              disabled={refresh.isPending || set.pending || set.refreshing}
+              onSelect={() =>
+                refresh.mutate(set.id, {
+                  onError: (err) => toast.error(err.message),
+                })
+              }
+              className="cursor-pointer gap-2 text-xs text-fg/70 focus:bg-fg/[0.08] focus:text-fg"
+            >
+              {refresh.isPending ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <RefreshCw className="h-3.5 w-3.5" />
+              )}
+              Refresh
+            </DropdownMenuItem>
             <DropdownMenuItem
               asChild
               className="cursor-pointer gap-2 text-xs text-fg/70 focus:bg-fg/[0.08] focus:text-fg"
