@@ -4,7 +4,7 @@ import { formatSeconds } from '@/lib/snippet-timeline';
 import { useIsBelowSm } from '@/hooks/useIsBelowSm';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { Search, X, Disc3 } from 'lucide-react';
+import { Search, X, Disc3, Lock } from 'lucide-react';
 import { List, type RowComponentProps } from 'react-window';
 import { StartGameDtoModeEnum as GameMode, TrackOptionDto } from '@/sdk';
 import { MIN_QUERY_LENGTH } from '@/consts/consts';
@@ -152,13 +152,16 @@ export function GuessInput({
                 onClick={() =>
                   isSelected ? onSubmit() : handleSelectTrack(choice)
                 }
+                // Amber, not the green of a sent answer: this one is held, and
+                // the next press is what commits it.
                 className={`min-h-[52px] rounded-xl px-3 py-2 text-left sm:min-h-[56px] sm:px-4 sm:py-3 transition-colors touch-manipulation ${
                   isSelected
-                    ? 'bg-[#1DB954] text-black shadow-lg shadow-[#1DB954]/20'
+                    ? 'bg-amber-400 text-black shadow-lg shadow-amber-400/20'
                     : 'border border-fg/[0.08] bg-fg/[0.06] text-fg hover:bg-fg/10'
                 }`}
               >
-                <p className="truncate text-sm font-semibold sm:text-base">
+                <p className="flex items-center gap-1.5 truncate text-sm font-semibold sm:text-base">
+                  {isSelected && <Lock className="h-3.5 w-3.5 shrink-0" />}
                   {choice.name}
                 </p>
                 <p
@@ -177,7 +180,7 @@ export function GuessInput({
           {submitPending
             ? 'Checking…'
             : selectedTrack
-              ? 'Press it again to answer'
+              ? 'Locked in. Press it again to answer'
               : 'Pick the song'}
         </p>
       ) : (
