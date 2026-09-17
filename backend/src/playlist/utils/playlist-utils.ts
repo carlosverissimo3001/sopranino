@@ -1,9 +1,7 @@
 import { Playlist, SimplifiedPlaylist, Track } from '@spotify/web-api-ts-sdk';
 import { UserSessionDto } from '../../auth/dto/user-session.dto';
-import { GetPlaylistsDto } from '../dto/get-playlists-dto';
 import { PlaylistDto } from '../dto/playlist.dto';
 import { getFirstImage } from '../../utils/utils';
-import { PLAYLIST_SORT_BY } from '../consts';
 
 /**
  * Type for Spotify API response that may use either old (tracks) or new (items) field names.
@@ -36,16 +34,9 @@ export function mapPlaylistLite(
   };
 }
 
-/**
- * Apply filters to a list of playlists
- * @param playlists - The Spotify playlists
- * @param filters - The filters to apply
- * @param session - The user session
- * @returns The filtered playlists
- */
-export function applyFilters(
+/** The playlists a round can be played from. */
+export function playablePlaylists(
   playlists: SimplifiedPlaylist[],
-  filters: GetPlaylistsDto,
   session: UserSessionDto,
 ): SimplifiedPlaylist[] {
   return playlists.filter((p) => {
@@ -63,33 +54,7 @@ export function applyFilters(
     // load-bearing: without it an unlinked session matches every playlist.
     const isOwnedByUser =
       !!session.spotifyUserId && playlist.owner?.id === session.spotifyUserId;
-    const matchesPublicFilter = !filters.onlyPublic || playlist.public === true;
-    const matchesPrivateFilter =
-      !filters.onlyPrivate || playlist.public === false;
 
-    return (
-      hasImage &&
-      hasTracks &&
-      isOwnedByUser &&
-      matchesPublicFilter &&
-      matchesPrivateFilter
-    );
-  });
-}
-
-export function sortPlaylists(
-  playlists: PlaylistDto[],
-  sortBy: PLAYLIST_SORT_BY,
-): PlaylistDto[] {
-  if (sortBy === PLAYLIST_SORT_BY.DEFAULT) {
-    return playlists;
-  }
-
-  return [...playlists].sort((a, b) => {
-    if (sortBy === PLAYLIST_SORT_BY.NAME) {
-      return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
-    }
-    // tracks — descending
-    return b.totalTracks - a.totalTracks;
+    return hasImage && hasTracks && isOwnedByUser;
   });
 }

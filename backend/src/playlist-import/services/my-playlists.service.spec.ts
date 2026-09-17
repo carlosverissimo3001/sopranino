@@ -44,9 +44,11 @@ describe('MyPlaylistsService', () => {
       id: 'user-1',
       spotifyUserId: 'spotify-1',
     });
-    playlists.getMyPlaylists.mockResolvedValue({
-      items: [liked, spotify('s1', 'Zebra', 10), spotify('s2', 'Apple', 40)],
-    });
+    playlists.getMyPlaylists.mockResolvedValue([
+      liked,
+      spotify('s1', 'Zebra', 10),
+      spotify('s2', 'Apple', 40),
+    ]);
     imports.list.mockResolvedValue([
       imported('i1', 'Mango', 25),
       imported('i2', 'banana', 5),
@@ -119,11 +121,7 @@ describe('MyPlaylistsService', () => {
     await service.list('session-1', PLAYLIST_SORT_BY.NAME);
 
     expect(playlists.getMyPlaylists).toHaveBeenCalledTimes(1);
-    expect(playlists.getMyPlaylists).toHaveBeenCalledWith({
-      sessionId: 'session-1',
-      limit: 50,
-      offset: 0,
-    });
+    expect(playlists.getMyPlaylists).toHaveBeenCalledWith('session-1');
   });
 
   it('never asks Spotify for an account without it', async () => {

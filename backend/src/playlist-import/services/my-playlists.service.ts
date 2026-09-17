@@ -13,9 +13,6 @@ import {
 } from '../utils/my-playlists.utils';
 import { PlaylistImportService } from './playlist-import.service';
 
-/** Spotify's largest page; only the first is read, as the old listing did. */
-const SPOTIFY_PAGE = 50;
-
 @Injectable()
 export class MyPlaylistsService {
   private readonly logger: AppLoggerService;
@@ -66,12 +63,8 @@ export class MyPlaylistsService {
     sessionId: string,
   ): Promise<{ items: PlaylistDto[]; unavailable: boolean }> {
     try {
-      const page = await this.playlistService.getMyPlaylists({
-        sessionId,
-        limit: SPOTIFY_PAGE,
-        offset: 0,
-      });
-      return { items: page.items, unavailable: false };
+      const items = await this.playlistService.getMyPlaylists(sessionId);
+      return { items, unavailable: false };
     } catch (err) {
       this.logger.warn(
         `Spotify playlists unavailable: ${(err as Error).message}`,

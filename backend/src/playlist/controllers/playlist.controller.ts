@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -8,9 +8,7 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { PlaylistService } from '../services/playlist.service';
-import { PlaylistsResponseDto } from '../dto/playlist-response.dto';
 import { PlaylistDto } from '../dto/playlist.dto';
-import { GetPlaylistsDto } from '../dto/get-playlists-dto';
 import { SessionId } from '../../utils/decorators/sessionId.decorator';
 import { SessionGuard } from '../../utils/guards/session-guard';
 import { SpotifyLinkedGuard } from '../../utils/guards/spotify-linked.guard';
@@ -22,16 +20,6 @@ import { SpotifyLinkedGuard } from '../../utils/guards/spotify-linked.guard';
 @Controller('playlists')
 export class PlaylistController {
   constructor(private readonly playlistsService: PlaylistService) {}
-
-  @Get('me')
-  @ApiOperation({ summary: "Get current user's playlists" })
-  @ApiResponse({ status: 200, type: PlaylistsResponseDto })
-  async getMyPlaylists(
-    @SessionId() sessionId: string,
-    @Query() params: GetPlaylistsDto,
-  ): Promise<PlaylistsResponseDto> {
-    return this.playlistsService.getMyPlaylists({ ...params, sessionId });
-  }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get playlist by ID' })

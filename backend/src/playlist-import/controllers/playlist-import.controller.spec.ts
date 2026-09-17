@@ -9,7 +9,7 @@ const guardsOn = (handler: keyof PlaylistImportController): unknown[] =>
   ) as unknown[]) ?? [];
 
 describe('PlaylistImportController guards', () => {
-  it.each(['list', 'import', 'leave'] as const)(
+  it.each(['import', 'leave'] as const)(
     '%s needs a finished sign-up',
     (handler) => {
       expect(guardsOn(handler)).toContain(SignedUpGuard);

@@ -57,11 +57,9 @@ All URIs are relative to *http://localhost*
 | [**multiplayerControllerToggleReady**](ApiApi.md#multiplayercontrollertoggleready) | **POST** /multiplayer/rooms/{id}/ready | Toggle ready status for current player |
 | [**multiplayerControllerUpdateRoomSettings**](ApiApi.md#multiplayercontrollerupdateroomsettings) | **PATCH** /multiplayer/rooms/{id}/settings | Rename a room or change whether it is listed |
 | [**myPlaylistsControllerList**](ApiApi.md#myplaylistscontrollerlist) | **GET** /me/playlists | A player\&#39;s Spotify and imported playlists, in one list |
-| [**playlistControllerGetMyPlaylists**](ApiApi.md#playlistcontrollergetmyplaylists) | **GET** /playlists/me | Get current user\&#39;s playlists |
 | [**playlistControllerGetPlaylistById**](ApiApi.md#playlistcontrollergetplaylistbyid) | **GET** /playlists/{id} | Get playlist by ID |
 | [**playlistImportControllerImport**](ApiApi.md#playlistimportcontrollerimport) | **POST** /me/imports | Import a public playlist as a private set |
 | [**playlistImportControllerLeave**](ApiApi.md#playlistimportcontrollerleave) | **DELETE** /me/imports/{trackGroupId} | Remove an import from this player |
-| [**playlistImportControllerList**](ApiApi.md#playlistimportcontrollerlist) | **GET** /me/imports | Playlists this player imported |
 | [**searchControllerSearchTracks**](ApiApi.md#searchcontrollersearchtracks) | **GET** /search/tracks | Search tracks (for game guess options) |
 | [**streakControllerGetNextQuestion**](ApiApi.md#streakcontrollergetnextquestion) | **GET** /streak/quiz/next | Get the next unanswered quiz question |
 | [**streakControllerGetStatus**](ApiApi.md#streakcontrollergetstatus) | **GET** /streak/status | Get streak status including freeze info |
@@ -3728,88 +3726,6 @@ example().catch(console.error);
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 
-## playlistControllerGetMyPlaylists
-
-> PlaylistsResponseDto playlistControllerGetMyPlaylists(limit, offset, onlyPublic, onlyPrivate, sortBy)
-
-Get current user\&#39;s playlists
-
-### Example
-
-```ts
-import {
-  Configuration,
-  ApiApi,
-} from '';
-import type { PlaylistControllerGetMyPlaylistsRequest } from '';
-
-async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: cookie
-    apiKey: "YOUR API KEY",
-  });
-  const api = new ApiApi(config);
-
-  const body = {
-    // number (optional)
-    limit: 20,
-    // number (optional)
-    offset: 0,
-    // boolean | Include only public playlists (optional)
-    onlyPublic: true,
-    // boolean | Include only private playlists (optional)
-    onlyPrivate: true,
-    // 'default' | 'name' | 'tracks' | Sort playlists by field (optional)
-    sortBy: sortBy_example,
-  } satisfies PlaylistControllerGetMyPlaylistsRequest;
-
-  try {
-    const data = await api.playlistControllerGetMyPlaylists(body);
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
-}
-
-// Run the test
-example().catch(console.error);
-```
-
-### Parameters
-
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **limit** | `number` |  | [Optional] [Defaults to `undefined`] |
-| **offset** | `number` |  | [Optional] [Defaults to `undefined`] |
-| **onlyPublic** | `boolean` | Include only public playlists | [Optional] [Defaults to `undefined`] |
-| **onlyPrivate** | `boolean` | Include only private playlists | [Optional] [Defaults to `undefined`] |
-| **sortBy** | `default`, `name`, `tracks` | Sort playlists by field | [Optional] [Defaults to `undefined`] [Enum: default, name, tracks] |
-
-### Return type
-
-[**PlaylistsResponseDto**](PlaylistsResponseDto.md)
-
-### Authorization
-
-[cookie](../README.md#cookie)
-
-### HTTP request headers
-
-- **Content-Type**: Not defined
-- **Accept**: `application/json`
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** |  |  -  |
-| **401** | Not authenticated |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
-
 ## playlistControllerGetPlaylistById
 
 > PlaylistDto playlistControllerGetPlaylistById(id)
@@ -4020,67 +3936,6 @@ example().catch(console.error);
 |-------------|-------------|------------------|
 | **204** |  |  -  |
 | **404** | Not one of theirs |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
-
-## playlistImportControllerList
-
-> Array&lt;ImportedSetDto&gt; playlistImportControllerList()
-
-Playlists this player imported
-
-### Example
-
-```ts
-import {
-  Configuration,
-  ApiApi,
-} from '';
-import type { PlaylistImportControllerListRequest } from '';
-
-async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: cookie
-    apiKey: "YOUR API KEY",
-  });
-  const api = new ApiApi(config);
-
-  try {
-    const data = await api.playlistImportControllerList();
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
-}
-
-// Run the test
-example().catch(console.error);
-```
-
-### Parameters
-
-This endpoint does not need any parameter.
-
-### Return type
-
-[**Array&lt;ImportedSetDto&gt;**](ImportedSetDto.md)
-
-### Authorization
-
-[cookie](../README.md#cookie)
-
-### HTTP request headers
-
-- **Content-Type**: Not defined
-- **Accept**: `application/json`
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** |  |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 

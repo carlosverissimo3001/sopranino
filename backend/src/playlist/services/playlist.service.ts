@@ -1,13 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Track } from '@spotify/web-api-ts-sdk';
-import { PlaylistsResponseDto } from '../dto/playlist-response.dto';
 import { PlaylistDto } from '../dto/playlist.dto';
-import { GetPlaylistsDto } from '../dto/get-playlists-dto';
-import {
-  applyFilters,
-  mapPlaylistLite,
-  sortPlaylists,
-} from '../utils/playlist-utils';
+import { mapPlaylistLite, playablePlaylists } from '../utils/playlist-utils';
 import { SpotifyService } from '../../spotify/services/spotify.service';
 import { mapSpotifyTrackToTrackEntity } from '../../utils/mappers';
 import { TrackDto } from '@/track/dto/track.dto';
@@ -17,7 +11,7 @@ import { LIKED_SONGS_ID_SUFFIX } from '../../consts';
 import {
   LIKED_SONGS_COVER,
   LIKED_SONGS_URL,
-  PLAYLIST_SORT_BY,
+  MY_PLAYLISTS_PAGE,
 } from '../consts';
 import {
   PLAYLIST_CACHE_PREFIX,
@@ -82,65 +76,30 @@ export class PlaylistService {
   }
 
   /**
-   * Get current user's playlists. Cached per-user for 5 hours.
+   * Liked Songs and the first page of the player's own playlists. Cached per
+   * user for 5 hours.
    */
-  async getMyPlaylists(
-    params: GetPlaylistsDto & { sessionId: string },
-  ): Promise<PlaylistsResponseDto> {
-    const {
-      sessionId,
-      limit = 20,
-      offset = 0,
-      onlyPublic = false,
-      onlyPrivate = false,
-      sortBy = PLAYLIST_SORT_BY.DEFAULT,
-    } = params;
-
+  async getMyPlaylists(sessionId: string): Promise<PlaylistDto[]> {
     const { sdk, session } = await this.spotifyService.getClient(sessionId);
 
-    const cacheKey = `${PLAYLIST_CACHE_PREFIX}${session.userId}:${limit}:${offset}:${onlyPublic}:${onlyPrivate}:${sortBy}`;
+    const cacheKey = `${PLAYLIST_CACHE_PREFIX}${session.userId}:${MY_PLAYLISTS_PAGE}`;
     const cached = await this.redis.get(cacheKey);
 
-    let savedMapped: PlaylistDto[];
-    let total: number;
-    let responseLimit: number;
-    let responseOffset: number;
-
+    let saved: PlaylistDto[];
     if (cached) {
-      const data = JSON.parse(cached);
-      savedMapped = data.items;
-      total = data.total;
-      responseLimit = data.limit;
-      responseOffset = data.offset;
+      saved = JSON.parse(cached) as PlaylistDto[];
     } else {
       const response = await this.spotifyService.safeCall(
-        () => sdk.currentUser.playlists.playlists(limit as 0 | 20 | 50, offset),
+        () => sdk.currentUser.playlists.playlists(MY_PLAYLISTS_PAGE, 0),
         'getMyPlaylists',
       );
-      const saved = applyFilters(
-        response.items,
-        { onlyPublic, onlyPrivate },
-        session,
-      );
-      savedMapped = saved.map((p) => mapPlaylistLite(p));
-      savedMapped = sortPlaylists(savedMapped, sortBy);
-      total = response.total ?? 0;
-      responseLimit = response.limit ?? limit;
-      responseOffset = response.offset ?? offset;
-
-      await this.redis.set(
-        cacheKey,
-        JSON.stringify({
-          items: savedMapped,
-          total,
-          limit: responseLimit,
-          offset: responseOffset,
-        }),
-        PLAYLIST_CACHE_TTL,
+      saved = playablePlaylists(response.items, session).map((p) =>
+        mapPlaylistLite(p),
       );
 
+      await this.redis.set(cacheKey, JSON.stringify(saved), PLAYLIST_CACHE_TTL);
       await Promise.all(
-        savedMapped.map((p) =>
+        saved.map((p) =>
           this.redis.set(
             `${PLAYLIST_TOTAL_TRACKS_PREFIX}${session.userId}:${p.id}`,
             String(p.totalTracks),
@@ -150,22 +109,8 @@ export class PlaylistService {
       );
     }
 
-    const playlists: PlaylistDto[] = [];
-
-    // Only inject "Liked Songs" on the very first page
-    if (offset === 0) {
-      const likedSongs = await this.getLikedSongsMetadata(sessionId);
-      playlists.push(likedSongs);
-    }
-
-    playlists.push(...savedMapped);
-
-    return {
-      items: playlists,
-      total: total + 1,
-      limit: responseLimit,
-      offset: responseOffset,
-    };
+    const likedSongs = await this.getLikedSongsMetadata(sessionId);
+    return [likedSongs, ...saved];
   }
 
   /**
