@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
-import { GamePage } from '@/components/game/GamePage';
 import { ShuffleGamePage } from '@/components/game/ShuffleGamePage';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import {
@@ -14,7 +13,7 @@ import { groupHasFameTiers } from '@/lib/fame-tier';
 import { useMe } from '@/hooks/auth/useMe';
 import { setAuthReturnUrl } from '@/lib/auth-return';
 import { spotifyPlaylistIdFrom } from '@/lib/set-routes';
-import { GameStatsDtoModeEnum as GameMode } from '@/sdk';
+import { useMyPlaylistLibrary } from '@/hooks/playlists/useMyPlaylistLibrary';
 
 /**
  * The slug is what is shareable; the id is what starts a round. Resolving one
@@ -29,6 +28,10 @@ export function GroupGameClient({ heading }: { heading?: string }) {
   // A Spotify playlist is not a track group: its songs are read live with the
   // player's own token. Same route, same page, different source.
   const spotifyPlaylistId = spotifyPlaylistIdFrom(slug);
+  const { data: library } = useMyPlaylistLibrary();
+  const playlistName = spotifyPlaylistId
+    ? library?.items.find((item) => item.id === spotifyPlaylistId)?.name
+    : undefined;
   // By slug rather than by searching a list: the list is one kind of group at
   // a time, so a special one was never in the one this page happened to ask
   // for.
@@ -47,7 +50,18 @@ export function GroupGameClient({ heading }: { heading?: string }) {
   const missing = isNotFound(error);
 
   if (spotifyPlaylistId) {
-    return <GamePage mode={GameMode.All} playlistId={spotifyPlaylistId} />;
+    return (
+      <ShuffleGamePage
+        canSignIn={false}
+        syncUrl
+        heading={playlistName ?? heading}
+        initialPlaylistId={spotifyPlaylistId}
+        initialPlaylistName={playlistName}
+        // A playlist's songs are its own, so there is no pool to draw a
+        // difficulty from.
+        initialTiersApply={false}
+      />
+    );
   }
 
   if (isPending || (missing && userPending)) {

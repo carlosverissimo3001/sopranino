@@ -56,6 +56,10 @@ interface ShuffleGamePageProps {
   afterReveal?: ReactNode;
   /** A set's own page opens on that set. */
   initialTrackGroupId?: string;
+  /** A Spotify playlist to play instead of the pool, from its own page. */
+  initialPlaylistId?: string;
+  /** Its name, since a playlist is not a set the nav can look up. */
+  initialPlaylistName?: string;
   /** False when the opening set is a chart, whose songs are all hits. */
   initialTiersApply?: boolean;
 }
@@ -72,6 +76,8 @@ export function ShuffleGamePage({
   syncUrl = false,
   afterReveal,
   initialTrackGroupId,
+  initialPlaylistId,
+  initialPlaylistName,
   initialTiersApply = true,
 }: ShuffleGamePageProps) {
   const { volume, setVolume } = useVolume();
@@ -96,6 +102,7 @@ export function ShuffleGamePage({
     start,
     isStarting,
     trackGroupId,
+    playlistId,
     handleTrackGroupChange,
     trackGroupWaits,
     playingTrackGroupId,
@@ -103,6 +110,7 @@ export function ShuffleGamePage({
     volume,
     autoStart: !deferStart,
     initialTrackGroupId,
+    initialPlaylistId,
   });
 
   useWarnOnLeave(!!gameState && !isGameOver);
@@ -227,6 +235,7 @@ export function ShuffleGamePage({
             <ShuffleModeNav
               trackGroupId={trackGroupId}
               playingTrackGroupId={playingTrackGroupId}
+              playingLabel={playlistId ? initialPlaylistName : undefined}
               onTrackGroupChange={(groupId, hasTiers, slug) => {
                 setTiersApply(hasTiers);
                 handleTrackGroupChange(groupId);

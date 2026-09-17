@@ -25,12 +25,15 @@ export function usePoolGameOrchestrator({
   volume = 0.8,
   autoStart = true,
   initialTrackGroupId,
+  initialPlaylistId,
 }: {
   volume?: number;
   /** False to hold the first round until `start`: a page load must not mint a user. */
   autoStart?: boolean;
   /** The set a set's own page opens on; the player can still change it in place. */
   initialTrackGroupId?: string;
+  /** A Spotify playlist's page opens on it, read live with the player's token. */
+  initialPlaylistId?: string;
 } = {}) {
   const queryClient = useQueryClient();
   const [lastGuessResult, setLastGuessResult] = useState<string | null>(null);
@@ -42,14 +45,18 @@ export function usePoolGameOrchestrator({
   const [trackGroupId, setTrackGroupId] = useState(initialTrackGroupId);
   /** The set the open round was drawn from, to say when a change waits. */
   const [roundGroupId, setRoundGroupId] = useState(initialTrackGroupId);
+  /** Set only while the source is a Spotify playlist; picking a set clears it. */
+  const [playlistId, setPlaylistId] = useState(initialPlaylistId);
 
   // The key useGameSession reads: a set's own page opens on the set's.
   const sessionKey = useMemo(
     () =>
-      initialTrackGroupId
-        ? queryKeys.game.startedSessionForGroup(initialTrackGroupId)
-        : queryKeys.game.startedSessionForPlaylist(POOL_PLAYLIST_ID),
-    [initialTrackGroupId],
+      initialPlaylistId
+        ? queryKeys.game.startedSessionForPlaylist(initialPlaylistId)
+        : initialTrackGroupId
+          ? queryKeys.game.startedSessionForGroup(initialTrackGroupId)
+          : queryKeys.game.startedSessionForPlaylist(POOL_PLAYLIST_ID),
+    [initialPlaylistId, initialTrackGroupId],
   );
 
   const {
@@ -58,9 +65,11 @@ export function usePoolGameOrchestrator({
     error: sessionError,
     startGameMutation,
   } = useGameSession(GameMode.All, {
-    ...(initialTrackGroupId
-      ? { trackGroupId: initialTrackGroupId }
-      : { playlistId: POOL_PLAYLIST_ID }),
+    ...(initialPlaylistId
+      ? { playlistId: initialPlaylistId }
+      : initialTrackGroupId
+        ? { trackGroupId: initialTrackGroupId }
+        : { playlistId: POOL_PLAYLIST_ID }),
     fameTier: currentFameTier(),
     enabled: autoStart,
   });
@@ -130,7 +139,11 @@ export function usePoolGameOrchestrator({
   }, [gameState, submitPending, submitGuessMutation, getAudioReport]);
 
   const startNewRound = useCallback(
-    (tier: FameTier, groupId: string | undefined) => {
+    (
+      tier: FameTier,
+      groupId: string | undefined,
+      fromPlaylistId = playlistId,
+    ) => {
       gameAudio.stopFullSong();
       setIsResetting(true);
       setLastGuessResult(null);
@@ -148,13 +161,15 @@ export function usePoolGameOrchestrator({
       startGameMutation.reset();
       setRoundGroupId(groupId);
       startGameMutation.mutate(
-        groupId
-          ? { trackGroupId: groupId, fameTier: tier, mode: GameMode.All }
-          : {
-              playlistId: POOL_PLAYLIST_ID,
-              fameTier: tier,
-              mode: GameMode.All,
-            },
+        fromPlaylistId
+          ? { playlistId: fromPlaylistId, fameTier: tier, mode: GameMode.All }
+          : groupId
+            ? { trackGroupId: groupId, fameTier: tier, mode: GameMode.All }
+            : {
+                playlistId: POOL_PLAYLIST_ID,
+                fameTier: tier,
+                mode: GameMode.All,
+              },
         {
           // useStartGame caches a round under what it asked for, not what this page reads.
           onSuccess: (data) =>
@@ -163,7 +178,14 @@ export function usePoolGameOrchestrator({
         },
       );
     },
-    [gameAudio, gameState, queryClient, startGameMutation, sessionKey],
+    [
+      gameAudio,
+      gameState,
+      queryClient,
+      startGameMutation,
+      sessionKey,
+      playlistId,
+    ],
   );
 
   const handlePlayAgain = useCallback(
@@ -179,11 +201,13 @@ export function usePoolGameOrchestrator({
   // new set waits for the next song.
   const handleTrackGroupChange = useCallback(
     (groupId: string | undefined) => {
-      if (groupId === trackGroupId || isResetting) return;
+      if ((groupId === trackGroupId && !playlistId) || isResetting) return;
       setTrackGroupId(groupId);
-      if (untouched) startNewRound(fameTier, groupId);
+      // A set and a playlist are alternatives: picking one leaves the other.
+      setPlaylistId(undefined);
+      if (untouched) startNewRound(fameTier, groupId, undefined);
     },
-    [trackGroupId, isResetting, untouched, startNewRound, fameTier],
+    [trackGroupId, playlistId, isResetting, untouched, startNewRound, fameTier],
   );
   const start = handlePlayAgain;
 
@@ -227,6 +251,7 @@ export function usePoolGameOrchestrator({
     // can report pending forever, which locked the pickers for good.
     isStarting: isResetting,
     trackGroupId,
+    playlistId,
     handleTrackGroupChange,
     /** A set picked mid-round, which applies from the next song. */
     trackGroupWaits:
