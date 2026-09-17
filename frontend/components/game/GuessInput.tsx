@@ -144,7 +144,14 @@ export function GuessInput({
                 type="button"
                 role="radio"
                 aria-checked={isSelected}
-                onClick={() => handleSelectTrack(choice)}
+                disabled={submitPending || disabled}
+                // The second press answers. One press would send a mis-tap on
+                // four targets this close together, and the round ends either
+                // way. Submitting reads the pick from state a render later, so
+                // picking and sending cannot share a press.
+                onClick={() =>
+                  isSelected ? onSubmit() : handleSelectTrack(choice)
+                }
                 className={`min-h-[52px] rounded-xl px-3 py-2 text-left sm:min-h-[56px] sm:px-4 sm:py-3 transition-colors touch-manipulation ${
                   isSelected
                     ? 'bg-[#1DB954] text-black shadow-lg shadow-[#1DB954]/20'
@@ -163,6 +170,16 @@ export function GuessInput({
             );
           })}
         </div>
+      ) : null}
+
+      {choices?.length ? (
+        <p className="text-center text-xs text-fg/40">
+          {submitPending
+            ? 'Checking…'
+            : selectedTrack
+              ? 'Press it again to answer'
+              : 'Pick the song'}
+        </p>
       ) : (
         <Popover open={dropdownOpen} modal={false}>
           <div ref={searchRef}>
@@ -282,8 +299,11 @@ export function GuessInput({
       )}
 
       {/* Side by side, but not the same weight: submitting is the move,
-          skipping is the way out. */}
-      <div className="flex items-stretch gap-2">
+          skipping is the way out. Neither belongs on the last round, where the
+          answer is one of four on screen. */}
+      <div
+        className={`flex items-stretch gap-2 ${choices?.length ? 'hidden' : ''}`}
+      >
         <motion.button
           type="button"
           onClick={onSubmit}
