@@ -9,6 +9,7 @@ import { PlaylistFilters } from '@/components/features/playlist/PlaylistFilters'
 import { ImportPanel } from '@/components/features/imports/ImportPanel';
 import { ImportedPlaylistCard } from '@/components/features/imports/ImportedPlaylistCard';
 import { SourceTiles } from '@/components/features/imports/SourceTiles';
+import { SignUpForPlaylists } from './SignUpForPlaylists';
 import { useMe } from '@/hooks/auth/useMe';
 import { canImport } from '@/lib/can-import';
 import { usePlaylistFilters } from '@/hooks/playlists/usePlaylistFilters';
@@ -33,9 +34,11 @@ export function YourPlaylists({ defaultOpen }: { defaultOpen: boolean }) {
   const [source, setSource] = useState<PlaylistSource>(PlaylistSource.Deezer);
   const [isAdding, setIsAdding] = useState(false);
 
-  // A guest is asked to sign up elsewhere on this page.
-  if (!user?.hasAccount) {
+  if (!user) {
     return null;
+  }
+  if (!user.hasAccount) {
+    return <SignUpForPlaylists />;
   }
 
   const items = data?.items ?? [];
