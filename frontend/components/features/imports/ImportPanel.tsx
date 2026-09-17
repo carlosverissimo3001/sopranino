@@ -5,7 +5,9 @@ import { Loader2 } from 'lucide-react';
 import { useImportPlaylist } from '@/hooks/imports/useImportPlaylist';
 import {
   detectPlaylistSource,
+  linkSourceFor,
   PLAYLIST_SOURCES,
+  TUNEMYMUSIC_URL,
   type PlaylistSource,
 } from '@/lib/playlist-links';
 
@@ -26,17 +28,24 @@ export function ImportPanel({
   const submit = useImportPlaylist();
   const [link, setLink] = useState('');
   const info = PLAYLIST_SOURCES[source];
+  // A service we can't read is imported from its copy, so the link is the copy's.
+  const wanted = linkSourceFor(source);
+  const wantedInfo = PLAYLIST_SOURCES[wanted];
 
   const pasted = detectPlaylistSource(link);
   const pastedInfo = pasted ? PLAYLIST_SOURCES[pasted] : null;
   const canSend =
-    !disabled && pasted === source && info.supported && !submit.isPending;
+    !disabled && pasted === wanted && info.supported && !submit.isPending;
 
   const send = (e: FormEvent) => {
     e.preventDefault();
     if (!canSend) return;
     submit.mutate(
-      { source, link: link.trim() },
+      {
+        source: wanted,
+        link: link.trim(),
+        origin: info.via ? source : undefined,
+      },
       {
         onSuccess: () => {
           setLink('');
@@ -48,13 +57,15 @@ export function ImportPanel({
 
   const problem = disabled
     ? 'Verify your email to import playlists.'
-    : pastedInfo && !pastedInfo.supported
-      ? `${pastedInfo.name} playlists can't be imported yet.`
-      : link.trim() && !pasted
-        ? `That isn't a ${info.name} playlist link.`
-        : submit.isError
-          ? submit.error.message
-          : null;
+    : pasted && pasted !== wanted && PLAYLIST_SOURCES[pasted].via === wanted
+      ? `Copy it to ${wantedInfo.name} with TuneMyMusic first, then paste the ${wantedInfo.name} link.`
+      : pastedInfo && !pastedInfo.supported
+        ? `${pastedInfo.name} playlists can't be imported yet.`
+        : link.trim() && !pasted
+          ? `That isn't a ${wantedInfo.name} playlist link.`
+          : submit.isError
+            ? submit.error.message
+            : null;
 
   return (
     <form
@@ -70,7 +81,22 @@ export function ImportPanel({
             >
               {index + 1}
             </span>
-            {step}
+            {info.via && index === 0 ? (
+              <span>
+                {step.split('TuneMyMusic')[0]}
+                <a
+                  href={TUNEMYMUSIC_URL}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="font-semibold underline underline-offset-2 hover:text-fg"
+                >
+                  TuneMyMusic
+                </a>
+                {step.split('TuneMyMusic')[1]}
+              </span>
+            ) : (
+              step
+            )}
           </li>
         ))}
       </ol>
@@ -87,7 +113,10 @@ export function ImportPanel({
               setLink(next);
               if (submit.isError) submit.reset();
               const detected = detectPlaylistSource(next);
-              if (detected && detected !== source) onSourceChange(detected);
+              // A Deezer link under a "via Deezer" pick is expected, so it stays put.
+              if (detected && detected !== source && detected !== wanted) {
+                onSourceChange(detected);
+              }
             }}
             disabled={disabled}
             placeholder={info.example}
@@ -109,7 +138,10 @@ export function ImportPanel({
         role={problem ? 'alert' : undefined}
         className={`mt-2 pl-4 text-xs ${problem ? 'text-red-400' : 'text-fg/40'}`}
       >
-        {problem ?? 'Public playlists only. One new playlist a day.'}
+        {problem ??
+          (info.via
+            ? `The copy stands alone: songs added on ${info.name} reach it when you transfer again. Free up to 500 songs.`
+            : 'Public playlists only, one new a day. Playlists someone else already imported can still be added.')}
       </p>
     </form>
   );

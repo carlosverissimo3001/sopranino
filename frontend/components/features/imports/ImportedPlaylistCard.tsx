@@ -44,7 +44,9 @@ function WaitingCard({ set, line }: { set: PlaylistItemDto; line: string }) {
         {set.name}
       </h3>
       <p className="mt-1.5 flex items-center gap-1.5 text-xs text-fg/40">
-        {set.source && <SourceMark source={set.source} />}
+        {(set.origin ?? set.source) && (
+          <SourceMark source={set.origin ?? set.source!} />
+        )}
         {line}
       </p>
     </div>
@@ -72,7 +74,8 @@ export function ImportedPlaylistCard({ set }: { set: PlaylistItemDto }) {
             trackCount: set.trackCount,
             imageUrl: set.imageUrl,
           }}
-          source={set.source}
+          source={set.origin ?? set.source}
+          via={set.origin ? set.source : undefined}
         />
       )}
 
