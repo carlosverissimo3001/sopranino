@@ -184,7 +184,7 @@ export function SpeedRunLeaderboard() {
   const beatBest = !!userEntry && !userInList;
 
   return (
-    <div className="flex flex-col gap-5 pb-16 sm:pb-0">
+    <div className="flex flex-col gap-5">
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
         <button
@@ -196,8 +196,7 @@ export function SpeedRunLeaderboard() {
         </button>
         <Link
           href={`/speed-run?difficulty=${difficulty}`}
-          // Pinned on phones, where a long board pushes it out of reach.
-          className="fixed bottom-4 left-1/2 z-30 inline-flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-sm font-bold text-white shadow-lg transition-transform active:scale-95 sm:static sm:translate-x-0"
+          className="inline-flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-sm font-bold text-white shadow-lg transition-transform active:scale-95"
           style={{ background: 'linear-gradient(135deg, #f97316, #ef4444)' }}
         >
           {beatBest ? 'Beat your best' : 'Play ranked'}
@@ -218,8 +217,7 @@ export function SpeedRunLeaderboard() {
           <Trophy className="w-5 h-5 text-amber-600 dark:text-amber-400" />
         </div>
         <p className="text-fg/40 text-sm">
-          The best runs on the curated pool, every one of them at the same
-          snippet length. The group each run drew on is named beside it.
+          The longest ranked runs at each snippet length.
         </p>
       </div>
 
