@@ -55,11 +55,19 @@ export const PLAYLIST_SOURCES: Record<Source, SourceInfo> = {
         title: 'Tap Share, then Copy link',
         caption: 'Share sits under the three dots beside the play button.',
         shotOf: 'The Deezer share menu open, with Copy link in view',
+        image: 'guides/deezer-share-menu.png',
+      },
+      {
+        title: 'Press Copy in the share box',
+        caption: 'Deezer hands you a link.deezer.com address. That is the one.',
+        shotOf: 'The Deezer share box with the link and the Copy button',
+        image: 'guides/deezer-copy-link.png',
       },
       {
         title: 'Paste it here and press Import',
         caption: 'The songs arrive in a few seconds, and only you see them.',
         shotOf: 'The Sopranino import panel with a Deezer link pasted',
+        image: 'guides/sopranino-pasted.png',
       },
     ],
     example: 'https://www.deezer.com/playlist/…',
@@ -101,6 +109,7 @@ export const PLAYLIST_SOURCES: Record<Source, SourceInfo> = {
         title: 'Open the copy in Deezer, Share, Copy link',
         caption: 'The transfer leaves a new playlist in your Deezer account.',
         shotOf: 'The copied playlist in Deezer with the share menu open',
+        image: 'guides/deezer-share-menu.png',
       },
       {
         title: 'Paste the Deezer link here',
@@ -145,6 +154,7 @@ export const PLAYLIST_SOURCES: Record<Source, SourceInfo> = {
         title: 'Open the copy in Deezer, Share, Copy link',
         caption: 'The transfer leaves a new playlist in your Deezer account.',
         shotOf: 'The copied playlist in Deezer with the share menu open',
+        image: 'guides/deezer-share-menu.png',
       },
       {
         title: 'Paste the Deezer link here',
