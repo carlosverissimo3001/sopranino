@@ -10,6 +10,10 @@
       "@scarf/scarf",
       "sharp",
       "unrs-resolver"
+    ],
+    "ignoredBuiltDependencies": [
+      "@openapitools/openapi-generator-cli",
+      "msgpackr-extract"
     ]
   },
   "scripts": {
