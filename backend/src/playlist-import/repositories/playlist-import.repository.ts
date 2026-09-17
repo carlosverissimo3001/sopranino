@@ -18,6 +18,7 @@ export interface CreateImportDto {
   externalId: string;
   name: string;
   imageUrl?: string;
+  origin?: PlaylistSource;
 }
 
 @Injectable()
@@ -52,32 +53,39 @@ export class PlaylistImportRepository {
         import: {
           create: { source: dto.source, externalId: dto.externalId },
         },
-        members: { create: { userId: dto.userId } },
+        members: { create: { userId: dto.userId, origin: dto.origin } },
       },
       include: withImport,
     });
   }
 
-  async addMember(userId: string, trackGroupId: string): Promise<void> {
+  async addMember(
+    userId: string,
+    trackGroupId: string,
+    origin?: PlaylistSource,
+  ): Promise<void> {
     await this.prisma.trackGroupMember.upsert({
       where: { userId_trackGroupId: { userId, trackGroupId } },
-      create: { userId, trackGroupId },
-      update: {},
+      create: { userId, trackGroupId, origin },
+      update: { origin },
     });
   }
 
   /** Newest first, by when this player added each one. */
   async listForUser(
     userId: string,
-  ): Promise<(ImportedGroup & { addedAt: Date })[]> {
+  ): Promise<
+    (ImportedGroup & { addedAt: Date; origin: PlaylistSource | null })[]
+  > {
     const memberships = await this.prisma.trackGroupMember.findMany({
       where: { userId, trackGroup: { type: TrackGroupType.IMPORTED } },
       orderBy: { createdAt: 'desc' },
       include: { trackGroup: { include: withImport } },
     });
-    return memberships.map(({ trackGroup, createdAt }) => ({
+    return memberships.map(({ trackGroup, createdAt, origin }) => ({
       ...trackGroup,
       addedAt: createdAt,
+      origin,
     }));
   }
 

@@ -70,7 +70,7 @@ export class PlaylistImportService {
 
   async import(
     sessionId: string,
-    { source, link }: ImportPlaylistControllerDto,
+    { source, link, origin }: ImportPlaylistControllerDto,
   ): Promise<ImportedSetDto> {
     const user = await this.authService.getUserBySessionId(sessionId);
     const provider = this.providers.get(source);
@@ -90,8 +90,8 @@ export class PlaylistImportService {
     // Someone already brought it in: joining costs the service nothing.
     const existing = await this.repository.findByExternal(source, externalId);
     if (existing) {
-      await this.repository.addMember(user.id, existing.id);
-      return this.toDto(existing);
+      await this.repository.addMember(user.id, existing.id, origin);
+      return this.toDto(existing, { origin });
     }
 
     const waiting = await this.queue.getWaitingCount();
@@ -127,6 +127,7 @@ export class PlaylistImportService {
         externalId,
         name: info.title,
         imageUrl: info.imageUrl,
+        origin,
       });
     } catch (err) {
       await this.redis.getClient().del(importDailyKey(user.id));
@@ -136,15 +137,15 @@ export class PlaylistImportService {
       ) {
         const raced = await this.repository.findByExternal(source, externalId);
         if (raced) {
-          await this.repository.addMember(user.id, raced.id);
-          return this.toDto(raced);
+          await this.repository.addMember(user.id, raced.id, origin);
+          return this.toDto(raced, { origin });
         }
       }
       throw err;
     }
 
     await this.enqueueFill(group.id);
-    return this.toDto(group);
+    return this.toDto(group, { origin });
   }
 
   async list(sessionId: string): Promise<ImportedSetDto[]> {
@@ -164,7 +165,12 @@ export class PlaylistImportService {
         .map((group) => this.enqueueFill(group.id)),
     );
 
-    return groups.map((group) => this.toDto(group, group.addedAt));
+    return groups.map((group) =>
+      this.toDto(group, {
+        origin: group.origin ?? undefined,
+        addedAt: group.addedAt,
+      }),
+    );
   }
 
   /** The set goes with its last member; past games keep their tracks. */
@@ -251,7 +257,10 @@ export class PlaylistImportService {
     );
   }
 
-  private toDto(group: ImportedGroup, addedAt?: Date): ImportedSetDto {
+  private toDto(
+    group: ImportedGroup,
+    membership: { origin?: PlaylistSource; addedAt?: Date } = {},
+  ): ImportedSetDto {
     const imported = group.import!;
     return {
       id: group.id,
@@ -264,7 +273,8 @@ export class PlaylistImportService {
       externalUrl: EXTERNAL_URLS[imported.source](imported.externalId),
       pending: !imported.refreshedAt,
       staleSince: imported.staleSince ?? undefined,
-      addedAt,
+      origin: membership.origin,
+      addedAt: membership.addedAt,
     };
   }
 }

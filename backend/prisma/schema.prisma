@@ -448,7 +448,8 @@ model TrackGroupMember {
   trackGroupId String     @map("track_group_id")
   trackGroup   TrackGroup @relation(fields: [trackGroupId], references: [id], onDelete: Cascade)
 
-  createdAt DateTime @default(now()) @map("created_at")
+  origin    PlaylistSource? @map("origin")
+  createdAt DateTime        @default(now()) @map("created_at")
 
   @@id([userId, trackGroupId])
   @@index([trackGroupId])

@@ -46,6 +46,12 @@ export class PlaylistItemDto {
   @ApiPropertyOptional({ enum: PlaylistSource })
   source?: PlaylistSource;
 
+  @ApiPropertyOptional({
+    enum: PlaylistSource,
+    description: 'Imports: the service the copy was made from',
+  })
+  origin?: PlaylistSource;
+
   @ApiPropertyOptional({ description: 'Imports: songs not read yet' })
   pending?: boolean;
 

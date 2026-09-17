@@ -128,6 +128,7 @@ describe('PlaylistImportService', () => {
         externalId: '42',
         name: 'Road trip',
         imageUrl: undefined,
+        origin: undefined,
       });
       expect(queue.add).toHaveBeenCalledWith(
         expect.any(String),
@@ -147,10 +148,28 @@ describe('PlaylistImportService', () => {
 
       await importDeezer();
 
-      expect(repository.addMember).toHaveBeenCalledWith('user-1', 'set-1');
+      expect(repository.addMember).toHaveBeenCalledWith(
+        'user-1',
+        'set-1',
+        undefined,
+      );
       expect(deezer.info).not.toHaveBeenCalled();
       expect(redisClient.set).not.toHaveBeenCalled();
       expect(repository.create).not.toHaveBeenCalled();
+    });
+
+    // The copy is Deezer's; where the player keeps it is theirs alone.
+    it('keeps the service the player copied from', async () => {
+      const result = await service.import('session-1', {
+        source: PlaylistSource.DEEZER,
+        link: 'https://www.deezer.com/playlist/42',
+        origin: PlaylistSource.SPOTIFY,
+      });
+
+      expect(repository.create).toHaveBeenCalledWith(
+        expect.objectContaining({ origin: PlaylistSource.SPOTIFY }),
+      );
+      expect(result.origin).toBe(PlaylistSource.SPOTIFY);
     });
 
     it('says a service it cannot read yet is not supported', async () => {
@@ -215,7 +234,11 @@ describe('PlaylistImportService', () => {
 
       await importDeezer();
 
-      expect(repository.addMember).toHaveBeenCalledWith('user-1', 'set-1');
+      expect(repository.addMember).toHaveBeenCalledWith(
+        'user-1',
+        'set-1',
+        undefined,
+      );
       expect(redisClient.del).toHaveBeenCalled();
       expect(queue.add).not.toHaveBeenCalled();
     });

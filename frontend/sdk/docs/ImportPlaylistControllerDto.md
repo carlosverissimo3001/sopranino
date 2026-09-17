@@ -8,6 +8,7 @@ Name | Type
 ------------ | -------------
 `source` | string
 `link` | string
+`origin` | string
 
 ## Example
 
@@ -18,6 +19,7 @@ import type { ImportPlaylistControllerDto } from ''
 const example = {
   "source": null,
   "link": https://www.deezer.com/playlist/1313621735,
+  "origin": null,
 } satisfies ImportPlaylistControllerDto
 
 console.log(example)

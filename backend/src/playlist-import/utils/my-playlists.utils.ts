@@ -24,6 +24,7 @@ export const fromImport = (set: ImportedSetDto): PlaylistItemDto => ({
   externalUrl: set.externalUrl,
   slug: set.slug,
   source: set.source,
+  origin: set.origin,
   pending: set.pending,
   staleSince: set.staleSince,
 });
