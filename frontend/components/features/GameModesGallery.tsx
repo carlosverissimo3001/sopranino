@@ -3,18 +3,7 @@
 import { memo, useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Sparkles,
-  Play,
-  BarChart3,
-  Flame,
-  Trophy,
-  Users,
-  Plus,
-  Loader2,
-  Gamepad2,
-  Shuffle,
-} from 'lucide-react';
+import { Play, BarChart3, Trophy, Users, Plus, Loader2 } from 'lucide-react';
 import { usePlayedToday } from '@/hooks/game/usePlayedToday';
 import { useStreakStatus } from '@/hooks/streak/useStreakStatus';
 import { DailyChallengeCountdown } from './DailyChallangeCountdown';
@@ -25,7 +14,6 @@ import { cn } from '@/lib/utils';
 
 const cardPadding = 'p-4 sm:p-6';
 
-/** Corner glow per mode. A gradient, not a blur filter: iOS WebKit won't clip a filtered layer to the card's radius. */
 const modeGlow: Record<string, string> = {
   daily: '#1DB954',
   pool: '#0ea5e9',
@@ -49,13 +37,9 @@ function DailyCardContent() {
       )}
     >
       <div className="flex flex-col gap-1 sm:gap-2 mb-4">
-        <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-spotify-green/10 border border-spotify-green/20 w-fit text-[10px] uppercase tracking-widest font-black text-spotify-green">
-          <Sparkles className="w-3 h-3 fill-current" />
-          <span>Daily Event</span>
-        </div>
         <div className="space-y-0.5">
-          <h2 className="font-black tracking-tighter text-fg text-xl sm:text-2xl leading-tight">
-            The <span className="text-spotify-green">Mystery</span>
+          <h2 className="font-black tracking-tighter text-spotify-green text-xl sm:text-2xl leading-tight">
+            Daily
           </h2>
           <p className="text-fg/50 text-xs sm:text-sm tracking-tight">
             {days > 0 && `${days} day streak. `}
@@ -106,16 +90,9 @@ function PoolCardContent() {
       )}
     >
       <div className="flex flex-col gap-1 sm:gap-2 mb-4">
-        <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-sky-500/10 border border-sky-500/20 w-fit text-[10px] uppercase tracking-widest font-black text-sky-600 dark:text-sky-400">
-          <Shuffle className="w-3 h-3" />
-          <span>Random</span>
-        </div>
         <div className="space-y-0.5">
-          <h2 className="font-black tracking-tighter text-fg text-xl sm:text-2xl leading-tight">
-            The{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-cyan-400">
-              Shuffle
-            </span>
+          <h2 className="font-black tracking-tighter text-sky-600 dark:text-sky-400 text-xl sm:text-2xl leading-tight">
+            Shuffle
           </h2>
           <p className="text-fg/50 text-xs sm:text-sm tracking-tight">
             Any song, any era. No playlist needed.
@@ -148,16 +125,9 @@ function SpeedrunCardContent() {
       )}
     >
       <div className="flex flex-col gap-1 sm:gap-2 mb-4">
-        <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 w-fit text-[10px] uppercase tracking-widest font-black text-orange-600 dark:text-orange-500">
-          <Flame className="w-3 h-3 fill-current" />
-          <span>Endless</span>
-        </div>
         <div className="space-y-0.5">
-          <h2 className="font-black tracking-tighter text-fg text-xl sm:text-2xl leading-tight">
-            The{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-br from-orange-600 to-red-600 dark:from-orange-400 dark:to-red-500">
-              Speedrun
-            </span>
+          <h2 className="font-black tracking-tighter text-orange-600 dark:text-orange-500 text-xl sm:text-2xl leading-tight">
+            Speedrun
           </h2>
           <p className="text-fg/50 text-xs sm:text-sm tracking-tight">
             {personalBest > 0
@@ -205,16 +175,9 @@ function MultiplayerCardContent({
       )}
     >
       <div className="flex flex-col gap-1 sm:gap-2 mb-4">
-        <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 w-fit text-[10px] uppercase tracking-widest font-black text-purple-600 dark:text-purple-400">
-          <Gamepad2 className="w-3 h-3" />
-          <span>Multiplayer</span>
-        </div>
         <div className="space-y-0.5">
-          <h2 className="font-black tracking-tighter text-fg text-xl sm:text-2xl leading-tight">
-            With{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-400 dark:to-indigo-400">
-              Friends
-            </span>
+          <h2 className="font-black tracking-tighter text-purple-600 dark:text-purple-400 text-xl sm:text-2xl leading-tight">
+            Multiplayer
           </h2>
           <p className="text-fg/50 text-xs sm:text-sm tracking-tight">
             Compete in real-time.
