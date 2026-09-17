@@ -5,37 +5,22 @@ import { motion } from 'framer-motion';
 import { Pencil } from 'lucide-react';
 import { useMe } from '@/hooks/auth/useMe';
 import { useUpdateProfile } from '@/hooks/auth/useUpdateProfile';
-import { readAskedUserId, writeAskedUserId } from '@/lib/guest-prompts';
 
 /**
- * The first conversion ask, and the only one that costs nothing to say yes to:
- * a name, no password and no email. The name itself is the control: tap it to
- * edit in place, Enter saves, Escape leaves it. Until they choose or say not
- * now, it carries an invitation; after that it is a quiet line.
+ * A guest's name and the control for changing it: the pencil says so without a
+ * sentence explaining it. Enter saves, Escape leaves it.
  */
-export function ClaimNamePrompt({ onSettled }: { onSettled?: () => void }) {
+export function ClaimNamePrompt() {
   const { data: user } = useMe();
   const { mutate: updateProfile, isPending } = useUpdateProfile();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
-  // Asked-or-not is read from storage per render: `user` arrives a render
-  // later than this mounts, so it cannot be initial state.
-  const [dismissed, setDismissed] = useState(false);
   // Escape unmounts the input, which blurs it; the blur must not save.
   const cancelled = useRef(false);
 
   // Someone with an account already has a name they chose.
   if (!user || user.hasAccount) {
     return null;
-  }
-
-  const quiet = dismissed || readAskedUserId() === user.userId;
-
-  function settle() {
-    if (user) writeAskedUserId(user.userId);
-    setDismissed(true);
-    setEditing(false);
-    onSettled?.();
   }
 
   function save() {
@@ -48,14 +33,14 @@ export function ClaimNamePrompt({ onSettled }: { onSettled?: () => void }) {
       setEditing(false);
       return;
     }
-    updateProfile(trimmed, { onSuccess: settle });
+    updateProfile(trimmed, { onSuccess: () => setEditing(false) });
   }
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`flex flex-wrap items-center justify-center gap-x-3 gap-y-1 sm:justify-start ${quiet ? 'text-[11px]' : 'text-xs'}`}
+      className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1"
     >
       <span className="flex min-w-0 items-center gap-1.5 text-fg/50">
         Playing as
@@ -98,21 +83,8 @@ export function ClaimNamePrompt({ onSettled }: { onSettled?: () => void }) {
           </button>
         )}
       </span>
-      {editing ? (
+      {editing && (
         <span className="text-fg/30">Enter to save, Esc to cancel</span>
-      ) : (
-        !quiet && (
-          <>
-            <span className="text-fg/40">Tap it to pick your own.</span>
-            <button
-              type="button"
-              onClick={settle}
-              className="text-fg/35 transition-colors hover:text-fg/60"
-            >
-              Not now
-            </button>
-          </>
-        )
       )}
     </motion.div>
   );
