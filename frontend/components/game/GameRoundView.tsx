@@ -13,7 +13,6 @@ import { GuessHistoryList } from './GuessHistoryList';
 import { GuessInput, type GuessSearchState } from './GuessInput';
 import { HintPanel } from './HintPanel';
 import { knownFromGuesses } from '@/lib/guess-match';
-import { GuessResultNote } from './GuessResultNote';
 import { PlaySnippetButton } from './PlaySnippetButton';
 import { RoundProgressBar } from './RoundProgressBar';
 import { GameStatsDtoModeEnum as GameMode } from '../../sdk';
@@ -205,8 +204,6 @@ export function GameRoundView({
                 />
               </div>
             )}
-
-            {!isOver && <GuessResultNote guesses={round.guesses} />}
 
             {!isOver &&
               showTextHints && (
