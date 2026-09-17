@@ -9,7 +9,7 @@ export interface GuideSlide {
   caption: string;
   /** What to capture, until the screenshot exists. */
   shotOf: string;
-  /** Under public/, e.g. guides/deezer-share.png. Absent leaves the frame empty. */
+  /** Under public/, e.g. guides/deezer-share.webp. Absent leaves the frame empty. */
   image?: string;
 }
 
@@ -49,25 +49,25 @@ export const PLAYLIST_SOURCES: Record<Source, SourceInfo> = {
         title: 'Open the playlist in Deezer',
         caption: 'Any public playlist works, yours or somebody else’s.',
         shotOf: 'A playlist page in Deezer, with its cover and songs',
-        image: 'guides/deezer-playlist.png',
+        image: 'guides/deezer-playlist.webp',
       },
       {
         title: 'Tap Share, then Copy link',
         caption: 'Share sits under the three dots beside the play button.',
         shotOf: 'The Deezer share menu open, with Copy link in view',
-        image: 'guides/deezer-share-menu.png',
+        image: 'guides/deezer-share-menu.webp',
       },
       {
         title: 'Press Copy in the share box',
         caption: 'Deezer hands you a link.deezer.com address. That is the one.',
         shotOf: 'The Deezer share box with the link and the Copy button',
-        image: 'guides/deezer-copy-link.png',
+        image: 'guides/deezer-copy-link.webp',
       },
       {
         title: 'Paste it here and press Import',
         caption: 'The songs arrive in a few seconds, and only you see them.',
         shotOf: 'The Sopranino import panel with a Deezer link pasted',
-        image: 'guides/sopranino-pasted.png',
+        image: 'guides/sopranino-pasted.webp',
       },
     ],
     example: 'https://www.deezer.com/playlist/…',
@@ -97,38 +97,38 @@ export const PLAYLIST_SOURCES: Record<Source, SourceInfo> = {
         title: 'Open TuneMyMusic and pick Spotify',
         caption: 'A free tool that copies a playlist between services.',
         shotOf: 'TuneMyMusic with Spotify chosen as the source',
-        image: 'guides/tmm-spotify-source.png',
+        image: 'guides/tmm-spotify-source.webp',
       },
       {
         title: 'Load the playlist',
         caption:
           'Sign in to pick from your library, or paste one playlist link.',
         shotOf: 'TuneMyMusic offering to sign in or take a pasted link',
-        image: 'guides/tmm-spotify-load.png',
+        image: 'guides/tmm-spotify-load.webp',
       },
       {
         title: 'Choose Deezer as the destination',
         caption: 'Sign in to Deezer when it asks. A free account is enough.',
         shotOf: 'TuneMyMusic with Deezer picked as the destination',
-        image: 'guides/tmm-spotify-destination.png',
+        image: 'guides/tmm-spotify-destination.webp',
       },
       {
         title: 'Start Transfer',
         caption: 'Free up to 500 songs. It takes a minute or two.',
         shotOf: 'The last TuneMyMusic step, with the Start Transfer button',
-        image: 'guides/tmm-spotify-transfer.png',
+        image: 'guides/tmm-spotify-transfer.webp',
       },
       {
         title: 'Open the copy in Deezer, Share, Copy link',
         caption: 'The transfer leaves a new playlist in your Deezer account.',
         shotOf: 'The copied playlist in Deezer with the share menu open',
-        image: 'guides/deezer-share-menu.png',
+        image: 'guides/deezer-share-menu.webp',
       },
       {
         title: 'Paste the Deezer link here',
         caption: 'Songs you add on Spotify reach it when you transfer again.',
         shotOf: 'The Sopranino import panel with the Deezer link pasted',
-        image: 'guides/sopranino-pasted.png',
+        image: 'guides/sopranino-pasted.webp',
       },
     ],
     example: 'https://www.deezer.com/playlist/…',
@@ -156,39 +156,39 @@ export const PLAYLIST_SOURCES: Record<Source, SourceInfo> = {
         title: 'Open TuneMyMusic and pick Apple Music',
         caption: 'A free tool that copies a playlist between services.',
         shotOf: 'TuneMyMusic with Apple Music chosen as the source',
-        image: 'guides/tmm-apple-source.png',
+        image: 'guides/tmm-apple-source.webp',
       },
       {
         title: 'Load the playlist',
         caption:
           'Sign in to pick from your library, or paste one playlist link.',
         shotOf: 'TuneMyMusic offering to sign in or take a pasted link',
-        image: 'guides/tmm-apple-load.png',
+        image: 'guides/tmm-apple-load.webp',
       },
       {
         title: 'Choose Deezer as the destination',
         caption: 'Sign in to Deezer when it asks. A free account is enough.',
         shotOf: 'TuneMyMusic with Deezer picked as the destination',
-        image: 'guides/tmm-apple-destination.png',
+        image: 'guides/tmm-apple-destination.webp',
       },
       {
         title: 'Start Transfer',
         caption: 'Free up to 500 songs. It takes a minute or two.',
         shotOf: 'The last TuneMyMusic step, with the Start Transfer button',
-        image: 'guides/tmm-apple-transfer.png',
+        image: 'guides/tmm-apple-transfer.webp',
       },
       {
         title: 'Open the copy in Deezer, Share, Copy link',
         caption: 'The transfer leaves a new playlist in your Deezer account.',
         shotOf: 'The copied playlist in Deezer with the share menu open',
-        image: 'guides/deezer-share-menu.png',
+        image: 'guides/deezer-share-menu.webp',
       },
       {
         title: 'Paste the Deezer link here',
         caption:
           'Songs you add on Apple Music reach it when you transfer again.',
         shotOf: 'The Sopranino import panel with the Deezer link pasted',
-        image: 'guides/sopranino-pasted.png',
+        image: 'guides/sopranino-pasted.webp',
       },
     ],
     example: 'https://www.deezer.com/playlist/…',
