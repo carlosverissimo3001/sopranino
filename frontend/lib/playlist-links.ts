@@ -49,6 +49,7 @@ export const PLAYLIST_SOURCES: Record<Source, SourceInfo> = {
         title: 'Open the playlist in Deezer',
         caption: 'Any public playlist works, yours or somebody else’s.',
         shotOf: 'A playlist page in Deezer, with its cover and songs',
+        image: 'guides/deezer-playlist.png',
       },
       {
         title: 'Tap Share, then Copy link',
@@ -88,6 +89,7 @@ export const PLAYLIST_SOURCES: Record<Source, SourceInfo> = {
         title: 'Open TuneMyMusic and pick Spotify',
         caption: 'A free tool that copies a playlist between services.',
         shotOf: 'TuneMyMusic with Spotify chosen as the source',
+        image: 'guides/tmm-spotify-source.png',
       },
       {
         title: 'Choose Deezer as the destination',
@@ -131,6 +133,7 @@ export const PLAYLIST_SOURCES: Record<Source, SourceInfo> = {
         title: 'Open TuneMyMusic and pick Apple Music',
         caption: 'A free tool that copies a playlist between services.',
         shotOf: 'TuneMyMusic with Apple Music chosen as the source',
+        image: 'guides/tmm-apple-source.png',
       },
       {
         title: 'Choose Deezer as the destination',
