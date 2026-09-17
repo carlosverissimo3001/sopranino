@@ -20,6 +20,7 @@ import {
   useTrackGroupName,
 } from '@/hooks/track-groups/useTrackGroupName';
 import { guessLine } from '@/lib/track-group-labels';
+import { spotifySetPath } from '@/lib/set-routes';
 import { FameTierPicker } from './FameTierPicker';
 import { GameRoundView, type RoundData } from './GameRoundView';
 import { GameScreenError, GameScreenLoading } from './GameScreenStatus';
@@ -83,6 +84,13 @@ export function ShuffleGamePage({
   const { volume, setVolume } = useVolume();
   // A chart is all hits, so a tier would promise a difference it cannot make.
   const [tiersApply, setTiersApply] = useState(initialTiersApply);
+  // Names of the playlists picked this session, since the nav cannot look one
+  // up the way it looks up a set.
+  const [playlistNames, setPlaylistNames] = useState<Record<string, string>>(
+    initialPlaylistId && initialPlaylistName
+      ? { [initialPlaylistId]: initialPlaylistName }
+      : {},
+  );
   const { data: user } = useMe();
 
   const {
@@ -104,6 +112,8 @@ export function ShuffleGamePage({
     trackGroupId,
     playlistId,
     handleTrackGroupChange,
+    handlePlaylistChange,
+    playingPlaylistId,
     trackGroupWaits,
     playingTrackGroupId,
   } = usePoolGameOrchestrator({
@@ -115,6 +125,11 @@ export function ShuffleGamePage({
 
   useWarnOnLeave(!!gameState && !isGameOver);
   const queuedSetName = useTrackGroupName(trackGroupId);
+  // What the next song will come from: a playlist names itself, a set is
+  // looked up, and neither means the whole pool.
+  const queuedName = playlistId
+    ? playlistNames[playlistId]
+    : (queuedSetName ?? 'All songs');
   const playingSet = useTrackGroupById(playingTrackGroupId);
 
   // The tap that started the round asked to hear it, so it plays once ready.
@@ -138,6 +153,19 @@ export function ShuffleGamePage({
 
   const idle = deferStart && !gameState;
 
+  // A replace, not a navigation: the round carries on. It follows the song on
+  // screen, so a pick waiting for the next one does not rewrite the address of
+  // what is still playing.
+  useEffect(() => {
+    if (!syncUrl) return;
+    const path = playingPlaylistId
+      ? spotifySetPath(playingPlaylistId)
+      : playingSet?.slug
+        ? `/group/${playingSet.slug}`
+        : '/shuffle';
+    window.history.replaceState(null, '', path);
+  }, [syncUrl, playingPlaylistId, playingSet?.slug]);
+
   if (!idle && isLoading) return <GameScreenLoading />;
   if (error) return <GameScreenError error={error} />;
   if (!idle && !gameState) return null;
@@ -148,12 +176,14 @@ export function ShuffleGamePage({
     start();
   };
 
+  // A round drawn from a playlist has no tier, so a set picked during one
+  // brings the tier with it: name it, or the next song's difficulty is a
+  // surprise.
   const tierWaits =
     tiersApply &&
     !idle &&
     !isGameOver &&
-    !!gameState?.fameTier &&
-    gameState.fameTier !== fameTier;
+    (!gameState?.fameTier || gameState.fameTier !== fameTier);
 
   const round: RoundData = gameState
     ? { ...gameState, answerImageUrl: gameState.answer?.albumImageUrl }
@@ -235,18 +265,21 @@ export function ShuffleGamePage({
             <ShuffleModeNav
               trackGroupId={trackGroupId}
               playingTrackGroupId={playingTrackGroupId}
-              playingLabel={playlistId ? initialPlaylistName : undefined}
-              onTrackGroupChange={(groupId, hasTiers, slug) => {
+              playingLabel={
+                playingPlaylistId ? playlistNames[playingPlaylistId] : undefined
+              }
+              selectedPlaylistId={playlistId}
+              onPlaylistChange={(playlist) => {
+                setTiersApply(false);
+                setPlaylistNames((names) => ({
+                  ...names,
+                  [playlist.id]: playlist.name,
+                }));
+                handlePlaylistChange(playlist.id);
+              }}
+              onTrackGroupChange={(groupId, hasTiers) => {
                 setTiersApply(hasTiers);
                 handleTrackGroupChange(groupId);
-                // A replace, not a navigation: the round carries on.
-                if (syncUrl) {
-                  window.history.replaceState(
-                    null,
-                    '',
-                    slug ? `/group/${slug}` : '/shuffle',
-                  );
-                }
               }}
             />
             {/* One line for where the round stands and how hard it is. */}
@@ -271,9 +304,9 @@ export function ShuffleGamePage({
             {(trackGroupWaits || tierWaits) && (
               // In the gap below, taking no room: queuing a change moves nothing.
               <p className="absolute inset-x-0 top-full mt-0.5 text-center text-[11px] text-amber-300/80 sm:mt-2">
-                Next song:{' '}
+                From the next song:{' '}
                 {[
-                  trackGroupWaits && (queuedSetName ?? 'All songs'),
+                  trackGroupWaits && queuedName,
                   tierWaits &&
                     FAME_TIERS.find((t) => t.value === fameTier)?.label,
                 ]

@@ -20,7 +20,7 @@ import {
 import { useIsBelowSm } from '@/hooks/useIsBelowSm';
 import { useTrackGroupName } from '@/hooks/track-groups/useTrackGroupName';
 import { groupHasFameTiers } from '@/lib/fame-tier';
-import type { TrackGroupDto } from '@/sdk';
+import type { PlaylistItemDto, TrackGroupDto } from '@/sdk';
 
 const PILL =
   'flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors';
@@ -41,6 +41,10 @@ interface ShuffleModeNavProps {
   playingTrackGroupId?: string;
   /** What is playing when it is not a set, e.g. a Spotify playlist's name. */
   playingLabel?: string;
+  /** Absent on pages where only a set can be played. */
+  onPlaylistChange?: (playlist: PlaylistItemDto) => void;
+  /** The playlist picked, so its chip reads as chosen like a set's does. */
+  selectedPlaylistId?: string;
   /** `hasTiers` is false for a set whose songs are all one fame, such as a chart. */
   onTrackGroupChange: (
     groupId: string | undefined,
@@ -58,6 +62,8 @@ export function ShuffleModeNav({
   playingTrackGroupId,
   playingLabel,
   onTrackGroupChange,
+  onPlaylistChange,
+  selectedPlaylistId,
 }: ShuffleModeNavProps) {
   const [setsOpen, setSetsOpen] = useState(false);
   const panelRef = useRef<HTMLElement>(null);
@@ -84,6 +90,11 @@ export function ShuffleModeNav({
     };
   }, [setsOpen, isPhone]);
 
+  const pickPlaylist = (playlist: PlaylistItemDto) => {
+    onPlaylistChange?.(playlist);
+    setSetsOpen(false);
+  };
+
   const pick = (set: TrackGroupDto | undefined) => {
     onTrackGroupChange(
       set?.id,
@@ -102,7 +113,7 @@ export function ShuffleModeNav({
           type="button"
           aria-pressed={!trackGroupId}
           onClick={() => pick(undefined)}
-          className={`${PILL} ${playingTrackGroupId ? PILL_IDLE : PILL_ACTIVE}`}
+          className={`${PILL} ${playingTrackGroupId || playingLabel ? PILL_IDLE : PILL_ACTIVE}`}
         >
           <Shuffle className="hidden h-3.5 w-3.5 sm:block" />
           All songs
@@ -138,10 +149,11 @@ export function ShuffleModeNav({
             </DrawerHeader>
             <div className="overflow-y-auto px-4 pb-6">
               <SetChips
-                selectedId={trackGroupId}
+                selectedId={trackGroupId ?? selectedPlaylistId}
                 onPick={(set) =>
                   pick(trackGroupId === set.id ? undefined : set)
                 }
+                onPickPlaylist={onPlaylistChange ? pickPlaylist : undefined}
               />
             </div>
           </DrawerContent>
@@ -156,8 +168,9 @@ export function ShuffleModeNav({
             className="absolute inset-x-0 top-full z-40 mx-auto mt-2 w-full max-w-[27rem] rounded-2xl border border-fg/10 bg-[rgb(var(--surface))] p-3 text-left shadow-2xl shadow-black/50"
           >
             <SetChips
-              selectedId={trackGroupId}
+              selectedId={trackGroupId ?? selectedPlaylistId}
               onPick={(set) => pick(trackGroupId === set.id ? undefined : set)}
+              onPickPlaylist={onPlaylistChange ? pickPlaylist : undefined}
             />
           </div>
         )
