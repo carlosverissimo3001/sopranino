@@ -1,9 +1,7 @@
 import type { AuthMeResponseDto } from '@/sdk';
 
 /** A linked player already plays their Spotify playlists, so importing one is moot. */
-export function spotifyIsLinked(
-  user?: AuthMeResponseDto | null
-): boolean {
+export function spotifyIsLinked(user?: AuthMeResponseDto | null): boolean {
   return !!user?.hasLinkedAccount;
 }
 
