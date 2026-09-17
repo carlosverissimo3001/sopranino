@@ -39,6 +39,8 @@ interface ShuffleModeNavProps {
   trackGroupId?: string;
   /** The set the song on screen came from, until a pick made mid-round applies. */
   playingTrackGroupId?: string;
+  /** What is playing when it is not a set, e.g. a Spotify playlist's name. */
+  playingLabel?: string;
   /** `hasTiers` is false for a set whose songs are all one fame, such as a chart. */
   onTrackGroupChange: (
     groupId: string | undefined,
@@ -54,6 +56,7 @@ interface ShuffleModeNavProps {
 export function ShuffleModeNav({
   trackGroupId,
   playingTrackGroupId,
+  playingLabel,
   onTrackGroupChange,
 }: ShuffleModeNavProps) {
   const [setsOpen, setSetsOpen] = useState(false);
@@ -61,7 +64,7 @@ export function ShuffleModeNav({
   // A sheet on a phone: the dropdown covered the round it belongs to.
   const isPhone = useIsBelowSm();
   // Green is what is playing; a pick made mid-round is named below the row.
-  const playingName = useTrackGroupName(playingTrackGroupId);
+  const playingName = useTrackGroupName(playingTrackGroupId) ?? playingLabel;
 
   // An overlay, so it closes the way one does: outside it, or with Escape. The
   // sheet brings its own.
