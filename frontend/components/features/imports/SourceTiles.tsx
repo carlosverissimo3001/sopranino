@@ -1,5 +1,12 @@
 'use client';
 
+import { Info } from 'lucide-react';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+
 import {
   PLAYLIST_SOURCES,
   SOURCE_ORDER,
@@ -70,6 +77,28 @@ export function SourceTiles({
           </button>
         );
       })}
+
+      {/* The pills are shortcuts; the mechanism is a Deezer link, so services
+          without one still work. Quiet, because it is a footnote. */}
+      <Popover>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            aria-label="Playlists from another service"
+            className="inline-flex h-7 w-7 items-center justify-center rounded-full text-fg/30 transition-colors hover:bg-fg/5 hover:text-fg/60"
+          >
+            <Info className="h-3.5 w-3.5" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent
+          align="start"
+          className="w-56 space-y-1 border-fg/10 bg-surface p-3 text-xs leading-snug text-fg/60"
+        >
+          <p className="font-bold text-fg">Any service works</p>
+          <p>Copy the playlist to Deezer, paste that link.</p>
+          <p className="text-fg/40">The card then shows Deezer.</p>
+        </PopoverContent>
+      </Popover>
     </div>
   );
 }
