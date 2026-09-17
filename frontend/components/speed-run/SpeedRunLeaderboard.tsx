@@ -181,11 +181,12 @@ export function SpeedRunLeaderboard() {
   const entries = data?.entries ?? [];
   const userEntry = data?.userEntry;
   const userInList = entries.some((e) => e.userId === user?.userId);
+  const beatBest = !!userEntry && !userInList;
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-5 pb-16 sm:pb-0">
       {/* Header */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between gap-3">
         <button
           onClick={() => router.back()}
           className="inline-flex items-center gap-2 text-fg/60 hover:text-fg transition-colors text-sm font-semibold"
@@ -193,6 +194,19 @@ export function SpeedRunLeaderboard() {
           <ArrowLeft className="w-4 h-4" />
           Back
         </button>
+        <Link
+          href={`/speed-run?difficulty=${difficulty}`}
+          // Pinned on phones, where a long board pushes it out of reach.
+          className="fixed bottom-4 left-1/2 z-30 inline-flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-sm font-bold text-white shadow-lg transition-transform active:scale-95 sm:static sm:translate-x-0"
+          style={{ background: 'linear-gradient(135deg, #f97316, #ef4444)' }}
+        >
+          {beatBest ? 'Beat your best' : 'Play ranked'}
+          {beatBest && (
+            <span className="rounded-full bg-black/20 px-1.5 text-xs tabular-nums">
+              #{userEntry.rank}
+            </span>
+          )}
+        </Link>
       </div>
 
       <div className="text-center space-y-2">
@@ -278,13 +292,6 @@ export function SpeedRunLeaderboard() {
                   : ''
             }. Be the first!`}
           </p>
-          <Link
-            href="/speed-run"
-            className="inline-flex items-center gap-2 text-orange-600 dark:text-orange-400 hover:underline text-sm font-semibold"
-          >
-            <Zap className="w-4 h-4" />
-            Start a Run
-          </Link>
         </div>
       ) : (
         <motion.div
