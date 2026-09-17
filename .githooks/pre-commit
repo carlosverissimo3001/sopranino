@@ -1,0 +1,21 @@
+#!/bin/sh
+# Formatting is not something oxlint sees, and CI checks both. Report only:
+# reformatting a file mid-commit would stage what the author did not write.
+set -e
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR \
+  -- '*.ts' '*.tsx' '*.js' '*.mjs' ':(exclude)frontend/sdk/**')
+
+[ -z "$staged" ] && exit 0
+
+# shellcheck disable=SC2086
+if ! pnpm exec oxfmt --check $staged >/dev/null 2>&1; then
+  echo "These files are not formatted:"
+  pnpm exec oxfmt --check $staged 2>&1 | grep -v '^Checking\|^Finished' || true
+  echo
+  echo "Run 'pnpm format' and stage the result, or commit with --no-verify."
+  exit 1
+fi
+
+# shellcheck disable=SC2086
+pnpm exec oxlint $staged
