@@ -5635,7 +5635,8 @@
             "enum": [
               "DEEZER",
               "SPOTIFY",
-              "APPLE_MUSIC"
+              "APPLE_MUSIC",
+              "YOUTUBE_MUSIC"
             ]
           },
           "link": {
@@ -5647,7 +5648,8 @@
             "enum": [
               "DEEZER",
               "SPOTIFY",
-              "APPLE_MUSIC"
+              "APPLE_MUSIC",
+              "YOUTUBE_MUSIC"
             ],
             "description": "Where the player keeps the playlist, when the link is a copy"
           }
@@ -5700,7 +5702,8 @@
             "enum": [
               "DEEZER",
               "SPOTIFY",
-              "APPLE_MUSIC"
+              "APPLE_MUSIC",
+              "YOUTUBE_MUSIC"
             ]
           },
           "externalUrl": {
@@ -5730,7 +5733,8 @@
             "enum": [
               "DEEZER",
               "SPOTIFY",
-              "APPLE_MUSIC"
+              "APPLE_MUSIC",
+              "YOUTUBE_MUSIC"
             ],
             "description": "The service this player copied it from, when it is a copy"
           },
@@ -5828,7 +5832,8 @@
             "enum": [
               "DEEZER",
               "SPOTIFY",
-              "APPLE_MUSIC"
+              "APPLE_MUSIC",
+              "YOUTUBE_MUSIC"
             ]
           },
           "origin": {
@@ -5836,7 +5841,8 @@
             "enum": [
               "DEEZER",
               "SPOTIFY",
-              "APPLE_MUSIC"
+              "APPLE_MUSIC",
+              "YOUTUBE_MUSIC"
             ],
             "description": "Imports: the service the copy was made from"
           },

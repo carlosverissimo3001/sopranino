@@ -389,6 +389,7 @@ enum PlaylistSource {
   DEEZER
   SPOTIFY
   APPLE_MUSIC
+  YOUTUBE_MUSIC
 }
 
 model TrackGroup {

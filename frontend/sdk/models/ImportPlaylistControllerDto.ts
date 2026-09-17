@@ -46,7 +46,8 @@ export interface ImportPlaylistControllerDto {
 export const ImportPlaylistControllerDtoSourceEnum = {
     Deezer: 'DEEZER',
     Spotify: 'SPOTIFY',
-    AppleMusic: 'APPLE_MUSIC'
+    AppleMusic: 'APPLE_MUSIC',
+    YoutubeMusic: 'YOUTUBE_MUSIC'
 } as const;
 export type ImportPlaylistControllerDtoSourceEnum = typeof ImportPlaylistControllerDtoSourceEnum[keyof typeof ImportPlaylistControllerDtoSourceEnum];
 
@@ -56,7 +57,8 @@ export type ImportPlaylistControllerDtoSourceEnum = typeof ImportPlaylistControl
 export const ImportPlaylistControllerDtoOriginEnum = {
     Deezer: 'DEEZER',
     Spotify: 'SPOTIFY',
-    AppleMusic: 'APPLE_MUSIC'
+    AppleMusic: 'APPLE_MUSIC',
+    YoutubeMusic: 'YOUTUBE_MUSIC'
 } as const;
 export type ImportPlaylistControllerDtoOriginEnum = typeof ImportPlaylistControllerDtoOriginEnum[keyof typeof ImportPlaylistControllerDtoOriginEnum];
 

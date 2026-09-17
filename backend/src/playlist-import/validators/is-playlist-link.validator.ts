@@ -6,6 +6,7 @@ export const SOURCE_NAMES: Record<PlaylistSource, string> = {
   [PlaylistSource.DEEZER]: 'Deezer',
   [PlaylistSource.SPOTIFY]: 'Spotify',
   [PlaylistSource.APPLE_MUSIC]: 'Apple Music',
+  [PlaylistSource.YOUTUBE_MUSIC]: 'YouTube Music',
 };
 
 export function IsPlaylistLink(): PropertyDecorator {
