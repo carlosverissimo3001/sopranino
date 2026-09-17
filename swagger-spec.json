@@ -3167,6 +3167,10 @@
             "type": "string",
             "description": "The artist of the track"
           },
+          "albumName": {
+            "type": "string",
+            "description": "The album of the track"
+          },
           "result": {
             "type": "string",
             "description": "The result of the guess",

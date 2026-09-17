@@ -14,10 +14,20 @@ const HINT_ICONS: Record<HintType, React.ElementType> = {
 interface HintPanelProps {
   hints: HintDto[];
   currentRound: number;
+  /** What a near miss proved, which stays on screen rather than flashing past. */
+  known?: { artist?: string; album?: string };
 }
 
-export function HintPanel({ hints, currentRound }: HintPanelProps) {
-  if (currentRound === 0 && hints.length === 0) {
+export function HintPanel({ hints, currentRound, known }: HintPanelProps) {
+  const proved = [
+    known?.artist && { label: 'Artist', value: known.artist, Icon: Users },
+    known?.album && { label: 'Album', value: known.album, Icon: Disc3 },
+  ].filter(Boolean) as {
+    label: string;
+    value: string;
+    Icon: React.ElementType;
+  }[];
+  if (currentRound === 0 && hints.length === 0 && !proved.length) {
     return (
       // Said once, then out of the way. It floats in the gap above the guess box
       // instead of taking a row, so nothing moves as it comes and goes.
@@ -35,9 +45,13 @@ export function HintPanel({ hints, currentRound }: HintPanelProps) {
     );
   }
 
-  const visibleHints = hints.filter((hint) => hint.value);
+  // The album is a hint of its own: once a guess has proved it, the hint would
+  // say the same thing twice.
+  const visibleHints = hints.filter(
+    (hint) => hint.value && !(hint.type === HintType.Album && known?.album),
+  );
 
-  if (!visibleHints.length) {
+  if (!visibleHints.length && !proved.length) {
     return null;
   }
 
@@ -47,6 +61,18 @@ export function HintPanel({ hints, currentRound }: HintPanelProps) {
       <span className="shrink-0 text-[10px] text-zinc-500 font-semibold uppercase tracking-widest mr-0.5">
         Hints
       </span>
+      {proved.map(({ label, value, Icon }) => (
+        <span
+          key={label}
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-amber-400/40 bg-amber-400/10 px-2.5 py-1.5"
+        >
+          <Icon className="h-3.5 w-3.5 shrink-0 text-amber-300" />
+          <span className="whitespace-nowrap text-[13px] leading-snug text-amber-200/90">
+            <span className="text-amber-300/60">{label}: </span>
+            {value}
+          </span>
+        </span>
+      ))}
       <AnimatePresence mode="popLayout">
         {visibleHints.map((hint, i) => {
           const Icon = HINT_ICONS[hint.type] ?? Music;

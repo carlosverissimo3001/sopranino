@@ -13,4 +13,7 @@ export class GuessHistoryEntity {
 
   @ApiProperty({ description: 'The artist of the track' })
   artistName: string;
+
+  @ApiProperty({ description: 'The album of the track', required: false })
+  albumName?: string;
 }

@@ -12,7 +12,7 @@ import { AudioDebugPanel } from './AudioDebugPanel';
 import { GuessHistoryList } from './GuessHistoryList';
 import { GuessInput, type GuessSearchState } from './GuessInput';
 import { HintPanel } from './HintPanel';
-import { GuessResultNote } from './GuessResultNote';
+import { knownFromGuesses } from '@/lib/guess-match';
 import { PlaySnippetButton } from './PlaySnippetButton';
 import { RoundProgressBar } from './RoundProgressBar';
 import { GameStatsDtoModeEnum as GameMode } from '../../sdk';
@@ -205,8 +205,6 @@ export function GameRoundView({
               </div>
             )}
 
-            {!isOver && <GuessResultNote guesses={round.guesses} />}
-
             {!isOver &&
               showTextHints && (
                 // The hint row is held from the start on a phone, so the
@@ -215,6 +213,7 @@ export function GameRoundView({
                   <HintPanel
                     hints={round.hints ?? []}
                     currentRound={round.currentRound}
+                    known={knownFromGuesses(round.guesses)}
                   />
                 </div>
               )}
