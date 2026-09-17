@@ -31,7 +31,7 @@ import { SourceLogo } from './SourceLogo';
 function Shot({ slide, tone }: { slide: GuideSlide; tone: string }) {
   return (
     <div
-      className={`relative aspect-[16/10] w-full overflow-hidden rounded-xl border ${tone}`}
+      className={`relative aspect-video w-full overflow-hidden rounded-xl border ${tone}`}
     >
       {slide.image ? (
         <Image
