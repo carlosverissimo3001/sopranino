@@ -18,6 +18,9 @@ export class ImportedSetDto extends TrackGroupDto {
   })
   staleSince?: Date;
 
+  @ApiPropertyOptional({ description: 'When its songs were last read' })
+  refreshedAt?: Date;
+
   @ApiPropertyOptional({
     enum: PlaylistSource,
     description: 'The service this player copied it from, when it is a copy',

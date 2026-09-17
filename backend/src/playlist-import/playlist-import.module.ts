@@ -15,6 +15,7 @@ import { DeezerMembersService } from './providers/deezer/members.service';
 import { TrackGroupModule } from '../track-group/track-group.module';
 import { DeezerProvider } from './providers/deezer/provider';
 import { PLAYLIST_PROVIDERS } from './providers/playlist-provider';
+import { ImportQuotaService } from './services/import-quota.service';
 import { PlaylistImportRepository } from './repositories/playlist-import.repository';
 import { PlaylistImportService } from './services/playlist-import.service';
 
@@ -42,6 +43,7 @@ import { PlaylistImportService } from './services/playlist-import.service';
       inject: [DeezerProvider],
     },
     PlaylistImportRepository,
+    ImportQuotaService,
     PlaylistImportService,
     MyPlaylistsService,
     PlaylistImportConsumer,

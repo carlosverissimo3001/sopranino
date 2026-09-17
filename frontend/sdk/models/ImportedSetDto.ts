@@ -80,6 +80,12 @@ export interface ImportedSetDto {
      */
     staleSince?: Date;
     /**
+     * When its songs were last read
+     * @type {Date}
+     * @memberof ImportedSetDto
+     */
+    refreshedAt?: Date;
+    /**
      * The service this player copied it from, when it is a copy
      * @type {string}
      * @memberof ImportedSetDto
@@ -164,6 +170,7 @@ export function ImportedSetDtoFromJSONTyped(json: any, ignoreDiscriminator: bool
         'externalUrl': json['externalUrl'],
         'pending': json['pending'],
         'staleSince': json['staleSince'] == null ? undefined : (new Date(json['staleSince'])),
+        'refreshedAt': json['refreshedAt'] == null ? undefined : (new Date(json['refreshedAt'])),
         'origin': json['origin'] == null ? undefined : json['origin'],
         'addedAt': json['addedAt'] == null ? undefined : (new Date(json['addedAt'])),
     };
@@ -190,6 +197,7 @@ export function ImportedSetDtoToJSONTyped(value?: ImportedSetDto | null, ignoreD
         'externalUrl': value['externalUrl'],
         'pending': value['pending'],
         'staleSince': value['staleSince'] == null ? value['staleSince'] : value['staleSince'].toISOString(),
+        'refreshedAt': value['refreshedAt'] == null ? value['refreshedAt'] : value['refreshedAt'].toISOString(),
         'origin': value['origin'],
         'addedAt': value['addedAt'] == null ? value['addedAt'] : value['addedAt'].toISOString(),
     };

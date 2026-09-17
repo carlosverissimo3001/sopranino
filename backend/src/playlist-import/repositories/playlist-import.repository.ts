@@ -71,6 +71,16 @@ export class PlaylistImportRepository {
     });
   }
 
+  findMembership(
+    userId: string,
+    trackGroupId: string,
+  ): Promise<{ origin: PlaylistSource | null; createdAt: Date } | null> {
+    return this.prisma.trackGroupMember.findUnique({
+      where: { userId_trackGroupId: { userId, trackGroupId } },
+      select: { origin: true, createdAt: true },
+    });
+  }
+
   /** Newest first, by when this player added each one. */
   async listForUser(
     userId: string,

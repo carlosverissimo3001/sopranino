@@ -16,6 +16,7 @@ Name | Type
 `externalUrl` | string
 `pending` | boolean
 `staleSince` | Date
+`refreshedAt` | Date
 `origin` | string
 `addedAt` | Date
 
@@ -36,6 +37,7 @@ const example = {
   "externalUrl": null,
   "pending": null,
   "staleSince": null,
+  "refreshedAt": null,
   "origin": null,
   "addedAt": null,
 } satisfies ImportedSetDto

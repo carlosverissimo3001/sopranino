@@ -60,6 +60,8 @@ All URIs are relative to *http://localhost*
 | [**playlistControllerGetPlaylistById**](ApiApi.md#playlistcontrollergetplaylistbyid) | **GET** /playlists/{id} | Get playlist by ID |
 | [**playlistImportControllerImport**](ApiApi.md#playlistimportcontrollerimport) | **POST** /me/imports | Import a public playlist as a private set |
 | [**playlistImportControllerLeave**](ApiApi.md#playlistimportcontrollerleave) | **DELETE** /me/imports/{trackGroupId} | Remove an import from this player |
+| [**playlistImportControllerQuota**](ApiApi.md#playlistimportcontrollerquota) | **GET** /me/imports/quota | Playlist reads left in the player\&#39;s day |
+| [**playlistImportControllerRefresh**](ApiApi.md#playlistimportcontrollerrefresh) | **POST** /me/imports/{trackGroupId}/refresh | Read an imported playlist again |
 | [**searchControllerSearchTracks**](ApiApi.md#searchcontrollersearchtracks) | **GET** /search/tracks | Search tracks (for game guess options) |
 | [**streakControllerGetNextQuestion**](ApiApi.md#streakcontrollergetnextquestion) | **GET** /streak/quiz/next | Get the next unanswered quiz question |
 | [**streakControllerGetStatus**](ApiApi.md#streakcontrollergetstatus) | **GET** /streak/status | Get streak status including freeze info |
@@ -3862,10 +3864,6 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **201** |  |  -  |
-| **404** | Private or deleted playlist |  -  |
-| **422** | Service not supported yet |  -  |
-| **429** | Daily import used |  -  |
-| **503** | Import queue is full |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
@@ -3935,7 +3933,136 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **204** |  |  -  |
-| **404** | Not one of theirs |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## playlistImportControllerQuota
+
+> ImportQuotaDto playlistImportControllerQuota()
+
+Playlist reads left in the player\&#39;s day
+
+### Example
+
+```ts
+import {
+  Configuration,
+  ApiApi,
+} from '';
+import type { PlaylistImportControllerQuotaRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: cookie
+    apiKey: "YOUR API KEY",
+  });
+  const api = new ApiApi(config);
+
+  try {
+    const data = await api.playlistImportControllerQuota();
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+[**ImportQuotaDto**](ImportQuotaDto.md)
+
+### Authorization
+
+[cookie](../README.md#cookie)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** |  |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## playlistImportControllerRefresh
+
+> ImportedSetDto playlistImportControllerRefresh(trackGroupId)
+
+Read an imported playlist again
+
+### Example
+
+```ts
+import {
+  Configuration,
+  ApiApi,
+} from '';
+import type { PlaylistImportControllerRefreshRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: cookie
+    apiKey: "YOUR API KEY",
+  });
+  const api = new ApiApi(config);
+
+  const body = {
+    // string
+    trackGroupId: trackGroupId_example,
+  } satisfies PlaylistImportControllerRefreshRequest;
+
+  try {
+    const data = await api.playlistImportControllerRefresh(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **trackGroupId** | `string` |  | [Defaults to `undefined`] |
+
+### Return type
+
+[**ImportedSetDto**](ImportedSetDto.md)
+
+### Authorization
+
+[cookie](../README.md#cookie)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **201** |  |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 

@@ -40,6 +40,7 @@ export * from './GuessHistoryDto';
 export * from './GuessResultDto';
 export * from './HintDto';
 export * from './ImportPlaylistControllerDto';
+export * from './ImportQuotaDto';
 export * from './ImportedSetDto';
 export * from './KickPlayerDto';
 export * from './LastfmDataVo';

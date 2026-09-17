@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   HttpCode,
   Param,
   ParseUUIDPipe,
@@ -23,6 +24,7 @@ import {
   THROTTLE_TTL,
 } from '../../throttle/throttle.constants';
 import { ImportPlaylistControllerDto } from '../dto/import-playlist-controller.dto';
+import { ImportQuotaDto } from '../dto/import-quota.dto';
 import { ImportedSetDto } from '../dto/imported-set.dto';
 import { PlaylistImportService } from '../services/playlist-import.service';
 
@@ -39,10 +41,6 @@ export class PlaylistImportController {
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Import a public playlist as a private set' })
   @ApiResponse({ status: 201, type: ImportedSetDto })
-  @ApiResponse({ status: 404, description: 'Private or deleted playlist' })
-  @ApiResponse({ status: 422, description: 'Service not supported yet' })
-  @ApiResponse({ status: 429, description: 'Daily import used' })
-  @ApiResponse({ status: 503, description: 'Import queue is full' })
   import(
     @SessionId() sessionId: string,
     @Body() body: ImportPlaylistControllerDto,
@@ -50,13 +48,35 @@ export class PlaylistImportController {
     return this.playlistImportService.import(sessionId, body);
   }
 
+  @Get('quota')
+  @UseGuards(SignedUpGuard)
+  @ApiCookieAuth()
+  @ApiOperation({ summary: "Playlist reads left in the player's day" })
+  @ApiResponse({ status: 200, type: ImportQuotaDto })
+  quota(@SessionId() sessionId: string): Promise<ImportQuotaDto> {
+    return this.playlistImportService.quotaFor(sessionId);
+  }
+
+  @Post(':trackGroupId/refresh')
+  @UseGuards(SignedUpGuard, ThrottlerGuard)
+  @Throttle({
+    [THROTTLE_IMPORT]: { limit: THROTTLE_IMPORT_LIMIT, ttl: THROTTLE_TTL },
+  })
+  @ApiCookieAuth()
+  @ApiOperation({ summary: 'Read an imported playlist again' })
+  @ApiResponse({ status: 201, type: ImportedSetDto })
+  refresh(
+    @SessionId() sessionId: string,
+    @Param('trackGroupId', ParseUUIDPipe) trackGroupId: string,
+  ): Promise<ImportedSetDto> {
+    return this.playlistImportService.refresh(sessionId, trackGroupId);
+  }
+
   @Delete(':trackGroupId')
   @HttpCode(204)
   @UseGuards(SignedUpGuard)
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Remove an import from this player' })
-  @ApiResponse({ status: 204 })
-  @ApiResponse({ status: 404, description: 'Not one of theirs' })
   async leave(
     @SessionId() sessionId: string,
     @Param('trackGroupId', ParseUUIDPipe) trackGroupId: string,

@@ -18,6 +18,7 @@ Name | Type
 `origin` | string
 `pending` | boolean
 `staleSince` | Date
+`refreshedAt` | Date
 
 ## Example
 
@@ -38,6 +39,7 @@ const example = {
   "origin": null,
   "pending": null,
   "staleSince": null,
+  "refreshedAt": null,
 } satisfies PlaylistItemDto
 
 console.log(example)

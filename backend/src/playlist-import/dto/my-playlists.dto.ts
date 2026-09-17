@@ -57,6 +57,11 @@ export class PlaylistItemDto {
 
   @ApiPropertyOptional()
   staleSince?: Date;
+
+  @ApiPropertyOptional({
+    description: 'Imports: when its songs were last read',
+  })
+  refreshedAt?: Date;
 }
 
 export class MyPlaylistsDto {

@@ -99,6 +99,12 @@ export interface PlaylistItemDto {
      * @memberof PlaylistItemDto
      */
     staleSince?: Date;
+    /**
+     * Imports: when its songs were last read
+     * @type {Date}
+     * @memberof PlaylistItemDto
+     */
+    refreshedAt?: Date;
 }
 
 
@@ -157,6 +163,7 @@ export function PlaylistItemDtoFromJSONTyped(json: any, ignoreDiscriminator: boo
         'origin': json['origin'] == null ? undefined : json['origin'],
         'pending': json['pending'] == null ? undefined : json['pending'],
         'staleSince': json['staleSince'] == null ? undefined : (new Date(json['staleSince'])),
+        'refreshedAt': json['refreshedAt'] == null ? undefined : (new Date(json['refreshedAt'])),
     };
 }
 
@@ -183,6 +190,7 @@ export function PlaylistItemDtoToJSONTyped(value?: PlaylistItemDto | null, ignor
         'origin': value['origin'],
         'pending': value['pending'],
         'staleSince': value['staleSince'] == null ? value['staleSince'] : value['staleSince'].toISOString(),
+        'refreshedAt': value['refreshedAt'] == null ? value['refreshedAt'] : value['refreshedAt'].toISOString(),
     };
 }
 

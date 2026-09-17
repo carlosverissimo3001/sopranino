@@ -17,13 +17,15 @@ import { AppLoggerService } from '../../logger/logger.service';
 import { PoolService } from '../../pool/services/pool.service';
 import { RedisService } from '../../redis/redis.service';
 import {
-  IMPORT_DAILY_TTL_SECONDS,
+  IMPORT_DAILY_LIMIT,
   IMPORT_MAX_TRACKS,
   IMPORT_QUEUE_CEILING,
   IMPORT_REFRESH_AFTER_MS,
-  importDailyKey,
 } from '../consts';
+import { inWords } from '../utils/wait.utils';
+import { ImportQuotaService } from './import-quota.service';
 import { ImportPlaylistControllerDto } from '../dto/import-playlist-controller.dto';
+import { ImportQuotaDto } from '../dto/import-quota.dto';
 import { ImportedSetDto } from '../dto/imported-set.dto';
 import {
   PlaylistImportRepository,
@@ -58,6 +60,7 @@ export class PlaylistImportService {
     private readonly poolService: PoolService,
     private readonly trackGroupService: TrackGroupService,
     private readonly redis: RedisService,
+    private readonly quota: ImportQuotaService,
     @InjectQueue(PLAYLIST_IMPORT_QUEUE) private readonly queue: Queue,
     @Inject(PLAYLIST_PROVIDERS) providers: PlaylistProvider[],
     appLogger: AppLoggerService,
@@ -108,13 +111,11 @@ export class PlaylistImportService {
       );
     }
 
-    // Claimed last, so a bad link or a private playlist does not spend the day.
-    const claimed = await this.redis
-      .getClient()
-      .set(importDailyKey(user.id), '1', 'EX', IMPORT_DAILY_TTL_SECONDS, 'NX');
-    if (!claimed) {
+    // Claimed last, so a bad link or a private playlist does not spend a read.
+    const refused = await this.quota.claimDay(user.id);
+    if (refused !== null) {
       throw new HttpException(
-        'One new playlist a day. Playlists someone else already imported can still be added.',
+        `That is today's ${IMPORT_DAILY_LIMIT} playlist reads. More ${inWords(refused)}. Playlists someone else already imported can still be added.`,
         HttpStatus.TOO_MANY_REQUESTS,
       );
     }
@@ -130,7 +131,7 @@ export class PlaylistImportService {
         origin,
       });
     } catch (err) {
-      await this.redis.getClient().del(importDailyKey(user.id));
+      await this.quota.refundDay(user.id);
       if (
         err instanceof Prisma.PrismaClientKnownRequestError &&
         err.code === 'P2002'
@@ -171,6 +172,50 @@ export class PlaylistImportService {
         addedAt: group.addedAt,
       }),
     );
+  }
+
+  async quotaFor(sessionId: string): Promise<ImportQuotaDto> {
+    const user = await this.authService.getUserBySessionId(sessionId);
+    return this.quota.dayLeft(user.id);
+  }
+
+  /** A read the player asked for, on their own quota. */
+  async refresh(
+    sessionId: string,
+    trackGroupId: string,
+  ): Promise<ImportedSetDto> {
+    const user = await this.authService.getUserBySessionId(sessionId);
+    const membership = await this.repository.findMembership(
+      user.id,
+      trackGroupId,
+    );
+    const group = await this.repository.findById(trackGroupId);
+    if (!membership || !group?.import) {
+      throw new NotFoundException(`No import ${trackGroupId}`);
+    }
+
+    const waiting = await this.quota.claimRefresh(user.id, trackGroupId);
+    if (waiting !== null) {
+      throw new HttpException(
+        `Already refreshed. You can refresh this playlist again ${inWords(waiting)}.`,
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+
+    const refused = await this.quota.claimDay(user.id);
+    if (refused !== null) {
+      await this.quota.releaseRefresh(user.id, trackGroupId);
+      throw new HttpException(
+        `That is today's ${IMPORT_DAILY_LIMIT} playlist reads. More ${inWords(refused)}.`,
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+
+    await this.enqueueFill(trackGroupId);
+    return this.toDto(group, {
+      origin: membership.origin ?? undefined,
+      addedAt: membership.createdAt,
+    });
   }
 
   /** The set goes with its last member; past games keep their tracks. */
@@ -273,6 +318,7 @@ export class PlaylistImportService {
       externalUrl: EXTERNAL_URLS[imported.source](imported.externalId),
       pending: !imported.refreshedAt,
       staleSince: imported.staleSince ?? undefined,
+      refreshedAt: imported.refreshedAt ?? undefined,
       origin: membership.origin,
       addedAt: membership.addedAt,
     };
