@@ -225,9 +225,8 @@ export function SongRevealCard({
         </div>
       </div>
 
-      {footer && (
-        <div className="border-t border-fg/10 px-5 py-3 sm:px-6">{footer}</div>
-      )}
+      {/* Bare: a footer that renders nothing must leave no strip behind. */}
+      {footer}
     </motion.div>
   );
 }
