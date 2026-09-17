@@ -20,6 +20,7 @@ import {
   useTrackGroupName,
 } from '@/hooks/track-groups/useTrackGroupName';
 import { guessLine } from '@/lib/track-group-labels';
+import { spotifySetPath } from '@/lib/set-routes';
 import { FameTierPicker } from './FameTierPicker';
 import { GameRoundView, type RoundData } from './GameRoundView';
 import { GameScreenError, GameScreenLoading } from './GameScreenStatus';
@@ -83,6 +84,13 @@ export function ShuffleGamePage({
   const { volume, setVolume } = useVolume();
   // A chart is all hits, so a tier would promise a difference it cannot make.
   const [tiersApply, setTiersApply] = useState(initialTiersApply);
+  // Names of the playlists picked this session, since the nav cannot look one
+  // up the way it looks up a set.
+  const [playlistNames, setPlaylistNames] = useState<Record<string, string>>(
+    initialPlaylistId && initialPlaylistName
+      ? { [initialPlaylistId]: initialPlaylistName }
+      : {},
+  );
   const { data: user } = useMe();
 
   const {
@@ -102,8 +110,9 @@ export function ShuffleGamePage({
     start,
     isStarting,
     trackGroupId,
-    playlistId,
     handleTrackGroupChange,
+    handlePlaylistChange,
+    playingPlaylistId,
     trackGroupWaits,
     playingTrackGroupId,
   } = usePoolGameOrchestrator({
@@ -148,12 +157,14 @@ export function ShuffleGamePage({
     start();
   };
 
+  // A round drawn from a playlist has no tier, so a set picked during one
+  // brings the tier with it: name it, or the next song's difficulty is a
+  // surprise.
   const tierWaits =
     tiersApply &&
     !idle &&
     !isGameOver &&
-    !!gameState?.fameTier &&
-    gameState.fameTier !== fameTier;
+    (!gameState?.fameTier || gameState.fameTier !== fameTier);
 
   const round: RoundData = gameState
     ? { ...gameState, answerImageUrl: gameState.answer?.albumImageUrl }
@@ -235,7 +246,26 @@ export function ShuffleGamePage({
             <ShuffleModeNav
               trackGroupId={trackGroupId}
               playingTrackGroupId={playingTrackGroupId}
-              playingLabel={playlistId ? initialPlaylistName : undefined}
+              playingLabel={
+                playingPlaylistId ? playlistNames[playingPlaylistId] : undefined
+              }
+              onPlaylistChange={(playlist) => {
+                setTiersApply(false);
+                setPlaylistNames((names) => ({
+                  ...names,
+                  [playlist.id]: playlist.name,
+                }));
+                handlePlaylistChange(playlist.id);
+                if (syncUrl) {
+                  window.history.replaceState(
+                    null,
+                    '',
+                    playlist.slug
+                      ? `/group/${playlist.slug}`
+                      : spotifySetPath(playlist.id),
+                  );
+                }
+              }}
               onTrackGroupChange={(groupId, hasTiers, slug) => {
                 setTiersApply(hasTiers);
                 handleTrackGroupChange(groupId);

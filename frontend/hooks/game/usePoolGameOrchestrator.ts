@@ -47,6 +47,8 @@ export function usePoolGameOrchestrator({
   const [roundGroupId, setRoundGroupId] = useState(initialTrackGroupId);
   /** Set only while the source is a Spotify playlist; picking a set clears it. */
   const [playlistId, setPlaylistId] = useState(initialPlaylistId);
+  /** The playlist the open round came from, which a queued pick has not replaced. */
+  const [roundPlaylistId, setRoundPlaylistId] = useState(initialPlaylistId);
 
   // The key useGameSession reads: a set's own page opens on the set's.
   const sessionKey = useMemo(
@@ -160,6 +162,7 @@ export function usePoolGameOrchestrator({
 
       startGameMutation.reset();
       setRoundGroupId(groupId);
+      setRoundPlaylistId(fromPlaylistId);
       startGameMutation.mutate(
         fromPlaylistId
           ? { playlistId: fromPlaylistId, fameTier: tier, mode: GameMode.All }
@@ -209,6 +212,17 @@ export function usePoolGameOrchestrator({
     },
     [trackGroupId, playlistId, isResetting, untouched, startNewRound, fameTier],
   );
+  /** Picking a playlist leaves whatever set was playing, and the other way round. */
+  const handlePlaylistChange = useCallback(
+    (nextPlaylistId: string) => {
+      if (nextPlaylistId === playlistId || isResetting) return;
+      setPlaylistId(nextPlaylistId);
+      setTrackGroupId(undefined);
+      if (untouched) startNewRound(fameTier, undefined, nextPlaylistId);
+    },
+    [playlistId, isResetting, untouched, startNewRound, fameTier],
+  );
+
   const start = handlePlayAgain;
 
   // Before a guess the song is swapped for one of the new tier; after one,
@@ -253,10 +267,15 @@ export function usePoolGameOrchestrator({
     trackGroupId,
     playlistId,
     handleTrackGroupChange,
-    /** A set picked mid-round, which applies from the next song. */
+    handlePlaylistChange,
+    /** A set or playlist picked mid-round, which applies from the next song. */
     trackGroupWaits:
-      !!gameState && !isGameOver && trackGroupId !== roundGroupId,
+      !!gameState &&
+      !isGameOver &&
+      (trackGroupId !== roundGroupId || playlistId !== roundPlaylistId),
     /** The set the song on screen came from, which a queued pick has not replaced yet. */
     playingTrackGroupId: gameState && !isGameOver ? roundGroupId : trackGroupId,
+    /** The same for a playlist: what is playing, not what was just picked. */
+    playingPlaylistId: gameState && !isGameOver ? roundPlaylistId : playlistId,
   };
 }

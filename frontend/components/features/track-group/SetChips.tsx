@@ -8,11 +8,14 @@ import {
   useMyPlaylistLibrary,
 } from '@/hooks/playlists/useMyPlaylistLibrary';
 import { PlaylistItemKind, TrackGroupDtoTypeEnum } from '@/sdk';
-import type { TrackGroupDto } from '@/sdk';
+import type { PlaylistItemDto, TrackGroupDto } from '@/sdk';
+import { SourceMark } from '@/components/features/imports/SourceMark';
 
 interface SetChipsProps {
   selectedId: string | undefined;
   onPick: (set: TrackGroupDto) => void;
+  /** Absent where only a set can be played, e.g. a multiplayer room's source. */
+  onPickPlaylist?: (playlist: PlaylistItemDto) => void;
   /** Special sets too, for the few who can see them. Empty for everyone else. */
   includeSpecial?: boolean;
   disabled?: boolean;
@@ -25,6 +28,7 @@ interface SetChipsProps {
 export function SetChips({
   selectedId,
   onPick,
+  onPickPlaylist,
   includeSpecial = false,
   disabled = false,
 }: SetChipsProps) {
@@ -34,11 +38,34 @@ export function SetChips({
   const { data: charts = [] } = useTrackGroups(TrackGroupDtoTypeEnum.Chart);
   const { data: special = [] } = useTrackGroups(TrackGroupDtoTypeEnum.Special);
   const { data: library } = useMyPlaylistLibrary();
-  const imported = (library?.items ?? []).filter(
-    (item) => item.kind === PlaylistItemKind.Imported && isPlayable(item),
+  // Spotify playlists only where one can be played; elsewhere, imports alone.
+  const playlists = (library?.items ?? []).filter(
+    (item) =>
+      isPlayable(item) &&
+      (onPickPlaylist || item.kind === PlaylistItemKind.Imported),
   );
+  const byName = (a: { name: string }, b: { name: string }) =>
+    a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
+  // Inside the Playlists tab, what a player imported sits apart from what
+  // Spotify holds: eleven chips in one wrap is a wall.
+  const playlistGroups = onPickPlaylist
+    ? [
+        {
+          label: 'Imported',
+          sets: playlists
+            .filter((item) => item.kind === PlaylistItemKind.Imported)
+            .sort(byName),
+        },
+        {
+          label: 'Spotify',
+          sets: playlists
+            .filter((item) => item.kind === PlaylistItemKind.Spotify)
+            .sort(byName),
+        },
+      ].filter((group) => group.sets.length > 0)
+    : [];
   const kinds = [
-    { label: 'Imported', sets: imported },
+    { label: onPickPlaylist ? 'Playlists' : 'Imported', sets: playlists },
     { label: 'Artists', sets: artists },
     { label: 'Decades', sets: decades },
     { label: 'Genres', sets: genres },
@@ -88,26 +115,46 @@ export function SetChips({
         </div>
       )}
 
-      <div
-        role="tabpanel"
-        aria-label={shown.label}
-        className="flex flex-wrap gap-1.5"
-      >
-        {shown.sets.map((set) => (
-          <button
-            key={set.id}
-            type="button"
-            aria-pressed={selectedId === set.id}
-            disabled={disabled}
-            onClick={() => onPick(set)}
-            className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-50 sm:px-2.5 sm:py-1 sm:text-[11px] ${
-              selectedId === set.id
-                ? 'bg-spotify-green/20 text-spotify-green'
-                : 'bg-fg/5 text-fg/70 hover:bg-fg/10 hover:text-fg'
-            }`}
-          >
-            {set.name}
-          </button>
+      <div role="tabpanel" aria-label={shown.label} className="space-y-2">
+        {(shown.label === 'Playlists' && playlistGroups.length > 1
+          ? playlistGroups
+          : [{ label: '', sets: shown.sets }]
+        ).map((group) => (
+          <div key={group.label}>
+            {group.label && (
+              <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-fg/30">
+                {group.label}
+              </p>
+            )}
+            <div className="flex flex-wrap gap-1.5">
+              {group.sets.map((set) => (
+                <button
+                  key={set.id}
+                  type="button"
+                  aria-pressed={selectedId === set.id}
+                  disabled={disabled}
+                  onClick={() =>
+                    'kind' in set && onPickPlaylist
+                      ? onPickPlaylist(set)
+                      : onPick(set as TrackGroupDto)
+                  }
+                  className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-50 sm:px-2.5 sm:py-1 sm:text-[11px] ${
+                    selectedId === set.id
+                      ? 'bg-spotify-green/20 text-spotify-green'
+                      : 'bg-fg/5 text-fg/70 hover:bg-fg/10 hover:text-fg'
+                  }`}
+                >
+                  {'source' in set && set.source && (
+                    <SourceMark
+                      source={set.origin ?? set.source}
+                      className="mr-1 inline-block align-[-1px]"
+                    />
+                  )}
+                  {set.name}
+                </button>
+              ))}
+            </div>
+          </div>
         ))}
       </div>
 
