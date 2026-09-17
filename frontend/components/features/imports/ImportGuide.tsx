@@ -28,11 +28,10 @@ import {
 import { SourceLogo } from './SourceLogo';
 
 /** The frame keeps its place in the layout whether or not the picture exists. */
-function Shot({ slide, tone }: { slide: GuideSlide; tone: string }) {
+function Shot({ slide }: { slide: GuideSlide }) {
   return (
-    <div
-      className={`relative aspect-video w-full overflow-hidden rounded-xl border ${tone}`}
-    >
+    // Neutral: a tinted edge reads as part of a screenshot that has its own.
+    <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-fg/10 bg-fg/[0.04]">
       {slide.image ? (
         <Image
           src={`/${slide.image}`}
@@ -104,7 +103,7 @@ export function ImportGuide({ source }: ImportGuideProps) {
             {info.guide.map((slide, index) => (
               <CarouselItem key={slide.title}>
                 <div className="space-y-3">
-                  <Shot slide={slide} tone={info.tone.panel} />
+                  <Shot slide={slide} />
                   <div className="flex items-start gap-3">
                     <span
                       aria-hidden
