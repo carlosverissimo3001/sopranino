@@ -255,6 +255,7 @@ export function ShuffleGamePage({
               playingLabel={
                 playingPlaylistId ? playlistNames[playingPlaylistId] : undefined
               }
+              selectedPlaylistId={playlistId}
               onPlaylistChange={(playlist) => {
                 setTiersApply(false);
                 setPlaylistNames((names) => ({

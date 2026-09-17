@@ -43,6 +43,8 @@ interface ShuffleModeNavProps {
   playingLabel?: string;
   /** Absent on pages where only a set can be played. */
   onPlaylistChange?: (playlist: PlaylistItemDto) => void;
+  /** The playlist picked, so its chip reads as chosen like a set's does. */
+  selectedPlaylistId?: string;
   /** `hasTiers` is false for a set whose songs are all one fame, such as a chart. */
   onTrackGroupChange: (
     groupId: string | undefined,
@@ -61,6 +63,7 @@ export function ShuffleModeNav({
   playingLabel,
   onTrackGroupChange,
   onPlaylistChange,
+  selectedPlaylistId,
 }: ShuffleModeNavProps) {
   const [setsOpen, setSetsOpen] = useState(false);
   const panelRef = useRef<HTMLElement>(null);
@@ -146,7 +149,7 @@ export function ShuffleModeNav({
             </DrawerHeader>
             <div className="overflow-y-auto px-4 pb-6">
               <SetChips
-                selectedId={trackGroupId}
+                selectedId={trackGroupId ?? selectedPlaylistId}
                 onPick={(set) =>
                   pick(trackGroupId === set.id ? undefined : set)
                 }
@@ -165,7 +168,7 @@ export function ShuffleModeNav({
             className="absolute inset-x-0 top-full z-40 mx-auto mt-2 w-full max-w-[27rem] rounded-2xl border border-fg/10 bg-[rgb(var(--surface))] p-3 text-left shadow-2xl shadow-black/50"
           >
             <SetChips
-              selectedId={trackGroupId}
+              selectedId={trackGroupId ?? selectedPlaylistId}
               onPick={(set) => pick(trackGroupId === set.id ? undefined : set)}
               onPickPlaylist={onPlaylistChange ? pickPlaylist : undefined}
             />
