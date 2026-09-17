@@ -55,22 +55,6 @@ export function LandingGame({ canSignIn }: { canSignIn: boolean }) {
           </Link>
         }
       />
-      {/* Below the round on purpose: what a search engine reads, not what a
-          player has to scroll past to play. */}
-      <section className="mx-auto max-w-xl px-4 pb-8 text-center text-xs leading-relaxed text-fg/40 sm:px-6">
-        <h2 className="mb-1.5 text-xs font-bold text-fg/60">How it works</h2>
-        <p>
-          Press play and hear a tenth of a second of a song. Name it, or skip to
-          hear a little more: every miss unlocks a longer snippet and a hint,
-          with six tries to get it. Pick how well-known the songs are, from Easy
-          hits to Impossible deep cuts.
-        </p>
-        <p className="mt-2">
-          There is a new daily song every day, curated sets for every decade and
-          genre, a speed run with a leaderboard, and rooms to play the same
-          songs with friends. No account needed.
-        </p>
-      </section>
     </>
   );
 }
