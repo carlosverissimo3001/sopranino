@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CredentialsForm } from '@/components/auth/CredentialsForm';
+import { CheckYourEmail } from '@/components/auth/CheckYourEmail';
 import { InviteForm } from '@/components/auth/InviteForm';
 import { useMe } from '@/hooks/auth/useMe';
 
@@ -23,9 +24,13 @@ import { useMe } from '@/hooks/auth/useMe';
  */
 export function SignInClient({ canSignIn }: { canSignIn: boolean }) {
   const router = useRouter();
-  const cameFromLanding = useSearchParams().get('from') === 'landing';
+  const searchParams = useSearchParams();
+  const cameFromLanding = searchParams.get('from') === 'landing';
+  const wantsSignup = searchParams.get('mode') === 'signup';
   const { data: user } = useMe();
   const [showInvite, setShowInvite] = useState(false);
+  // Set after a sign-up: the address still has to be proved.
+  const [verifying, setVerifying] = useState<string | null>(null);
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-8 px-6">
@@ -46,58 +51,69 @@ export function SignInClient({ canSignIn }: { canSignIn: boolean }) {
         Back
       </Link>
 
-      <div className="flex w-full max-w-xs flex-col gap-6">
-        <div className="flex flex-col gap-1 text-center">
-          <h1 className="text-3xl font-black tracking-tighter text-fg">
-            Sign in
-          </h1>
-          {!user?.hasAccount && (
-            <p className="text-sm leading-relaxed text-fg/50">
-              Anything you have played on this device comes with you.
-            </p>
-          )}
+      {verifying ? (
+        <div className="w-full max-w-xs">
+          <CheckYourEmail email={verifying} onLater={() => router.push('/')} />
         </div>
+      ) : (
+        <div className="flex w-full max-w-xs flex-col gap-6">
+          <div className="flex flex-col gap-1 text-center">
+            <h1 className="text-3xl font-black tracking-tighter text-fg">
+              {wantsSignup ? 'Create account' : 'Sign in'}
+            </h1>
+            {!user?.hasAccount && (
+              <p className="text-sm leading-relaxed text-fg/50">
+                Anything you have played on this device comes with you.
+              </p>
+            )}
+          </div>
 
-        <CredentialsForm initialMode="login" onDone={() => router.push('/')} />
+          <CredentialsForm
+            initialMode={wantsSignup ? 'signup' : 'login'}
+            onDone={(mode, email) =>
+              mode === 'signup' ? setVerifying(email) : router.push('/')
+            }
+          />
 
-        <div className="flex items-center gap-3">
-          <span className="h-px flex-1 bg-fg/10" />
-          <span className="text-[10px] uppercase tracking-widest text-fg/30">
-            or
-          </span>
-          <span className="h-px flex-1 bg-fg/10" />
-        </div>
-
-        {/* Shown even when closed, as on the home page: a missing button reads
-            as a broken page, a disabled one says why. */}
-        <div className="flex flex-col items-center gap-2">
-          {canSignIn ? (
-            <a href="/api/auth/login" className="block w-full">
-              <SpotifyButton />
-            </a>
-          ) : (
-            <SpotifyButton disabled />
-          )}
-          {!canSignIn && (
-            <span className="text-xs text-fg/45">
-              Invite-only, by Spotify&apos;s limits
+          <div className="flex items-center gap-3">
+            <span className="h-px flex-1 bg-fg/10" />
+            <span className="text-[10px] uppercase tracking-widest text-fg/30">
+              or
             </span>
-          )}
-        </div>
+            <span className="h-px flex-1 bg-fg/10" />
+          </div>
 
-        {!canSignIn &&
-          (showInvite ? (
-            <InviteForm />
-          ) : (
-            <button
-              type="button"
-              onClick={() => setShowInvite(true)}
-              className="cursor-pointer self-center rounded-full border border-fg/15 px-5 py-2.5 text-sm font-semibold text-fg/70 transition-colors hover:border-fg/30 hover:bg-fg/5 hover:text-fg"
-            >
-              Invited? Enter your secret word
-            </button>
-          ))}
-      </div>
+          {/* Shown even when closed, as on the home page: a missing button reads
+            as a broken page, a disabled one says why. */}
+          <div className="flex flex-col items-center gap-2">
+            {canSignIn ? (
+              <a href="/api/auth/login" className="block w-full">
+                <SpotifyButton />
+              </a>
+            ) : (
+              <SpotifyButton disabled />
+            )}
+            {!canSignIn && (
+              <span className="text-xs text-fg/45">
+                Invite-only, by Spotify&apos;s limits
+              </span>
+            )}
+          </div>
+
+          {!canSignIn &&
+            (showInvite ? (
+              <InviteForm />
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowInvite(true)}
+                className="cursor-pointer self-center rounded-full border border-fg/15 px-5 py-2.5 text-sm font-semibold text-fg/70 transition-colors hover:border-fg/30 hover:bg-fg/5 hover:text-fg"
+              >
+                Invited? Enter your secret word
+              </button>
+            ))}
+        </div>
+      )}
     </main>
   );
 }

@@ -7,7 +7,8 @@ import { MIN_PASSWORD_LENGTH } from '@/lib/consts';
 import { ForgotPassword } from './ForgotPassword';
 import { useSignup } from '@/hooks/auth/useSignup';
 
-type Mode = 'signup' | 'login';
+export type CredentialsMode = 'signup' | 'login';
+type Mode = CredentialsMode;
 
 interface CredentialsFormProps {
   initialMode?: Mode;
@@ -21,7 +22,8 @@ interface CredentialsFormProps {
    * row the player already has, so there is nothing to start over from.
    */
   warnAboutSpotify?: boolean;
-  onDone?: () => void;
+  /** Told which of the two finished, and for which address. */
+  onDone?: (mode: Mode, email: string) => void;
 }
 
 export function CredentialsForm({
@@ -45,7 +47,10 @@ export function CredentialsForm({
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!canSubmit) return;
-    active.mutate({ email, password }, { onSuccess: () => onDone?.() });
+    active.mutate(
+      { email, password },
+      { onSuccess: () => onDone?.(mode, email) },
+    );
   }
 
   if (forgot) {
