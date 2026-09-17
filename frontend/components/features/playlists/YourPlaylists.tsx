@@ -95,7 +95,11 @@ export function YourPlaylists({ defaultOpen }: { defaultOpen: boolean }) {
           <SourceTiles
             selected={source}
             onSelect={setSource}
-            without={spotifyIsLinked(user) ? [PlaylistSource.Spotify] : []}
+            unavailable={
+              spotifyIsLinked(user)
+                ? { [PlaylistSource.Spotify]: 'already linked' }
+                : {}
+            }
           />
           <ImportPanel
             source={source}
