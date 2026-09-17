@@ -181,12 +181,14 @@ export function GuessInput({
       ) : null}
 
       {choices?.length ? (
-        <p className="text-center text-xs text-fg/40">
+        // Kept in the layout when empty: four choices need no instruction, but
+        // the card must not jump when one is locked.
+        <p className="text-center text-xs text-fg/40" aria-live="polite">
           {submitPending
             ? 'Checking…'
             : selectedTrack
               ? 'Locked in. Press it again to answer'
-              : 'Pick the song'}
+              : ' '}
         </p>
       ) : (
         <Popover open={dropdownOpen} modal={false}>
