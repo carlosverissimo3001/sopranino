@@ -101,6 +101,12 @@ export function YourPlaylists({ defaultOpen }: { defaultOpen: boolean }) {
                 : {}
             }
           />
+          {/* The pills are shortcuts; the mechanism is a Deezer link. */}
+          <p className="-mt-1 text-xs text-fg/40 sm:-mt-2">
+            Somewhere else, like Amazon Music or Tidal? Copy the playlist to
+            Deezer yourself and paste that link. It plays the same; the card
+            just shows Deezer rather than where it started.
+          </p>
           <ImportPanel
             source={source}
             onSourceChange={setSource}
