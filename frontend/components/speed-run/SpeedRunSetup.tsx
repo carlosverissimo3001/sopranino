@@ -282,8 +282,8 @@ export function SpeedRunSetup({
 
         <p className="text-[10px] font-semibold text-fg/40">
           {tab === StartRunDtoSourceEnum.Curated
-            ? 'Everyone plays the same pool - these runs make the leaderboard.'
-            : 'Practice runs. Your history keeps them; the leaderboard does not.'}
+            ? 'These runs count for the leaderboard.'
+            : "Practice: these runs don't count for the leaderboard."}
         </p>
 
         {tab === StartRunDtoSourceEnum.Curated ? (
