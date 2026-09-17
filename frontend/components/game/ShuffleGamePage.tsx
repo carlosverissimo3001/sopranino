@@ -307,7 +307,7 @@ export function ShuffleGamePage({
             {(trackGroupWaits || tierWaits) && (
               // In the gap below, taking no room: queuing a change moves nothing.
               <p className="absolute inset-x-0 top-full mt-0.5 text-center text-[11px] text-amber-300/80 sm:mt-2">
-                Next song:{' '}
+                From the next song:{' '}
                 {[
                   trackGroupWaits && queuedName,
                   tierWaits &&
