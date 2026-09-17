@@ -433,9 +433,10 @@ model PlaylistImport {
   externalId String         @map("external_id")
   checksum   String?
 
-  refreshedAt DateTime? @map("refreshed_at")
-  staleSince  DateTime? @map("stale_since")
-  createdAt   DateTime  @default(now()) @map("created_at")
+  refreshedAt     DateTime? @map("refreshed_at")
+  refreshingSince DateTime? @map("refreshing_since")
+  staleSince      DateTime? @map("stale_since")
+  createdAt       DateTime  @default(now()) @map("created_at")
 
   @@unique([source, externalId])
   @@map("playlist_imports")

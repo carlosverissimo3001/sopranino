@@ -2658,18 +2658,6 @@
                 }
               }
             }
-          },
-          "404": {
-            "description": "Private or deleted playlist"
-          },
-          "422": {
-            "description": "Service not supported yet"
-          },
-          "429": {
-            "description": "Daily import used"
-          },
-          "503": {
-            "description": "Import queue is full"
           }
         },
         "security": [
@@ -2678,6 +2666,69 @@
           }
         ],
         "summary": "Import a public playlist as a private set",
+        "tags": [
+          "Api"
+        ]
+      }
+    },
+    "/me/imports/quota": {
+      "get": {
+        "operationId": "PlaylistImportController_quota",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportQuotaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Playlist reads left in the player's day",
+        "tags": [
+          "Api"
+        ]
+      }
+    },
+    "/me/imports/{trackGroupId}/refresh": {
+      "post": {
+        "operationId": "PlaylistImportController_refresh",
+        "parameters": [
+          {
+            "name": "trackGroupId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportedSetDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Read an imported playlist again",
         "tags": [
           "Api"
         ]
@@ -2699,9 +2750,6 @@
         "responses": {
           "204": {
             "description": ""
-          },
-          "404": {
-            "description": "Not one of theirs"
           }
         },
         "security": [
@@ -5668,6 +5716,15 @@
             "type": "string",
             "description": "When the playlist stopped being readable; its last songs are kept"
           },
+          "refreshing": {
+            "type": "boolean",
+            "description": "Its songs are being read right now"
+          },
+          "refreshedAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "When its songs were last read"
+          },
           "origin": {
             "type": "string",
             "enum": [
@@ -5691,7 +5748,29 @@
           "trackCount",
           "source",
           "externalUrl",
-          "pending"
+          "pending",
+          "refreshing"
+        ]
+      },
+      "ImportQuotaDto": {
+        "type": "object",
+        "properties": {
+          "left": {
+            "type": "number",
+            "description": "Playlist reads left today"
+          },
+          "limit": {
+            "type": "number",
+            "description": "Reads a player gets each day"
+          },
+          "resetsIn": {
+            "type": "number",
+            "description": "Seconds until the count starts over"
+          }
+        },
+        "required": [
+          "left",
+          "limit"
         ]
       },
       "PlaylistSortBy": {
@@ -5768,6 +5847,15 @@
           "staleSince": {
             "format": "date-time",
             "type": "string"
+          },
+          "refreshedAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Imports: when its songs were last read"
+          },
+          "refreshing": {
+            "type": "boolean",
+            "description": "Imports: its songs are being read now"
           }
         },
         "required": [

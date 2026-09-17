@@ -99,6 +99,18 @@ export interface PlaylistItemDto {
      * @memberof PlaylistItemDto
      */
     staleSince?: Date;
+    /**
+     * Imports: when its songs were last read
+     * @type {Date}
+     * @memberof PlaylistItemDto
+     */
+    refreshedAt?: Date;
+    /**
+     * Imports: its songs are being read now
+     * @type {boolean}
+     * @memberof PlaylistItemDto
+     */
+    refreshing?: boolean;
 }
 
 
@@ -157,6 +169,8 @@ export function PlaylistItemDtoFromJSONTyped(json: any, ignoreDiscriminator: boo
         'origin': json['origin'] == null ? undefined : json['origin'],
         'pending': json['pending'] == null ? undefined : json['pending'],
         'staleSince': json['staleSince'] == null ? undefined : (new Date(json['staleSince'])),
+        'refreshedAt': json['refreshedAt'] == null ? undefined : (new Date(json['refreshedAt'])),
+        'refreshing': json['refreshing'] == null ? undefined : json['refreshing'],
     };
 }
 
@@ -183,6 +197,8 @@ export function PlaylistItemDtoToJSONTyped(value?: PlaylistItemDto | null, ignor
         'origin': value['origin'],
         'pending': value['pending'],
         'staleSince': value['staleSince'] == null ? value['staleSince'] : value['staleSince'].toISOString(),
+        'refreshedAt': value['refreshedAt'] == null ? value['refreshedAt'] : value['refreshedAt'].toISOString(),
+        'refreshing': value['refreshing'],
     };
 }
 

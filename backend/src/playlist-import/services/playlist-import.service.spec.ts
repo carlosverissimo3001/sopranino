@@ -20,6 +20,7 @@ import {
   PlaylistUnavailableError,
 } from '../providers/playlist-provider';
 import { PlaylistImportRepository } from '../repositories/playlist-import.repository';
+import { ImportQuotaService } from './import-quota.service';
 import { PlaylistImportService } from './playlist-import.service';
 
 jest.mock('@transaction/transaction.store', () => ({
@@ -66,6 +67,8 @@ describe('PlaylistImportService', () => {
     updateAfterFill: jest.fn(),
     markFresh: jest.fn(),
     markStale: jest.fn(),
+    markRefreshing: jest.fn(),
+    findMembership: jest.fn(),
   };
   const deezer = {
     source: PlaylistSource.DEEZER,
@@ -73,7 +76,13 @@ describe('PlaylistImportService', () => {
     info: jest.fn(),
     members: jest.fn(),
   };
-  const redisClient = { set: jest.fn(), del: jest.fn() };
+  const quota = {
+    claimDay: jest.fn(),
+    refundDay: jest.fn(),
+    claimRefresh: jest.fn(),
+    releaseRefresh: jest.fn(),
+    dayLeft: jest.fn(),
+  };
   const queue = { add: jest.fn(), getWaitingCount: jest.fn() };
   const trackGroups = { replaceMembers: jest.fn() };
   const pool = { forget: jest.fn() };
@@ -91,7 +100,8 @@ describe('PlaylistImportService', () => {
     repository.findByExternal.mockResolvedValue(null);
     repository.create.mockResolvedValue(group());
     queue.getWaitingCount.mockResolvedValue(0);
-    redisClient.set.mockResolvedValue('OK');
+    quota.claimDay.mockResolvedValue(null);
+    quota.claimRefresh.mockResolvedValue(null);
 
     const module = await Test.createTestingModule({
       providers: [
@@ -100,7 +110,8 @@ describe('PlaylistImportService', () => {
         { provide: AuthService, useValue: auth },
         { provide: PoolService, useValue: pool },
         { provide: TrackGroupService, useValue: trackGroups },
-        { provide: RedisService, useValue: { getClient: () => redisClient } },
+        { provide: RedisService, useValue: { getClient: () => ({}) } },
+        { provide: ImportQuotaService, useValue: quota },
         { provide: getQueueToken(PLAYLIST_IMPORT_QUEUE), useValue: queue },
         { provide: PLAYLIST_PROVIDERS, useValue: [deezer] },
         {
@@ -154,7 +165,7 @@ describe('PlaylistImportService', () => {
         undefined,
       );
       expect(deezer.info).not.toHaveBeenCalled();
-      expect(redisClient.set).not.toHaveBeenCalled();
+      expect(quota.claimDay).not.toHaveBeenCalled();
       expect(repository.create).not.toHaveBeenCalled();
     });
 
@@ -199,7 +210,7 @@ describe('PlaylistImportService', () => {
       deezer.info.mockRejectedValue(new PlaylistUnavailableError('42'));
 
       await expect(importDeezer()).rejects.toThrow(NotFoundException);
-      expect(redisClient.set).not.toHaveBeenCalled();
+      expect(quota.claimDay).not.toHaveBeenCalled();
     });
 
     it('refuses a playlist past the size cap', async () => {
@@ -209,11 +220,11 @@ describe('PlaylistImportService', () => {
       });
 
       await expect(importDeezer()).rejects.toThrow(BadRequestException);
-      expect(redisClient.set).not.toHaveBeenCalled();
+      expect(quota.claimDay).not.toHaveBeenCalled();
     });
 
-    it('allows one new playlist a day', async () => {
-      redisClient.set.mockResolvedValue(null);
+    it('refuses once the day of reads is spent', async () => {
+      quota.claimDay.mockResolvedValue(3_600);
 
       await expect(importDeezer()).rejects.toMatchObject({
         status: HttpStatus.TOO_MANY_REQUESTS,
@@ -239,8 +250,56 @@ describe('PlaylistImportService', () => {
         'set-1',
         undefined,
       );
-      expect(redisClient.del).toHaveBeenCalled();
+      expect(quota.refundDay).toHaveBeenCalled();
       expect(queue.add).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('refreshing', () => {
+    beforeEach(() => {
+      repository.findMembership.mockResolvedValue({
+        origin: null,
+        createdAt: new Date(),
+      });
+      repository.findById.mockResolvedValue(group());
+    });
+
+    it('queues a read of the same playlist', async () => {
+      await service.refresh('session-1', 'set-1');
+
+      expect(queue.add).toHaveBeenCalledWith(
+        expect.any(String),
+        { trackGroupId: 'set-1' },
+        expect.objectContaining({ jobId: 'fill-set-1' }),
+      );
+    });
+
+    it('hides a set the player is not in', async () => {
+      repository.findMembership.mockResolvedValue(null);
+
+      await expect(service.refresh('session-1', 'set-1')).rejects.toThrow(
+        NotFoundException,
+      );
+      expect(quota.claimDay).not.toHaveBeenCalled();
+    });
+
+    it('says when the same playlist can be refreshed again', async () => {
+      quota.claimRefresh.mockResolvedValue(420);
+
+      await expect(service.refresh('session-1', 'set-1')).rejects.toMatchObject(
+        { status: HttpStatus.TOO_MANY_REQUESTS },
+      );
+      expect(queue.add).not.toHaveBeenCalled();
+    });
+
+    // Otherwise the wait would be spent on a refresh that never happened.
+    it('frees the wait when the day is spent', async () => {
+      quota.claimDay.mockResolvedValue(3_600);
+
+      await expect(service.refresh('session-1', 'set-1')).rejects.toMatchObject(
+        { status: HttpStatus.TOO_MANY_REQUESTS },
+      );
+      expect(quota.releaseRefresh).toHaveBeenCalledWith('user-1', 'set-1');
     });
   });
 
