@@ -150,7 +150,7 @@ export function ShuffleModeNav({
           <div
             role="dialog"
             aria-label="Pick a set"
-            className="absolute inset-x-0 top-full z-40 mx-auto mt-2 w-full max-w-[22rem] rounded-2xl border border-fg/10 bg-[rgb(var(--surface))] p-3 text-left shadow-2xl shadow-black/50"
+            className="absolute inset-x-0 top-full z-40 mx-auto mt-2 w-full max-w-[27rem] rounded-2xl border border-fg/10 bg-[rgb(var(--surface))] p-3 text-left shadow-2xl shadow-black/50"
           >
             <SetChips
               selectedId={trackGroupId}

@@ -67,7 +67,7 @@ export function SetChips({
         <div
           role="tablist"
           aria-label="Kinds of set"
-          className="-mx-1 flex gap-1 overflow-x-auto px-1"
+          className="-mx-1 flex gap-1 overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {kinds.map((kind) => (
             <button
