@@ -154,18 +154,23 @@ export function GuessInput({
                 }
                 // Amber, not the green of a sent answer: this one is held, and
                 // the next press is what commits it.
-                className={`min-h-[52px] rounded-xl px-3 py-2 text-left sm:min-h-[56px] sm:px-4 sm:py-3 transition-colors touch-manipulation ${
+                className={`relative min-h-[52px] rounded-xl px-3 py-2 text-left sm:min-h-[56px] sm:px-4 sm:py-3 transition-colors touch-manipulation ${
                   isSelected
                     ? 'bg-amber-400 text-black shadow-lg shadow-amber-400/20'
                     : 'border border-fg/[0.08] bg-fg/[0.06] text-fg hover:bg-fg/10'
                 }`}
               >
-                <p className="flex items-center gap-1.5 truncate text-sm font-semibold sm:text-base">
-                  {isSelected && <Lock className="h-3.5 w-3.5 shrink-0" />}
+                {isSelected && (
+                  <Lock
+                    aria-hidden
+                    className="absolute right-2 top-2 h-3.5 w-3.5 text-black/60 sm:right-3 sm:top-3"
+                  />
+                )}
+                <p className="truncate pr-5 text-sm font-semibold sm:text-base">
                   {choice.name}
                 </p>
                 <p
-                  className={`truncate text-xs sm:text-sm ${isSelected ? 'text-black/70' : 'text-fg/50'}`}
+                  className={`truncate pr-5 text-xs sm:text-sm ${isSelected ? 'text-black/70' : 'text-fg/50'}`}
                 >
                   {choice.artist}
                 </p>
