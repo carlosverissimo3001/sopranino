@@ -110,6 +110,7 @@ export function ShuffleGamePage({
     start,
     isStarting,
     trackGroupId,
+    playlistId,
     handleTrackGroupChange,
     handlePlaylistChange,
     playingPlaylistId,
@@ -124,6 +125,11 @@ export function ShuffleGamePage({
 
   useWarnOnLeave(!!gameState && !isGameOver);
   const queuedSetName = useTrackGroupName(trackGroupId);
+  // What the next song will come from: a playlist names itself, a set is
+  // looked up, and neither means the whole pool.
+  const queuedName = playlistId
+    ? playlistNames[playlistId]
+    : (queuedSetName ?? 'All songs');
   const playingSet = useTrackGroupById(playingTrackGroupId);
 
   // The tap that started the round asked to hear it, so it plays once ready.
@@ -303,7 +309,7 @@ export function ShuffleGamePage({
               <p className="absolute inset-x-0 top-full mt-0.5 text-center text-[11px] text-amber-300/80 sm:mt-2">
                 Next song:{' '}
                 {[
-                  trackGroupWaits && (queuedSetName ?? 'All songs'),
+                  trackGroupWaits && queuedName,
                   tierWaits &&
                     FAME_TIERS.find((t) => t.value === fameTier)?.label,
                 ]
