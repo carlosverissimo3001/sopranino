@@ -21,7 +21,7 @@ export function RevealGuestPrompt() {
   }
 
   return (
-    <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs sm:justify-start">
+    <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 border-t border-fg/10 px-5 py-3 text-xs sm:justify-start sm:px-6">
       <span className="text-fg/60">Play songs from your own playlists.</span>
       <Link
         href="/signin?mode=signup"
