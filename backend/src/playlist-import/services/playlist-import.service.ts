@@ -48,6 +48,8 @@ const EXTERNAL_URLS: Record<PlaylistSource, (id: string) => string> = {
   [PlaylistSource.SPOTIFY]: (id) => `https://open.spotify.com/playlist/${id}`,
   [PlaylistSource.APPLE_MUSIC]: (id) =>
     `https://music.apple.com/playlist/${id}`,
+  [PlaylistSource.YOUTUBE_MUSIC]: (id) =>
+    `https://music.youtube.com/playlist?list=${id}`,
 };
 
 @Injectable()

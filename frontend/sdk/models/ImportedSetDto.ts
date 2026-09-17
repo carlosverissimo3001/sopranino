@@ -126,7 +126,8 @@ export type ImportedSetDtoTypeEnum = typeof ImportedSetDtoTypeEnum[keyof typeof 
 export const ImportedSetDtoSourceEnum = {
     Deezer: 'DEEZER',
     Spotify: 'SPOTIFY',
-    AppleMusic: 'APPLE_MUSIC'
+    AppleMusic: 'APPLE_MUSIC',
+    YoutubeMusic: 'YOUTUBE_MUSIC'
 } as const;
 export type ImportedSetDtoSourceEnum = typeof ImportedSetDtoSourceEnum[keyof typeof ImportedSetDtoSourceEnum];
 
@@ -136,7 +137,8 @@ export type ImportedSetDtoSourceEnum = typeof ImportedSetDtoSourceEnum[keyof typ
 export const ImportedSetDtoOriginEnum = {
     Deezer: 'DEEZER',
     Spotify: 'SPOTIFY',
-    AppleMusic: 'APPLE_MUSIC'
+    AppleMusic: 'APPLE_MUSIC',
+    YoutubeMusic: 'YOUTUBE_MUSIC'
 } as const;
 export type ImportedSetDtoOriginEnum = typeof ImportedSetDtoOriginEnum[keyof typeof ImportedSetDtoOriginEnum];
 

@@ -34,6 +34,11 @@ const PARSERS: Record<PlaylistSource, Parser> = {
       );
     return match ? { externalId: match[1] } : null;
   },
+  [PlaylistSource.YOUTUBE_MUSIC]: (url) => {
+    if (host(url) !== 'music.youtube.com') return null;
+    const id = url.searchParams.get('list');
+    return id && /^[A-Za-z0-9_-]{10,}$/.test(id) ? { externalId: id } : null;
+  },
 };
 
 export function parsePlaylistLink(

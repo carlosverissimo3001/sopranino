@@ -208,6 +208,69 @@ export const PLAYLIST_SOURCES: Record<Source, SourceInfo> = {
       cta: 'bg-[#FA2D48] text-white hover:bg-[#FF4A61]',
     },
   },
+  [Source.YoutubeMusic]: {
+    name: 'YouTube Music',
+    hosts: ['music.youtube.com'],
+    supported: true,
+    via: Source.Deezer,
+    steps: [
+      'Copy the playlist to Deezer with TuneMyMusic, a free tool',
+      'Open the copy in Deezer, tap Share, then Copy link',
+      'Paste the Deezer link here',
+    ],
+    guide: [
+      {
+        title: 'Open TuneMyMusic and pick YouTube Music',
+        caption: 'A free tool that copies a playlist between services.',
+        shotOf: 'TuneMyMusic with YouTube Music chosen as the source',
+        image: 'guides/tmm-youtube-source.webp',
+      },
+      {
+        title: 'Load the playlist',
+        caption:
+          'Sign in to pick from your library, or paste one playlist link.',
+        shotOf: 'TuneMyMusic offering to sign in or take a pasted link',
+        image: 'guides/tmm-youtube-load.webp',
+      },
+      {
+        title: 'Choose Deezer as the destination',
+        caption: 'Sign in to Deezer when it asks. A free account is enough.',
+        shotOf: 'TuneMyMusic with Deezer picked as the destination',
+        image: 'guides/tmm-youtube-destination.webp',
+      },
+      {
+        title: 'Start Transfer',
+        caption: 'Videos and uploads it cannot match are left behind.',
+        shotOf: 'The last TuneMyMusic step, with the Start Transfer button',
+        image: 'guides/tmm-youtube-transfer.webp',
+      },
+      {
+        title: 'Open the copy in Deezer, Share, Copy link',
+        caption: 'The transfer leaves a new playlist in your Deezer account.',
+        shotOf: 'The copied playlist in Deezer with the share menu open',
+        image: 'guides/deezer-share-menu.webp',
+      },
+      {
+        title: 'Paste the Deezer link here',
+        caption:
+          'Songs you add on YouTube Music reach it when you transfer again.',
+        shotOf: 'The Sopranino import panel with the Deezer link pasted',
+        image: 'guides/sopranino-pasted-youtube-v2.webp',
+      },
+    ],
+    example: 'https://www.deezer.com/playlist/…',
+    tone: {
+      chipOn:
+        'border-[#FF0000]/60 bg-[#FF0000]/20 text-[#C20000] dark:text-[#FF7A6B]',
+      chipOff:
+        'border-[#FF0000]/25 bg-[#FF0000]/5 text-[#C20000] dark:text-[#FF7A6B]',
+      panel: 'border-[#FF0000]/30 bg-[#FF0000]/[0.06]',
+      step: 'bg-[#FF0000]/20 text-[#C20000] dark:text-[#FF6A57]',
+      badge: 'bg-[#FF0000]',
+      mark: 'text-[#FF0000]',
+      cta: 'bg-[#FF0000] text-white hover:bg-[#E60000]',
+    },
+  },
 };
 
 export const SOURCE_ORDER = Object.keys(PLAYLIST_SOURCES) as Source[];

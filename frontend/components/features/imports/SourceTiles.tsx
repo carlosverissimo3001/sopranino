@@ -47,9 +47,21 @@ export function SourceTiles({
             {reason ? (
               <span className="font-semibold opacity-70">{reason}</span>
             ) : info.via ? (
-              <span className="font-semibold opacity-70">
-                via {PLAYLIST_SOURCES[info.via].name}
-              </span>
+              // The route shown rather than spelled out three times over. The
+              // panel says it in words once the pill is picked.
+              <>
+                <span className="sr-only">
+                  via {PLAYLIST_SOURCES[info.via].name}
+                </span>
+                <span aria-hidden className="opacity-50">
+                  ›
+                </span>
+                <SourceLogo
+                  source={info.via}
+                  aria-hidden
+                  className={`h-3 w-3 shrink-0 ${PLAYLIST_SOURCES[info.via].tone.mark}`}
+                />
+              </>
             ) : (
               !info.supported && (
                 <span className="font-semibold opacity-70">soon</span>
