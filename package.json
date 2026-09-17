@@ -13,6 +13,7 @@
     ]
   },
   "scripts": {
+    "prepare": "git config core.hooksPath .githooks",
     "dev": "pnpm --parallel -r dev",
     "dev:backend": "pnpm --filter backend dev",
     "dev:frontend": "pnpm --filter frontend dev",
