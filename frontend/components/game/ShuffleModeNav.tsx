@@ -11,6 +11,13 @@ import {
   Users,
 } from 'lucide-react';
 import { SetChips } from '@/components/features/track-group/SetChips';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer';
+import { useIsBelowSm } from '@/hooks/useIsBelowSm';
 import { useTrackGroupName } from '@/hooks/track-groups/useTrackGroupName';
 import { groupHasFameTiers } from '@/lib/fame-tier';
 import type { TrackGroupDto } from '@/sdk';
@@ -51,12 +58,15 @@ export function ShuffleModeNav({
 }: ShuffleModeNavProps) {
   const [setsOpen, setSetsOpen] = useState(false);
   const panelRef = useRef<HTMLElement>(null);
+  // A sheet on a phone: the dropdown covered the round it belongs to.
+  const isPhone = useIsBelowSm();
   // Green is what is playing; a pick made mid-round is named below the row.
   const playingName = useTrackGroupName(playingTrackGroupId);
 
-  // An overlay, so it closes the way one does: outside it, or with Escape.
+  // An overlay, so it closes the way one does: outside it, or with Escape. The
+  // sheet brings its own.
   useEffect(() => {
-    if (!setsOpen) return;
+    if (!setsOpen || isPhone) return;
     const onPointer = (event: PointerEvent) => {
       if (!panelRef.current?.contains(event.target as Node)) setSetsOpen(false);
     };
@@ -69,7 +79,7 @@ export function ShuffleModeNav({
       document.removeEventListener('pointerdown', onPointer);
       document.removeEventListener('keydown', onKey);
     };
-  }, [setsOpen]);
+  }, [setsOpen, isPhone]);
 
   const pick = (set: TrackGroupDto | undefined) => {
     onTrackGroupChange(
@@ -117,19 +127,37 @@ export function ShuffleModeNav({
         ))}
       </div>
 
-      {/* Hangs from the whole row: centred on a pill left of centre, it ran off
-          the edge of a phone. */}
-      {setsOpen && (
-        <div
-          role="dialog"
-          aria-label="Pick a set"
-          className="absolute inset-x-0 top-full z-40 mx-auto mt-2 w-full max-w-[22rem] rounded-2xl border border-fg/10 bg-[rgb(var(--surface))] p-3 text-left shadow-2xl shadow-black/50"
-        >
-          <SetChips
-            selectedId={trackGroupId}
-            onPick={(set) => pick(trackGroupId === set.id ? undefined : set)}
-          />
-        </div>
+      {isPhone ? (
+        <Drawer open={setsOpen} onOpenChange={setSetsOpen}>
+          <DrawerContent className="max-h-[70dvh] border-fg/10 bg-[rgb(var(--surface))]">
+            <DrawerHeader className="pb-2 text-left">
+              <DrawerTitle className="text-sm">Pick a set</DrawerTitle>
+            </DrawerHeader>
+            <div className="overflow-y-auto px-4 pb-6">
+              <SetChips
+                selectedId={trackGroupId}
+                onPick={(set) =>
+                  pick(trackGroupId === set.id ? undefined : set)
+                }
+              />
+            </div>
+          </DrawerContent>
+        </Drawer>
+      ) : (
+        /* Hangs from the whole row: centred on a pill left of centre, it ran
+           off the edge. */
+        setsOpen && (
+          <div
+            role="dialog"
+            aria-label="Pick a set"
+            className="absolute inset-x-0 top-full z-40 mx-auto mt-2 w-full max-w-[27rem] rounded-2xl border border-fg/10 bg-[rgb(var(--surface))] p-3 text-left shadow-2xl shadow-black/50"
+          >
+            <SetChips
+              selectedId={trackGroupId}
+              onPick={(set) => pick(trackGroupId === set.id ? undefined : set)}
+            />
+          </div>
+        )
       )}
     </nav>
   );
