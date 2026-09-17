@@ -12,6 +12,7 @@ import { AudioDebugPanel } from './AudioDebugPanel';
 import { GuessHistoryList } from './GuessHistoryList';
 import { GuessInput, type GuessSearchState } from './GuessInput';
 import { HintPanel } from './HintPanel';
+import { knownFromGuesses } from '@/lib/guess-match';
 import { GuessResultNote } from './GuessResultNote';
 import { PlaySnippetButton } from './PlaySnippetButton';
 import { RoundProgressBar } from './RoundProgressBar';
@@ -215,6 +216,7 @@ export function GameRoundView({
                   <HintPanel
                     hints={round.hints ?? []}
                     currentRound={round.currentRound}
+                    known={knownFromGuesses(round.guesses)}
                   />
                 </div>
               )}

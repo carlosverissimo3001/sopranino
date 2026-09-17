@@ -7,6 +7,7 @@ import { GuessHistoryDtoResultEnum } from '@/sdk/models/GuessHistoryDto';
 interface Guess {
   trackId?: string | null;
   trackName?: string | null;
+  albumName?: string | null;
   artistName?: string | null;
   result: GuessHistoryDtoResultEnum | null;
 }
@@ -129,6 +130,16 @@ export function GuessHistoryList({
                       {guess.artistName}
                     </span>
                   )}
+                  {/* Named only where the album is what matched. */}
+                  {guess.albumName &&
+                    (guess.result === GuessHistoryDtoResultEnum.Album ||
+                      guess.result ===
+                        GuessHistoryDtoResultEnum.ArtistAndAlbum) && (
+                      <span className="text-fg/40">
+                        {' · '}
+                        {guess.albumName}
+                      </span>
+                    )}
                 </p>
                 <span className="flex shrink-0 items-center gap-1.5 text-xs text-fg/50">
                   {style.label}

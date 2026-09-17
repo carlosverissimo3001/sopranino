@@ -3,9 +3,12 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { GuessHistoryDtoResultEnum } from '@/sdk/models/GuessHistoryDto';
 import { getGuessResultStyle } from './guess-result-styles';
+import { matchedName } from '@/lib/guess-match';
 
 interface Guess {
   trackName?: string | null;
+  artistName?: string | null;
+  albumName?: string | null;
   result: GuessHistoryDtoResultEnum | null;
 }
 
@@ -37,9 +40,9 @@ export function GuessResultNote({ guesses }: { guesses: Guess[] }) {
               <span className="shrink-0">
                 {getGuessResultStyle(shown.result).label}
               </span>
-              {shown.trackName && (
+              {matchedName(shown) && (
                 <span className="truncate font-normal opacity-80">
-                  · {shown.trackName}
+                  · {matchedName(shown)}
                 </span>
               )}
             </span>

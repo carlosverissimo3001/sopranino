@@ -46,6 +46,12 @@ export interface GuessHistoryDto {
      */
     artistName?: string;
     /**
+     * The album of the track
+     * @type {string}
+     * @memberof GuessHistoryDto
+     */
+    albumName?: string;
+    /**
      * The result of the guess
      * @type {string}
      * @memberof GuessHistoryDto
@@ -95,6 +101,7 @@ export function GuessHistoryDtoFromJSONTyped(json: any, ignoreDiscriminator: boo
         'trackId': json['trackId'] == null ? undefined : json['trackId'],
         'trackName': json['trackName'] == null ? undefined : json['trackName'],
         'artistName': json['artistName'] == null ? undefined : json['artistName'],
+        'albumName': json['albumName'] == null ? undefined : json['albumName'],
         'result': json['result'],
         'audio': json['audio'] == null ? undefined : GuessAudioDtoFromJSON(json['audio']),
     };
@@ -114,6 +121,7 @@ export function GuessHistoryDtoToJSONTyped(value?: GuessHistoryDto | null, ignor
         'trackId': value['trackId'],
         'trackName': value['trackName'],
         'artistName': value['artistName'],
+        'albumName': value['albumName'],
         'result': value['result'],
         'audio': GuessAudioDtoToJSON(value['audio']),
     };

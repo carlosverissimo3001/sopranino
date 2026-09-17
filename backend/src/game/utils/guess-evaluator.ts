@@ -91,10 +91,14 @@ export function addGuessToHistory(
       ? actual.artistName
       : (guess.artistName ?? 'Unknown');
 
+  const albumName =
+    result === GuessResult.Correct ? actual.albumName : guess.albumName;
+
   history.push({
     trackId: guess.trackId,
     trackName,
     artistName,
+    ...(albumName && { albumName }),
     result,
     ...(guess.audio && { audio: guess.audio }),
   });

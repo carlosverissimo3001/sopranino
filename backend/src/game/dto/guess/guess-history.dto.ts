@@ -13,6 +13,9 @@ export class GuessHistoryDto {
   @ApiPropertyOptional({ description: 'The artist of the track', type: String })
   artistName?: string;
 
+  @ApiPropertyOptional({ description: 'The album of the track', type: String })
+  albumName?: string;
+
   @ApiProperty({ description: 'The result of the guess', enum: GuessResult })
   result: GuessResult;
 

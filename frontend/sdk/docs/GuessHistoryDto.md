@@ -9,6 +9,7 @@ Name | Type
 `trackId` | string
 `trackName` | string
 `artistName` | string
+`albumName` | string
 `result` | string
 `audio` | [GuessAudioDto](GuessAudioDto.md)
 
@@ -22,6 +23,7 @@ const example = {
   "trackId": null,
   "trackName": null,
   "artistName": null,
+  "albumName": null,
   "result": null,
   "audio": null,
 } satisfies GuessHistoryDto
