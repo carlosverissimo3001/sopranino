@@ -31,6 +31,12 @@ export interface ImportPlaylistControllerDto {
      * @memberof ImportPlaylistControllerDto
      */
     link: string;
+    /**
+     * Where the player keeps the playlist, when the link is a copy
+     * @type {string}
+     * @memberof ImportPlaylistControllerDto
+     */
+    origin?: ImportPlaylistControllerDtoOriginEnum;
 }
 
 
@@ -43,6 +49,16 @@ export const ImportPlaylistControllerDtoSourceEnum = {
     AppleMusic: 'APPLE_MUSIC'
 } as const;
 export type ImportPlaylistControllerDtoSourceEnum = typeof ImportPlaylistControllerDtoSourceEnum[keyof typeof ImportPlaylistControllerDtoSourceEnum];
+
+/**
+ * @export
+ */
+export const ImportPlaylistControllerDtoOriginEnum = {
+    Deezer: 'DEEZER',
+    Spotify: 'SPOTIFY',
+    AppleMusic: 'APPLE_MUSIC'
+} as const;
+export type ImportPlaylistControllerDtoOriginEnum = typeof ImportPlaylistControllerDtoOriginEnum[keyof typeof ImportPlaylistControllerDtoOriginEnum];
 
 
 /**
@@ -66,6 +82,7 @@ export function ImportPlaylistControllerDtoFromJSONTyped(json: any, ignoreDiscri
         
         'source': json['source'],
         'link': json['link'],
+        'origin': json['origin'] == null ? undefined : json['origin'],
     };
 }
 
@@ -82,6 +99,7 @@ export function ImportPlaylistControllerDtoToJSONTyped(value?: ImportPlaylistCon
         
         'source': value['source'],
         'link': value['link'],
+        'origin': value['origin'],
     };
 }
 

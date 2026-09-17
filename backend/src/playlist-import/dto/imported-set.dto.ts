@@ -18,6 +18,12 @@ export class ImportedSetDto extends TrackGroupDto {
   })
   staleSince?: Date;
 
+  @ApiPropertyOptional({
+    enum: PlaylistSource,
+    description: 'The service this player copied it from, when it is a copy',
+  })
+  origin?: PlaylistSource;
+
   @ApiPropertyOptional({ description: 'When this player added it' })
   addedAt?: Date;
 }

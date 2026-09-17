@@ -15,6 +15,7 @@ Name | Type
 `owner` | string
 `slug` | string
 `source` | string
+`origin` | string
 `pending` | boolean
 `staleSince` | Date
 
@@ -34,6 +35,7 @@ const example = {
   "owner": null,
   "slug": null,
   "source": null,
+  "origin": null,
   "pending": null,
   "staleSince": null,
 } satisfies PlaylistItemDto

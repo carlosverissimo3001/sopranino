@@ -80,6 +80,12 @@ export interface ImportedSetDto {
      */
     staleSince?: Date;
     /**
+     * The service this player copied it from, when it is a copy
+     * @type {string}
+     * @memberof ImportedSetDto
+     */
+    origin?: ImportedSetDtoOriginEnum;
+    /**
      * When this player added it
      * @type {Date}
      * @memberof ImportedSetDto
@@ -111,6 +117,16 @@ export const ImportedSetDtoSourceEnum = {
     AppleMusic: 'APPLE_MUSIC'
 } as const;
 export type ImportedSetDtoSourceEnum = typeof ImportedSetDtoSourceEnum[keyof typeof ImportedSetDtoSourceEnum];
+
+/**
+ * @export
+ */
+export const ImportedSetDtoOriginEnum = {
+    Deezer: 'DEEZER',
+    Spotify: 'SPOTIFY',
+    AppleMusic: 'APPLE_MUSIC'
+} as const;
+export type ImportedSetDtoOriginEnum = typeof ImportedSetDtoOriginEnum[keyof typeof ImportedSetDtoOriginEnum];
 
 
 /**
@@ -148,6 +164,7 @@ export function ImportedSetDtoFromJSONTyped(json: any, ignoreDiscriminator: bool
         'externalUrl': json['externalUrl'],
         'pending': json['pending'],
         'staleSince': json['staleSince'] == null ? undefined : (new Date(json['staleSince'])),
+        'origin': json['origin'] == null ? undefined : json['origin'],
         'addedAt': json['addedAt'] == null ? undefined : (new Date(json['addedAt'])),
     };
 }
@@ -173,6 +190,7 @@ export function ImportedSetDtoToJSONTyped(value?: ImportedSetDto | null, ignoreD
         'externalUrl': value['externalUrl'],
         'pending': value['pending'],
         'staleSince': value['staleSince'] == null ? value['staleSince'] : value['staleSince'].toISOString(),
+        'origin': value['origin'],
         'addedAt': value['addedAt'] == null ? value['addedAt'] : value['addedAt'].toISOString(),
     };
 }

@@ -5593,6 +5593,15 @@
           "link": {
             "type": "string",
             "example": "https://www.deezer.com/playlist/1313621735"
+          },
+          "origin": {
+            "type": "string",
+            "enum": [
+              "DEEZER",
+              "SPOTIFY",
+              "APPLE_MUSIC"
+            ],
+            "description": "Where the player keeps the playlist, when the link is a copy"
           }
         },
         "required": [
@@ -5658,6 +5667,15 @@
             "format": "date-time",
             "type": "string",
             "description": "When the playlist stopped being readable; its last songs are kept"
+          },
+          "origin": {
+            "type": "string",
+            "enum": [
+              "DEEZER",
+              "SPOTIFY",
+              "APPLE_MUSIC"
+            ],
+            "description": "The service this player copied it from, when it is a copy"
           },
           "addedAt": {
             "format": "date-time",
@@ -5733,6 +5751,15 @@
               "SPOTIFY",
               "APPLE_MUSIC"
             ]
+          },
+          "origin": {
+            "type": "string",
+            "enum": [
+              "DEEZER",
+              "SPOTIFY",
+              "APPLE_MUSIC"
+            ],
+            "description": "Imports: the service the copy was made from"
           },
           "pending": {
             "type": "boolean",

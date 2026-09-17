@@ -82,6 +82,12 @@ export interface PlaylistItemDto {
      */
     source?: PlaylistItemDtoSourceEnum;
     /**
+     * Imports: the service the copy was made from
+     * @type {string}
+     * @memberof PlaylistItemDto
+     */
+    origin?: PlaylistItemDtoOriginEnum;
+    /**
      * Imports: songs not read yet
      * @type {boolean}
      * @memberof PlaylistItemDto
@@ -105,6 +111,16 @@ export const PlaylistItemDtoSourceEnum = {
     AppleMusic: 'APPLE_MUSIC'
 } as const;
 export type PlaylistItemDtoSourceEnum = typeof PlaylistItemDtoSourceEnum[keyof typeof PlaylistItemDtoSourceEnum];
+
+/**
+ * @export
+ */
+export const PlaylistItemDtoOriginEnum = {
+    Deezer: 'DEEZER',
+    Spotify: 'SPOTIFY',
+    AppleMusic: 'APPLE_MUSIC'
+} as const;
+export type PlaylistItemDtoOriginEnum = typeof PlaylistItemDtoOriginEnum[keyof typeof PlaylistItemDtoOriginEnum];
 
 
 /**
@@ -138,6 +154,7 @@ export function PlaylistItemDtoFromJSONTyped(json: any, ignoreDiscriminator: boo
         'owner': json['owner'] == null ? undefined : json['owner'],
         'slug': json['slug'] == null ? undefined : json['slug'],
         'source': json['source'] == null ? undefined : json['source'],
+        'origin': json['origin'] == null ? undefined : json['origin'],
         'pending': json['pending'] == null ? undefined : json['pending'],
         'staleSince': json['staleSince'] == null ? undefined : (new Date(json['staleSince'])),
     };
@@ -163,6 +180,7 @@ export function PlaylistItemDtoToJSONTyped(value?: PlaylistItemDto | null, ignor
         'owner': value['owner'],
         'slug': value['slug'],
         'source': value['source'],
+        'origin': value['origin'],
         'pending': value['pending'],
         'staleSince': value['staleSince'] == null ? value['staleSince'] : value['staleSince'].toISOString(),
     };
