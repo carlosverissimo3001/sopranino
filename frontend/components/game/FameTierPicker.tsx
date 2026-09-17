@@ -39,12 +39,12 @@ export function FameTierPicker({
             aria-checked={value === tier.value}
             disabled={disabled}
             onClick={() => onChange(tier.value)}
-            className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-bold transition-colors disabled:opacity-50 sm:py-1 ${
+            className={`shrink-0 rounded-full border border-transparent px-2.5 py-px text-[11px] font-bold transition-colors disabled:opacity-50 sm:py-[3px] ${
               waits && playing === tier.value
                 ? // The song on screen keeps its colour; the queued pick is amber.
                   tier.accent
                 : waits && value === tier.value
-                  ? 'text-amber-300 ring-1 ring-inset ring-amber-400/60'
+                  ? 'border-amber-400/60 text-amber-300'
                   : !waits && value === tier.value
                     ? tier.accent
                     : 'text-fg/40 hover:text-fg/70'
