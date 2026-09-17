@@ -1,12 +1,12 @@
-'use client';
+import { permanentRedirect } from 'next/navigation';
+import { spotifySetPath } from '@/lib/set-routes';
 
-import { useParams } from 'next/navigation';
-import { GamePage } from '@/components/game/GamePage';
-import { GameStatsDtoModeEnum as GameMode } from '../../../sdk';
+interface PlaylistPageProps {
+  params: Promise<{ playlistId: string }>;
+}
 
-export default function PlaylistGamePage() {
-  const params = useParams();
-  const playlistId = params.playlistId as string;
-
-  return <GamePage mode={GameMode.All} playlistId={playlistId} />;
+/** Every set opens at /group now. Links to this one are already out there. */
+export default async function PlaylistGamePage({ params }: PlaylistPageProps) {
+  const { playlistId } = await params;
+  permanentRedirect(spotifySetPath(playlistId));
 }
