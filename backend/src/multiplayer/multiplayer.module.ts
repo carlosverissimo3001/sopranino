@@ -14,6 +14,7 @@ import { RoomRepository } from './repositories/room.repository';
 import { MultiplayerGameSessionRepository } from './repositories/multiplayer-game-session.repository';
 import { RoomsGateway } from './gateways/rooms.gateway';
 import { RoomPresenceService } from './services/room-presence.service';
+import { ChatService } from './services/chat.service';
 import { RoomConsumer } from './consumers/room.consumer';
 
 @Module({
@@ -37,6 +38,7 @@ import { RoomConsumer } from './consumers/room.consumer';
     MultiplayerGameSessionRepository,
     RoomsGateway,
     RoomPresenceService,
+    ChatService,
     RoomConsumer,
   ],
   exports: [RoomService, MultiplayerGameService, RoomRepository],

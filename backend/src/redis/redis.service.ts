@@ -41,6 +41,30 @@ export class RedisService implements OnModuleDestroy {
     return this.client.ttl(key);
   }
 
+  /**
+   * Push onto a capped list, newest first, in one round trip. The trim is what
+   * makes it a ring buffer: without it the key grows for as long as it lives.
+   */
+  async pushCapped(
+    key: string,
+    value: string,
+    size: number,
+    ttlSeconds: number,
+  ): Promise<void> {
+    await this.client
+      .multi()
+      .lpush(key, value)
+      .ltrim(key, 0, size - 1)
+      .expire(key, ttlSeconds)
+      .exec();
+  }
+
+  /** The whole list, oldest first, which is the order a reader wants it in. */
+  async listOldestFirst(key: string): Promise<string[]> {
+    const values = await this.client.lrange(key, 0, -1);
+    return values.reverse();
+  }
+
   /** Expose the underlying ioredis client (used by throttler storage adapter) */
   getClient(): Redis {
     return this.client;

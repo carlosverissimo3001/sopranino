@@ -173,3 +173,25 @@ export const ROOM_FIRST_SOLVE_TTL = 6 * 60 * 60;
 
 /** Standings are room-wide, so a burst of finishes is one broadcast. */
 export const SCOREBOARD_BROADCAST_DEBOUNCE_MS = 300;
+
+// Chat. Redis only: nothing a player types is written to Postgres.
+export const CHAT_PREFIX = 'room:chat:';
+
+/** Enough for somebody joining mid-game to read the room, not a transcript. */
+export const CHAT_HISTORY_SIZE = 30;
+
+/**
+ * Outlives a long game but not the day. A room that ends takes its chat with
+ * it; this is only the ceiling for one nobody closed.
+ */
+export const CHAT_TTL = 6 * 60 * 60;
+
+/** Past this a message is a paragraph, and the panel is not a document. */
+export const CHAT_MAX_LENGTH = 300;
+
+/**
+ * Flooding is not what a classifier stops, so the socket counts for itself. Per
+ * socket rather than per user: a second tab is a second seat in the same room.
+ */
+export const CHAT_BURST = 5;
+export const CHAT_BURST_WINDOW_MS = 10_000;

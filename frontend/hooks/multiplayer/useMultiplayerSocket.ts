@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { io } from 'socket.io-client';
+import { io, type Socket } from 'socket.io-client';
 import { queryKeys } from '@/lib/queryKeys';
+import { attachChat, CHAT_ENABLED, type ChatMessage } from '@/lib/chat-socket';
 import type { RoomDto, ScoreboardDto, ScoreboardPlayerTotalDto } from '@/sdk';
 
 /**
@@ -32,6 +33,10 @@ export function useMultiplayerSocket(
   const [hostDisconnected, setHostDisconnected] = useState(false);
   /** Set when the host removes you, so the page can stop showing the room. */
   const [removed, setRemoved] = useState(false);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [chatRefused, setChatRefused] = useState<string | undefined>();
+
+  const socketRef = useRef<Socket | undefined>(undefined);
 
   const onPlayerRoundCompleteRef = useRef(options?.onPlayerRoundComplete);
   useEffect(() => {
@@ -61,6 +66,18 @@ export function useMultiplayerSocket(
       withCredentials: true,
       transports: ['websocket', 'polling'],
     });
+    socketRef.current = socket;
+
+    if (CHAT_ENABLED) {
+      attachChat(socket, roomId, {
+        onHistory: setMessages,
+        onMessage: (message) => {
+          setChatRefused(undefined);
+          setMessages((previous) => [...previous, message]);
+        },
+        onRefused: setChatRefused,
+      });
+    }
 
     socket.on('authenticated', () => {
       setConnected(true);
@@ -127,12 +144,30 @@ export function useMultiplayerSocket(
     return () => {
       clearInterval(heartbeat);
       socket.disconnect();
+      socketRef.current = undefined;
       setConnected(false);
       setOnlineUserIds([]);
       setHostDisconnected(false);
       setRemoved(false);
+      setMessages([]);
+      setChatRefused(undefined);
     };
   }, [roomId, queryClient, currentUserId]);
 
-  return { connected, onlineUserIds, hostDisconnected, removed };
+  const sendMessage = useCallback(
+    (text: string) => {
+      socketRef.current?.emit('sendMessage', { roomId, text });
+    },
+    [roomId],
+  );
+
+  return {
+    connected,
+    onlineUserIds,
+    hostDisconnected,
+    removed,
+    messages,
+    chatRefused,
+    sendMessage,
+  };
 }

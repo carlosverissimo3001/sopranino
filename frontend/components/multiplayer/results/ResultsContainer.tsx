@@ -7,6 +7,8 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useMe } from '@/hooks/auth/useMe';
 import { useMultiplayerScoreboard } from '@/hooks/multiplayer/useMultiplayerScoreboard';
 import { useMultiplayerSocket } from '@/hooks/multiplayer/useMultiplayerSocket';
+import { ChatDock } from '@/components/multiplayer/ChatDock';
+import { CHAT_ENABLED } from '@/lib/chat-socket';
 import { useRoom } from '@/hooks/multiplayer/useRoom';
 import { RoundBreakdown } from './RoundBreakdown';
 import { ResultsHeader } from './ResultsHeader';
@@ -36,9 +38,10 @@ export function ResultsContainer({ roomId }: ResultsContainerProps) {
     [],
   );
 
-  const { connected, hostDisconnected } = useMultiplayerSocket(roomId, {
-    onPlayerRoundComplete,
-  });
+  const { connected, hostDisconnected, messages, chatRefused, sendMessage } =
+    useMultiplayerSocket(roomId, {
+      onPlayerRoundComplete,
+    });
   const {
     data: scoreboard,
     isLoading,
@@ -140,14 +143,29 @@ export function ResultsContainer({ roomId }: ResultsContainerProps) {
     );
   }
 
+  const chat = CHAT_ENABLED ? (
+    <ChatDock
+      messages={messages}
+      currentUserId={currentUserId}
+      onSend={sendMessage}
+      refused={chatRefused}
+      scope="results"
+      channel={roomId}
+      defaultOpen
+    />
+  ) : null;
+
   if (!isComplete) {
     return (
-      <WaitingForPlayers
-        players={room?.players ?? []}
-        totalRounds={room?.roundCount ?? 0}
-        playerProgress={playerProgress}
-        hostDisconnected={hostDisconnected}
-      />
+      <>
+        <WaitingForPlayers
+          players={room?.players ?? []}
+          totalRounds={room?.roundCount ?? 0}
+          playerProgress={playerProgress}
+          hostDisconnected={hostDisconnected}
+        />
+        {chat}
+      </>
     );
   }
 
@@ -201,6 +219,8 @@ export function ResultsContainer({ roomId }: ResultsContainerProps) {
           <RoundBreakdown rounds={scoreboard.rounds} />
         </div>
       </div>
+
+      {chat}
     </div>
   );
 }

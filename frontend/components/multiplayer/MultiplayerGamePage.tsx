@@ -15,6 +15,8 @@ import { useSpotifyTrackSearch } from '@/hooks/spotify/useSpotifyTrackSearch';
 import { useMultiplayerRound } from '@/hooks/multiplayer/useMultiplayerRound';
 import { useMultiplayerScoreboard } from '@/hooks/multiplayer/useMultiplayerScoreboard';
 import { useMultiplayerSocket } from '@/hooks/multiplayer/useMultiplayerSocket';
+import { ChatDock } from '@/components/multiplayer/ChatDock';
+import { CHAT_ENABLED } from '@/lib/chat-socket';
 import { useSubmitMultiplayerGuess } from '@/hooks/multiplayer/useSubmitMultiplayerGuess';
 import { useRoom } from '@/hooks/multiplayer/useRoom';
 import { useRouter } from 'next/navigation';
@@ -143,17 +145,18 @@ export function MultiplayerGamePage({ roomId }: MultiplayerGamePageProps) {
 
   // Socket must come before useRoom so `connected` is available
   const currentUserIdRef = useRef<string | undefined>(undefined);
-  const { connected, hostDisconnected } = useMultiplayerSocket(roomId, {
-    // Only the round's first correct answer is worth saying out loud.
-    // Narrating all twenty completions was noise whatever it cost.
-    onPlayerRoundComplete: (data) => {
-      if (data.isFirstSolve && data.userId !== currentUserIdRef.current) {
-        toast(`${data.displayName} got round ${data.roundIndex + 1} first`, {
-          duration: 3000,
-        });
-      }
-    },
-  });
+  const { connected, hostDisconnected, messages, chatRefused, sendMessage } =
+    useMultiplayerSocket(roomId, {
+      // Only the round's first correct answer is worth saying out loud.
+      // Narrating all twenty completions was noise whatever it cost.
+      onPlayerRoundComplete: (data) => {
+        if (data.isFirstSolve && data.userId !== currentUserIdRef.current) {
+          toast(`${data.displayName} got round ${data.roundIndex + 1} first`, {
+            duration: 3000,
+          });
+        }
+      },
+    });
 
   const { data: room, isLoading: roomLoading } = useRoom(roomId, connected);
 
@@ -272,91 +275,103 @@ export function MultiplayerGamePage({ roomId }: MultiplayerGamePageProps) {
   }
 
   return (
-    <GameRoundView
-      round={{
-        previewUrl: roundState.previewUrl,
-        answerImageUrl: roundState.answer?.albumImageUrl,
-        currentRound: roundState.currentGuess,
-        maxRounds: roundState.maxGuessesPerSong,
-        guesses: roundState.guesses,
-        snippetSteps: roundState.snippetSteps,
-        snippetDuration: roundState.snippetDuration,
-        hints: roundState.hints,
-      }}
-      isOver={!!isRoundComplete}
-      audio={gameAudio}
-      showCover={false}
-      roundKey={transitionKey}
-      guess={{
-        search: spotifySearch,
-        onSubmit: handleSubmit,
-        onSkip: handleSkip,
-        submitPending: submitGuessMutation.isPending,
-        gameMode: GameMode.Multiplayer,
-      }}
-      header={
-        <>
-          <AnimatePresence>
-            {hostDisconnected && currentUserId !== room?.hostId && (
-              <HostDisconnectedBanner />
-            )}
-          </AnimatePresence>
-          <div className="mb-2 flex justify-end">
-            <VolumeSlider volume={volume} onVolumeChange={setVolume} />
-          </div>
-        </>
-      }
-      title={
-        <>
-          <RoundDots roundState={roundState} pastResults={pastResults} />
-          <div className="mb-6 text-center">
-            <h2 className="text-2xl sm:text-3xl font-bold text-fg">
-              Round {roundState.roundIndex + 1}{' '}
-              <span className="text-fg/30 font-normal">
-                / {roundState.totalRounds}
-              </span>
-            </h2>
-          </div>
-        </>
-      }
-      reveal={
-        isGameOver ? (
-          // The results page is the destination; this only covers the hop.
-          <div className="flex flex-col items-center gap-3 py-16">
-            <LoadingSpinner size="md" />
-            <p className="text-sm text-fg/50">Taking you to the results...</p>
-          </div>
-        ) : (
+    <>
+      <GameRoundView
+        round={{
+          previewUrl: roundState.previewUrl,
+          answerImageUrl: roundState.answer?.albumImageUrl,
+          currentRound: roundState.currentGuess,
+          maxRounds: roundState.maxGuessesPerSong,
+          guesses: roundState.guesses,
+          snippetSteps: roundState.snippetSteps,
+          snippetDuration: roundState.snippetDuration,
+          hints: roundState.hints,
+        }}
+        isOver={!!isRoundComplete}
+        audio={gameAudio}
+        showCover={false}
+        roundKey={transitionKey}
+        guess={{
+          search: spotifySearch,
+          onSubmit: handleSubmit,
+          onSkip: handleSkip,
+          submitPending: submitGuessMutation.isPending,
+          gameMode: GameMode.Multiplayer,
+        }}
+        header={
           <>
-            <SongRevealCard
-              status={roundState.status}
-              answer={roundState.answer}
-              previewUrl={roundState.previewUrl}
-              shareGameId={null}
-              showViewStats={false}
-              showPlayAgain={false}
-              isFullSongPlaying={gameAudio.isFullSongPlaying}
-              onToggleFullSong={gameAudio.toggleFullSong}
-            />
-            <RoundScoreSummary
-              roomId={roomId}
-              roundIndex={roundState.roundIndex}
-              myUserId={currentUserId}
-            />
-            <div className="mt-6 flex justify-center">
-              <motion.button
-                onClick={handleNextRound}
-                className="group flex items-center gap-2 px-8 py-3 bg-[#1DB954] text-black font-bold rounded-full hover:bg-[#1ed760] transition-colors"
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-              >
-                Next Round
-                <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-              </motion.button>
+            <AnimatePresence>
+              {hostDisconnected && currentUserId !== room?.hostId && (
+                <HostDisconnectedBanner />
+              )}
+            </AnimatePresence>
+            <div className="mb-2 flex justify-end">
+              <VolumeSlider volume={volume} onVolumeChange={setVolume} />
             </div>
           </>
-        )
-      }
-    />
+        }
+        title={
+          <>
+            <RoundDots roundState={roundState} pastResults={pastResults} />
+            <div className="mb-6 text-center">
+              <h2 className="text-2xl sm:text-3xl font-bold text-fg">
+                Round {roundState.roundIndex + 1}{' '}
+                <span className="text-fg/30 font-normal">
+                  / {roundState.totalRounds}
+                </span>
+              </h2>
+            </div>
+          </>
+        }
+        reveal={
+          isGameOver ? (
+            // The results page is the destination; this only covers the hop.
+            <div className="flex flex-col items-center gap-3 py-16">
+              <LoadingSpinner size="md" />
+              <p className="text-sm text-fg/50">Taking you to the results...</p>
+            </div>
+          ) : (
+            <>
+              <SongRevealCard
+                status={roundState.status}
+                answer={roundState.answer}
+                previewUrl={roundState.previewUrl}
+                shareGameId={null}
+                showViewStats={false}
+                showPlayAgain={false}
+                isFullSongPlaying={gameAudio.isFullSongPlaying}
+                onToggleFullSong={gameAudio.toggleFullSong}
+              />
+              <RoundScoreSummary
+                roomId={roomId}
+                roundIndex={roundState.roundIndex}
+                myUserId={currentUserId}
+              />
+              <div className="mt-6 flex justify-center">
+                <motion.button
+                  onClick={handleNextRound}
+                  className="group flex items-center gap-2 px-8 py-3 bg-[#1DB954] text-black font-bold rounded-full hover:bg-[#1ed760] transition-colors"
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  Next Round
+                  <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                </motion.button>
+              </div>
+            </>
+          )
+        }
+      />
+      {CHAT_ENABLED && (
+        <ChatDock
+          messages={messages}
+          currentUserId={currentUserId}
+          onSend={sendMessage}
+          refused={chatRefused}
+          scope="round"
+          channel={roomId}
+        />
+      )}
+    </>
   );
 }

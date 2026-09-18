@@ -6,6 +6,8 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useMe } from '@/hooks/auth/useMe';
 import { useLeaveRoom } from '@/hooks/multiplayer/useLeaveRoom';
 import { useMultiplayerSocket } from '@/hooks/multiplayer/useMultiplayerSocket';
+import { ChatDock } from '@/components/multiplayer/ChatDock';
+import { CHAT_ENABLED } from '@/lib/chat-socket';
 import { useRoom } from '@/hooks/multiplayer/useRoom';
 import { useStartRoom } from '@/hooks/multiplayer/useStartRoom';
 import { useToggleReady } from '@/hooks/multiplayer/useToggleReady';
@@ -33,8 +35,15 @@ export default function RoomLobbyPage() {
   const roomId = params.roomId;
   const router = useRouter();
   const { data: user } = useMe();
-  const { connected, onlineUserIds, hostDisconnected, removed } =
-    useMultiplayerSocket(roomId, undefined, user?.userId);
+  const {
+    connected,
+    onlineUserIds,
+    hostDisconnected,
+    removed,
+    messages,
+    chatRefused,
+    sendMessage,
+  } = useMultiplayerSocket(roomId, undefined, user?.userId);
   const { data: room, isLoading, isError, error } = useRoom(roomId, connected);
   const startRoom = useStartRoom();
   const leaveRoom = useLeaveRoom();
@@ -479,6 +488,18 @@ export default function RoomLobbyPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {CHAT_ENABLED && (
+        <ChatDock
+          messages={messages}
+          currentUserId={user?.userId}
+          onSend={sendMessage}
+          refused={chatRefused}
+          scope="room"
+          channel={roomId}
+          defaultOpen
+        />
+      )}
     </main>
   );
 }
