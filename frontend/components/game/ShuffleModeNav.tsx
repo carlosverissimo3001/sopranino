@@ -145,10 +145,9 @@ export function ShuffleModeNav({
         <Drawer open={setsOpen} onOpenChange={setSetsOpen}>
           {/* Lighter than the page and a ring above it, so the sheet reads as
               sitting on top rather than being part of the round. */}
-          {/* A floor as well as a ceiling: without it the sheet resized every
-              time a tab with fewer sets was picked, moving the tabs
-              themselves. */}
-          <DrawerContent className="h-[62svh] max-h-[72svh] min-h-[52svh] border-fg/15 bg-surface shadow-[0_-12px_40px_rgba(0,0,0,0.55)]">
+          {/* Sized by its content, with a floor so a short tab does not
+              collapse the sheet under the thumb that is reaching for it. */}
+          <DrawerContent className="max-h-[72svh] min-h-[44svh] border-fg/15 bg-surface shadow-[0_-12px_40px_rgba(0,0,0,0.55)]">
             <DrawerHeader className="pb-3 pt-3 text-left">
               <DrawerTitle className="text-xs font-bold uppercase tracking-wider text-fg/40">
                 Pick a set
@@ -156,7 +155,7 @@ export function ShuffleModeNav({
             </DrawerHeader>
             {/* Chrome on iOS keeps its toolbar over the page and reports no
                 safe-area inset, so the room has to be asked for. */}
-            <div className="overflow-y-auto px-4 pb-[calc(env(safe-area-inset-bottom)+5rem)]">
+            <div className="overflow-y-auto px-4 pb-[calc(env(safe-area-inset-bottom)+3rem)]">
               <SetChips
                 selectedId={trackGroupId ?? selectedPlaylistId}
                 onPick={(set) =>
