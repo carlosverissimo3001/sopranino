@@ -48,7 +48,9 @@ const DrawerContent = React.forwardRef<
       )}
       {...props}
     >
-      <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
+      {/* Visible on a dark sheet: bg-muted matched the sheet exactly, so the
+          only sign it could be dragged was a gap at the top. */}
+      <div className="mx-auto mt-3 h-1.5 w-10 shrink-0 rounded-full bg-fg/25" />
       {children}
     </DrawerPrimitive.Content>
   </DrawerPortal>

@@ -143,11 +143,15 @@ export function ShuffleModeNav({
 
       {isPhone ? (
         <Drawer open={setsOpen} onOpenChange={setSetsOpen}>
-          <DrawerContent className="max-h-[70dvh] border-fg/10 bg-[rgb(var(--surface))]">
-            <DrawerHeader className="pb-2 text-left">
-              <DrawerTitle className="text-sm">Pick a set</DrawerTitle>
+          {/* Lighter than the page and a ring above it, so the sheet reads as
+              sitting on top rather than being part of the round. */}
+          <DrawerContent className="max-h-[70svh] border-fg/15 bg-surface shadow-[0_-12px_40px_rgba(0,0,0,0.55)]">
+            <DrawerHeader className="pb-1 pt-2 text-left">
+              <DrawerTitle className="text-xs font-bold uppercase tracking-wider text-fg/40">
+                Pick a set
+              </DrawerTitle>
             </DrawerHeader>
-            <div className="overflow-y-auto px-4 pb-6">
+            <div className="overflow-y-auto px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
               <SetChips
                 selectedId={trackGroupId ?? selectedPlaylistId}
                 onPick={(set) =>
