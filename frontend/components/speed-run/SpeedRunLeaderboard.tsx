@@ -1,5 +1,6 @@
 'use client';
 
+import { EditableName } from '@/components/profile/EditableName';
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -122,7 +123,8 @@ function LeaderboardRow({
 
       <div className="min-w-0 flex-1">
         <p
-          className={`text-sm font-bold truncate ${
+          // truncate would clip the input as it grows with what is typed.
+          className={`text-sm font-bold ${isCurrentUser ? '' : 'truncate'} ${
             isCurrentUser
               ? 'text-spotify-green'
               : entry.isHidden
@@ -132,11 +134,15 @@ function LeaderboardRow({
                   : 'text-fg/80'
           }`}
         >
-          {entry.displayName}
-          {isCurrentUser && (
-            <span className="ml-1.5 text-[9px] font-black uppercase tracking-wider text-spotify-green/60">
-              You
-            </span>
+          {isCurrentUser ? (
+            <>
+              <EditableName className="max-w-full text-sm" />
+              <span className="ml-1.5 text-[9px] font-black uppercase tracking-wider text-spotify-green/60">
+                You
+              </span>
+            </>
+          ) : (
+            entry.displayName
           )}
         </p>
       </div>

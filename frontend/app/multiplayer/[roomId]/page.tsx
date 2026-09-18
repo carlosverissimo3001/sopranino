@@ -7,6 +7,7 @@ import { useMe } from '@/hooks/auth/useMe';
 import { useLeaveRoom } from '@/hooks/multiplayer/useLeaveRoom';
 import { useMultiplayerSocket } from '@/hooks/multiplayer/useMultiplayerSocket';
 import { ChatDock } from '@/components/multiplayer/ChatDock';
+import { EditableName } from '@/components/profile/EditableName';
 import { CHAT_ENABLED } from '@/lib/chat-socket';
 import { useRoom } from '@/hooks/multiplayer/useRoom';
 import { useStartRoom } from '@/hooks/multiplayer/useStartRoom';
@@ -367,6 +368,10 @@ export default function RoomLobbyPage() {
                 />
               ))}
             </div>
+
+            <p className="px-1 text-xs">
+              <EditableName prefix="Playing as" className="max-w-full" />
+            </p>
           </div>
 
           {/* Actions */}

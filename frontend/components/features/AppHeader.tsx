@@ -54,7 +54,7 @@ function AppHeaderComponent({ user, onLogout, isLoggingOut }: AppHeaderProps) {
               </Link>
             </nav>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5 sm:gap-4">
               <motion.div
                 className="relative group"
                 whileHover={{ scale: 1.05 }}
@@ -91,7 +91,7 @@ function AppHeaderComponent({ user, onLogout, isLoggingOut }: AppHeaderProps) {
                 <div className="absolute inset-0 rounded-xl border border-spotify-green/0 group-hover:border-spotify-green/40 transition-all duration-500 animate-pulse pointer-events-none" />
               </motion.div>
 
-              <div className="flex flex-col items-start hidden sm:flex">
+              <div className="flex flex-col items-start hidden sm:flex sm:-ml-1 sm:mr-2">
                 <span className="text-xs font-black text-fg leading-none capitalize">
                   {user.displayName}
                 </span>

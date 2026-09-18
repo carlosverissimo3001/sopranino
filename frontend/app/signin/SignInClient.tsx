@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -10,6 +10,7 @@ import { CredentialsForm } from '@/components/auth/CredentialsForm';
 import { CheckYourEmail } from '@/components/auth/CheckYourEmail';
 import { InviteForm } from '@/components/auth/InviteForm';
 import { useMe } from '@/hooks/auth/useMe';
+import { readSignedInAs } from '@/lib/returning-player';
 
 /**
  * Somewhere for a guest to sign in from.
@@ -26,7 +27,21 @@ export function SignInClient({ canSignIn }: { canSignIn: boolean }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const cameFromLanding = searchParams.get('from') === 'landing';
-  const wantsSignup = searchParams.get('mode') === 'signup';
+  const mode = searchParams.get('mode');
+
+  /**
+   * Which form opens when nothing says. A browser that has never held an
+   * account is looking at the one form it cannot use, so it leads with
+   * signing up; a returning player leads with signing in. Read after mount,
+   * since the server cannot know either way.
+   */
+  const [returning, setReturning] = useState<boolean | undefined>(undefined);
+  useEffect(() => {
+    setReturning(!!readSignedInAs());
+  }, []);
+
+  const wantsSignup =
+    mode === 'signup' || (mode === null && returning === false);
   const { data: user } = useMe();
   const [showInvite, setShowInvite] = useState(false);
   // Set after a sign-up: the address still has to be proved.
@@ -69,6 +84,9 @@ export function SignInClient({ canSignIn }: { canSignIn: boolean }) {
           </div>
 
           <CredentialsForm
+            // Remounts once the browser has been read, so the form starts on
+            // the mode that was decided rather than the one it guessed.
+            key={String(returning)}
             initialMode={wantsSignup ? 'signup' : 'login'}
             onDone={(mode, email) =>
               mode === 'signup' ? setVerifying(email) : router.push('/')
