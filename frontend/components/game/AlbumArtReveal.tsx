@@ -73,7 +73,7 @@ export function AlbumArtReveal({
   return (
     <AnimatePresence>
       <motion.div
-        className="relative mb-3 flex min-h-24 w-full flex-1 justify-center sm:mb-6 sm:min-h-0 sm:flex-none"
+        className="relative mb-3 flex max-h-[38svh] min-h-24 w-full flex-1 justify-center sm:mb-6 sm:max-h-none sm:min-h-0 sm:flex-none"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
