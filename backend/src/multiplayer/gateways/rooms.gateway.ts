@@ -24,6 +24,7 @@ import { RoomPresenceService } from '../services/room-presence.service';
 import { MultiplayerGameService } from '../services/multiplayer-game.service';
 import { RoomService } from '../services/room.service';
 import { ChatService } from '../services/chat.service';
+import { ModerationService } from '../../moderation/services/moderation.service';
 import { RoomDto } from '../dto/room.dto';
 import {
   CHAT_BURST,
@@ -88,6 +89,7 @@ export class RoomsGateway
     @Inject(forwardRef(() => RoomService))
     private readonly roomService: RoomService,
     private readonly chat: ChatService,
+    private readonly moderation: ModerationService,
     config: ConfigService,
   ) {
     this.chatEnabled = config.get<string>('CHAT_ENABLED') === 'true';
@@ -245,6 +247,9 @@ export class RoomsGateway
       client.emit('messageHistory', {
         channel: payload.roomId,
         messages: await this.chat.history(payload.roomId),
+        // Strikes outlive the socket, so the panel has to be told on the way
+        // in. Without it, rejoining offers a box that cannot send.
+        muted: await this.chat.isMuted(payload.roomId, userId),
       });
     }
 
@@ -409,12 +414,6 @@ export class RoomsGateway
     client.emit('lobbyUpdated', {
       rooms: await this.roomService.listOpenRooms(),
     });
-    if (this.chatEnabled) {
-      client.emit('messageHistory', {
-        channel: LOBBY_ROOM,
-        messages: await this.chat.history(LOBBY_ROOM),
-      });
-    }
   }
 
   @SubscribeMessage('leaveLobby')
@@ -423,9 +422,8 @@ export class RoomsGateway
   }
 
   /**
-   * A message reaches the channel the sender is already in: `joinRoom` refuses
-   * anyone who is not a member, so socket.io's own rooms are the check. An
-   * absent roomId is the lobby, which anybody with a session may talk in.
+   * A message reaches the room the sender is already in: `joinRoom` refuses
+   * anyone who is not a member, so socket.io's own rooms are the check.
    */
   @SubscribeMessage('sendMessage')
   async handleSendMessage(
@@ -437,8 +435,8 @@ export class RoomsGateway
       return;
     }
 
-    const channel = payload.roomId ?? LOBBY_ROOM;
-    if (!client.rooms.has(channel)) {
+    const channel = payload.roomId;
+    if (!channel || !client.rooms.has(channel)) {
       return;
     }
 
@@ -452,15 +450,49 @@ export class RoomsGateway
       return;
     }
 
-    const message = await this.chat.append(
-      channel,
-      {
-        userId,
-        displayName: (client.data.displayName as string) ?? 'Someone',
-        avatarUrl: client.data.avatarUrl as string | undefined,
-      },
-      text,
-    );
+    if (await this.chat.isMuted(channel, userId)) {
+      client.emit('messageRefused', { reason: 'muted' });
+      return;
+    }
+
+    const author = {
+      userId,
+      displayName: (client.data.displayName as string) ?? 'Someone',
+      avatarUrl: client.data.avatarUrl as string | undefined,
+    };
+
+    const judgment = await this.moderation.judge(text);
+    if (judgment.verdict !== 'allow') {
+      // The question and the score, never the message: a line that was
+      // refused is still something a person wrote about a person.
+      this.logger.log(
+        `Message ${judgment.verdict}: ${judgment.worst} at ${judgment.score?.toFixed(2)}`,
+      );
+
+      // Anything else is the provider being unreachable, which is the
+      // sender's business and nobody else's.
+      if (judgment.verdict !== 'block') {
+        client.emit('messageRefused', { reason: judgment.verdict });
+        return;
+      }
+
+      const { left } = await this.chat.strike(channel, userId);
+      const marker = await this.chat.append(channel, author, '', true);
+      this.server.to(channel).emit('message', { channel, message: marker });
+
+      if (left === 0) {
+        const notice = await this.chat.announce(
+          channel,
+          `${author.displayName} can no longer chat in this room.`,
+        );
+        this.server.to(channel).emit('message', { channel, message: notice });
+      }
+
+      client.emit('messageRefused', { reason: 'block', strikesLeft: left });
+      return;
+    }
+
+    const message = await this.chat.append(channel, author, text);
 
     this.server.to(channel).emit('message', { channel, message });
   }

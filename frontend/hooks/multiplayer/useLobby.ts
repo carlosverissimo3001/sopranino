@@ -1,13 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { io, type Socket } from 'socket.io-client';
-import {
-  attachChat,
-  CHAT_ENABLED,
-  LOBBY_CHANNEL,
-  type ChatMessage,
-} from '@/lib/chat-socket';
+import { useEffect, useRef, useState } from 'react';
+import { io } from 'socket.io-client';
 import { api } from '@/sdk/client';
 import type { OpenRoomDto } from '@/sdk';
 
@@ -23,10 +17,7 @@ import type { OpenRoomDto } from '@/sdk';
 export function useLobby() {
   const [rooms, setRooms] = useState<OpenRoomDto[] | undefined>();
   const [isLive, setIsLive] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [chatRefused, setChatRefused] = useState<string | undefined>();
   const hasPushRef = useRef(false);
-  const socketRef = useRef<Socket | undefined>(undefined);
 
   useEffect(() => {
     let cancelled = false;
@@ -52,19 +43,6 @@ export function useLobby() {
       transports: ['websocket', 'polling'],
     });
 
-    socketRef.current = socket;
-
-    if (CHAT_ENABLED) {
-      attachChat(socket, LOBBY_CHANNEL, {
-        onHistory: setMessages,
-        onMessage: (message) => {
-          setChatRefused(undefined);
-          setMessages((previous) => [...previous, message]);
-        },
-        onRefused: setChatRefused,
-      });
-    }
-
     socket.on('authenticated', () => {
       setIsLive(true);
       socket.emit('joinLobby');
@@ -81,16 +59,9 @@ export function useLobby() {
       cancelled = true;
       if (socket.connected) socket.emit('leaveLobby');
       socket.disconnect();
-      socketRef.current = undefined;
       setIsLive(false);
-      setMessages([]);
-      setChatRefused(undefined);
     };
   }, []);
 
-  const sendMessage = useCallback((text: string) => {
-    socketRef.current?.emit('sendMessage', { text });
-  }, []);
-
-  return { rooms, isLive, messages, chatRefused, sendMessage };
+  return { rooms, isLive };
 }

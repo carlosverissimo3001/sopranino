@@ -6,6 +6,8 @@ import {
   CHAT_HISTORY_SIZE,
   CHAT_MAX_LENGTH,
   CHAT_PREFIX,
+  CHAT_STRIKE_PREFIX,
+  CHAT_STRIKES,
   CHAT_TTL,
 } from '../../consts';
 
@@ -26,10 +28,35 @@ export class ChatService {
     return text.replace(/\s+/g, ' ').trim().slice(0, CHAT_MAX_LENGTH);
   }
 
+  private strikeKey(channel: string, userId: string): string {
+    return `${CHAT_STRIKE_PREFIX}${channel}:${userId}`;
+  }
+
+  /**
+   * Counts a blocked message and says what is left. Redis rather than the
+   * socket: a strike has to survive a refresh, or it is not a strike.
+   */
+  async strike(
+    channel: string,
+    userId: string,
+  ): Promise<{ used: number; left: number }> {
+    const used = await this.redis.increment(
+      this.strikeKey(channel, userId),
+      CHAT_TTL,
+    );
+    return { used, left: Math.max(0, CHAT_STRIKES - used) };
+  }
+
+  async isMuted(channel: string, userId: string): Promise<boolean> {
+    const used = await this.redis.get(this.strikeKey(channel, userId));
+    return Number(used ?? 0) >= CHAT_STRIKES;
+  }
+
   async append(
     channel: string,
     author: { userId: string; displayName: string; avatarUrl?: string },
     text: string,
+    removed = false,
   ): Promise<ChatMessageDto> {
     const message: ChatMessageDto = {
       id: randomUUID(),
@@ -38,6 +65,28 @@ export class ChatService {
       ...(author.avatarUrl && { avatarUrl: author.avatarUrl }),
       text,
       sentAt: new Date().toISOString(),
+      ...(removed && { removed: true }),
+    };
+
+    await this.redis.pushCapped(
+      this.key(channel),
+      JSON.stringify(message),
+      CHAT_HISTORY_SIZE,
+      CHAT_TTL,
+    );
+
+    return message;
+  }
+
+  /** The room speaking for itself: no author, and nothing to report. */
+  async announce(channel: string, text: string): Promise<ChatMessageDto> {
+    const message: ChatMessageDto = {
+      id: randomUUID(),
+      userId: '',
+      displayName: '',
+      text,
+      sentAt: new Date().toISOString(),
+      system: true,
     };
 
     await this.redis.pushCapped(

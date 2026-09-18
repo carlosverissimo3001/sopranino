@@ -15,6 +15,7 @@ import { MultiplayerGameSessionRepository } from './repositories/multiplayer-gam
 import { RoomsGateway } from './gateways/rooms.gateway';
 import { RoomPresenceService } from './services/room-presence.service';
 import { ChatService } from './services/chat.service';
+import { ModerationModule } from '../moderation/moderation.module';
 import { RoomConsumer } from './consumers/room.consumer';
 
 @Module({
@@ -24,6 +25,7 @@ import { RoomConsumer } from './consumers/room.consumer';
     TrackModule,
     PoolModule,
     TrackGroupModule,
+    ModerationModule,
     BullModule.registerQueue({
       name: ROOM_CLEANUP_QUEUE,
       defaultJobOptions: JOB_OPTIONS_WITH_BACKOFF,

@@ -3,17 +3,18 @@
 import { useEffect, useRef, useState } from 'react';
 import { MessageCircle, X } from 'lucide-react';
 import { ChatPanel } from './ChatPanel';
-import type { ChatMessage } from '@/lib/chat-socket';
+import type { ChatMessage, Refusal } from '@/lib/chat-socket';
 
 type ChatDockProps = {
   messages: ChatMessage[];
   currentUserId?: string;
   onSend: (text: string) => void;
-  refused?: string;
+  refused?: Refusal;
+  muted?: boolean;
   label?: string;
   /** Which screen this is, so each remembers its own open state. */
-  scope: 'room' | 'round' | 'results' | 'lobby';
-  /** The room id, or "lobby". What has been read is remembered against it. */
+  scope: 'room' | 'round' | 'results';
+  /** The room id. What has been read is remembered against it. */
   channel: string;
   defaultOpen?: boolean;
 };
@@ -48,6 +49,7 @@ export function ChatDock(props: ChatDockProps) {
     currentUserId,
     onSend,
     refused,
+    muted,
     label = 'Chat',
     scope,
     channel,
@@ -86,15 +88,15 @@ export function ChatDock(props: ChatDockProps) {
       return;
     }
 
-    // The history that arrives on joining is not news if it was read on the
-    // screen before this one: the last id read stands for the whole backlog.
-    // Without an id, a first visit, nothing in it counts as unread either.
+    // The history that arrives on joining was read already if it was read on
+    // the screen before this one: the last id read stands for the backlog up
+    // to it. Arriving in a room for the first time, all of it is unread, and
+    // so is everything after a last-read id too old to still be in the buffer.
     if (seenRef.current === 0 && messages.length > 0) {
       const lastRead = lastReadRef.current;
-      const readUpTo = lastRead
+      seenRef.current = lastRead
         ? messages.findIndex((message) => message.id === lastRead) + 1
-        : messages.length;
-      seenRef.current = readUpTo || messages.length;
+        : 0;
     }
 
     const fresh = messages
@@ -112,8 +114,6 @@ export function ChatDock(props: ChatDockProps) {
     <div className="fixed bottom-4 right-4 z-40 flex flex-col items-end gap-2 pb-[env(safe-area-inset-bottom)]">
       {open && (
         <div className="flex h-[22rem] w-[min(20rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-fg/10 bg-surface shadow-[0_12px_40px_rgba(0,0,0,0.5)]">
-          {/* The whole bar collapses it, so the X is a label for the row
-              rather than the only place that can be hit. */}
           <button
             onClick={() => toggle(false)}
             aria-expanded
@@ -130,6 +130,7 @@ export function ChatDock(props: ChatDockProps) {
             currentUserId={currentUserId}
             onSend={onSend}
             refused={refused}
+            muted={muted}
             className="flex-1 p-3"
           />
         </div>

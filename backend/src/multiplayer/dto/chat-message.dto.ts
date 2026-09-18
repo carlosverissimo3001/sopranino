@@ -22,4 +22,12 @@ export class ChatMessageDto {
 
   @ApiProperty()
   sentAt: string;
+
+  /** Left where a blocked message was, so the room is not silently edited. */
+  @ApiPropertyOptional({ type: Boolean })
+  removed?: boolean;
+
+  /** Said by the room rather than by a player, and shown without a name. */
+  @ApiPropertyOptional({ type: Boolean })
+  system?: boolean;
 }

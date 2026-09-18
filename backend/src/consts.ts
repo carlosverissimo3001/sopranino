@@ -195,3 +195,12 @@ export const CHAT_MAX_LENGTH = 300;
  */
 export const CHAT_BURST = 5;
 export const CHAT_BURST_WINDOW_MS = 10_000;
+
+/**
+ * Blocked messages before somebody loses chat for the rest of the room. Three
+ * rather than five: a block means the model was fairly sure, and every one of
+ * them leaves a mark the whole room can see. Warned on the second, so the
+ * last one is never a surprise. Playing is unaffected.
+ */
+export const CHAT_STRIKES = 3;
+export const CHAT_STRIKE_PREFIX = 'room:chat-strikes:';

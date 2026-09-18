@@ -7,6 +7,10 @@ export interface ChatMessage {
   avatarUrl?: string;
   text: string;
   sentAt: string;
+  /** Left where a blocked message was, so the room is not silently edited. */
+  removed?: boolean;
+  /** Said by the room rather than by a player, and shown without a name. */
+  system?: boolean;
 }
 
 /** Cosmetic only: the gateway refuses a message whatever the browser thinks. */
@@ -15,13 +19,18 @@ export const CHAT_ENABLED = process.env.NEXT_PUBLIC_CHAT_ENABLED === 'true';
 /** Must match CHAT_MAX_LENGTH on the server, which truncates past it. */
 export const CHAT_MAX_LENGTH = 300;
 
-/** Must match LOBBY_ROOM on the server. */
-export const LOBBY_CHANNEL = 'lobby';
+export interface Refusal {
+  reason: string;
+  /** Two identical refusals in a row are still two events. */
+  at: number;
+  /** Blocked messages left before chat is lost for this room. */
+  strikesLeft?: number;
+}
 
 interface ChatHandlers {
-  onHistory: (messages: ChatMessage[]) => void;
+  onHistory: (messages: ChatMessage[], muted: boolean) => void;
   onMessage: (message: ChatMessage) => void;
-  onRefused: (reason: string) => void;
+  onRefused: (reason: string, strikesLeft?: number) => void;
 }
 
 /**
@@ -35,8 +44,10 @@ export function attachChat(
 ): void {
   socket.on(
     'messageHistory',
-    (data: { channel: string; messages: ChatMessage[] }) => {
-      if (data.channel === channel) handlers.onHistory(data.messages);
+    (data: { channel: string; messages: ChatMessage[]; muted?: boolean }) => {
+      if (data.channel === channel) {
+        handlers.onHistory(data.messages, data.muted ?? false);
+      }
     },
   );
 
@@ -44,7 +55,10 @@ export function attachChat(
     if (data.channel === channel) handlers.onMessage(data.message);
   });
 
-  socket.on('messageRefused', ({ reason }: { reason: string }) => {
-    handlers.onRefused(reason);
-  });
+  socket.on(
+    'messageRefused',
+    ({ reason, strikesLeft }: { reason: string; strikesLeft?: number }) => {
+      handlers.onRefused(reason, strikesLeft);
+    },
+  );
 }

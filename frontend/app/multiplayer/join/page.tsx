@@ -10,14 +10,12 @@ import { useLobby } from '@/hooks/multiplayer/useLobby';
 import { useJoinOpenRoom } from '@/hooks/multiplayer/useJoinOpenRoom';
 import { useCreateAndEnterRoom } from '@/hooks/multiplayer/useCreateAndEnterRoom';
 import { OpenRoomsList } from '@/components/multiplayer/OpenRoomsList';
-import { ChatDock } from '@/components/multiplayer/ChatDock';
-import { CHAT_ENABLED, LOBBY_CHANNEL } from '@/lib/chat-socket';
 
 export default function BrowseRoomsPage() {
   const router = useRouter();
   const { data: user } = useMe();
   const ensureSession = useEnsureSession();
-  const { rooms, isLive, messages, chatRefused, sendMessage } = useLobby();
+  const { rooms, isLive } = useLobby();
   const joinOpenRoom = useJoinOpenRoom();
   const createRoom = useCreateAndEnterRoom();
 
@@ -84,17 +82,6 @@ export default function BrowseRoomsPage() {
           />
         </div>
       </div>
-
-      {CHAT_ENABLED && user && (
-        <ChatDock
-          messages={messages}
-          currentUserId={user.userId}
-          onSend={sendMessage}
-          refused={chatRefused}
-          scope="lobby"
-          channel={LOBBY_CHANNEL}
-        />
-      )}
     </main>
   );
 }
