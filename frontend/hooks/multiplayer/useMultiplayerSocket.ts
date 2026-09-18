@@ -4,7 +4,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { io, type Socket } from 'socket.io-client';
 import { queryKeys } from '@/lib/queryKeys';
-import { attachChat, CHAT_ENABLED, type ChatMessage } from '@/lib/chat-socket';
+import {
+  attachChat,
+  CHAT_ENABLED,
+  type ChatMessage,
+  type Refusal,
+} from '@/lib/chat-socket';
 import type { RoomDto, ScoreboardDto, ScoreboardPlayerTotalDto } from '@/sdk';
 
 /**
@@ -34,7 +39,8 @@ export function useMultiplayerSocket(
   /** Set when the host removes you, so the page can stop showing the room. */
   const [removed, setRemoved] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [chatRefused, setChatRefused] = useState<string | undefined>();
+  const [chatRefused, setChatRefused] = useState<Refusal | undefined>();
+  const [chatMuted, setChatMuted] = useState(false);
 
   const socketRef = useRef<Socket | undefined>(undefined);
 
@@ -70,12 +76,18 @@ export function useMultiplayerSocket(
 
     if (CHAT_ENABLED) {
       attachChat(socket, roomId, {
-        onHistory: setMessages,
+        onHistory: (history, muted) => {
+          setMessages(history);
+          setChatMuted(muted);
+        },
         onMessage: (message) => {
           setChatRefused(undefined);
           setMessages((previous) => [...previous, message]);
         },
-        onRefused: setChatRefused,
+        onRefused: (reason, strikesLeft) => {
+          setChatRefused({ reason, at: Date.now(), strikesLeft });
+          if (reason === 'muted' || strikesLeft === 0) setChatMuted(true);
+        },
       });
     }
 
@@ -151,6 +163,7 @@ export function useMultiplayerSocket(
       setRemoved(false);
       setMessages([]);
       setChatRefused(undefined);
+      setChatMuted(false);
     };
   }, [roomId, queryClient, currentUserId]);
 
@@ -168,6 +181,7 @@ export function useMultiplayerSocket(
     removed,
     messages,
     chatRefused,
+    chatMuted,
     sendMessage,
   };
 }

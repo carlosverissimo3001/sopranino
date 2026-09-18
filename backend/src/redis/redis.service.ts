@@ -59,6 +59,16 @@ export class RedisService implements OnModuleDestroy {
       .exec();
   }
 
+  /** Returns the value after the increment, so a caller can act on the count. */
+  async increment(key: string, ttlSeconds: number): Promise<number> {
+    const [count] = (await this.client
+      .multi()
+      .incr(key)
+      .expire(key, ttlSeconds)
+      .exec()) as [[Error | null, number], ...unknown[]];
+    return count[1];
+  }
+
   /** The whole list, oldest first, which is the order a reader wants it in. */
   async listOldestFirst(key: string): Promise<string[]> {
     const values = await this.client.lrange(key, 0, -1);

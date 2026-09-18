@@ -145,18 +145,24 @@ export function MultiplayerGamePage({ roomId }: MultiplayerGamePageProps) {
 
   // Socket must come before useRoom so `connected` is available
   const currentUserIdRef = useRef<string | undefined>(undefined);
-  const { connected, hostDisconnected, messages, chatRefused, sendMessage } =
-    useMultiplayerSocket(roomId, {
-      // Only the round's first correct answer is worth saying out loud.
-      // Narrating all twenty completions was noise whatever it cost.
-      onPlayerRoundComplete: (data) => {
-        if (data.isFirstSolve && data.userId !== currentUserIdRef.current) {
-          toast(`${data.displayName} got round ${data.roundIndex + 1} first`, {
-            duration: 3000,
-          });
-        }
-      },
-    });
+  const {
+    connected,
+    hostDisconnected,
+    messages,
+    chatRefused,
+    chatMuted,
+    sendMessage,
+  } = useMultiplayerSocket(roomId, {
+    // Only the round's first correct answer is worth saying out loud.
+    // Narrating all twenty completions was noise whatever it cost.
+    onPlayerRoundComplete: (data) => {
+      if (data.isFirstSolve && data.userId !== currentUserIdRef.current) {
+        toast(`${data.displayName} got round ${data.roundIndex + 1} first`, {
+          duration: 3000,
+        });
+      }
+    },
+  });
 
   const { data: room, isLoading: roomLoading } = useRoom(roomId, connected);
 
@@ -368,6 +374,7 @@ export function MultiplayerGamePage({ roomId }: MultiplayerGamePageProps) {
           currentUserId={currentUserId}
           onSend={sendMessage}
           refused={chatRefused}
+          muted={chatMuted}
           scope="round"
           channel={roomId}
         />

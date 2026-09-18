@@ -38,10 +38,16 @@ export function ResultsContainer({ roomId }: ResultsContainerProps) {
     [],
   );
 
-  const { connected, hostDisconnected, messages, chatRefused, sendMessage } =
-    useMultiplayerSocket(roomId, {
-      onPlayerRoundComplete,
-    });
+  const {
+    connected,
+    hostDisconnected,
+    messages,
+    chatRefused,
+    chatMuted,
+    sendMessage,
+  } = useMultiplayerSocket(roomId, {
+    onPlayerRoundComplete,
+  });
   const {
     data: scoreboard,
     isLoading,
@@ -149,6 +155,7 @@ export function ResultsContainer({ roomId }: ResultsContainerProps) {
       currentUserId={currentUserId}
       onSend={sendMessage}
       refused={chatRefused}
+      muted={chatMuted}
       scope="results"
       channel={roomId}
       defaultOpen

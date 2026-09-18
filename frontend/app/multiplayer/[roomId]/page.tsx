@@ -42,6 +42,7 @@ export default function RoomLobbyPage() {
     removed,
     messages,
     chatRefused,
+    chatMuted,
     sendMessage,
   } = useMultiplayerSocket(roomId, undefined, user?.userId);
   const { data: room, isLoading, isError, error } = useRoom(roomId, connected);
@@ -495,6 +496,7 @@ export default function RoomLobbyPage() {
           currentUserId={user?.userId}
           onSend={sendMessage}
           refused={chatRefused}
+          muted={chatMuted}
           scope="room"
           channel={roomId}
           defaultOpen
