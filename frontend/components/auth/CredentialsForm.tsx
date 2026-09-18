@@ -1,5 +1,7 @@
 'use client';
 
+import { useMe } from '@/hooks/auth/useMe';
+import { useUpdateProfile } from '@/hooks/auth/useUpdateProfile';
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useLogin } from '@/hooks/auth/useLogin';
@@ -37,19 +39,35 @@ export function CredentialsForm({
   const [password, setPassword] = useState('');
   const [forgot, setForgot] = useState(false);
 
+  const { data: user } = useMe();
+  const [name, setName] = useState('');
+
   const signup = useSignup();
   const login = useLogin();
+  const updateProfile = useUpdateProfile();
   const active = mode === 'signup' ? signup : login;
 
   const tooShort = mode === 'signup' && password.length < MIN_PASSWORD_LENGTH;
-  const canSubmit = !!email && !!password && !tooShort && !active.isPending;
+  const chosenName = name.trim();
+  const needsName = mode === 'signup' && !chosenName;
+  const canSubmit =
+    !!email && !!password && !tooShort && !needsName && !active.isPending;
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!canSubmit) return;
     active.mutate(
       { email, password },
-      { onSuccess: () => onDone?.(mode, email) },
+      {
+        onSuccess: () => {
+          // Signup claims the guest row, so the name is changed on it after
+          // the fact rather than being another field the endpoint has to take.
+          if (mode === 'signup' && chosenName !== user?.displayName) {
+            updateProfile.mutate(chosenName);
+          }
+          onDone?.(mode, email);
+        },
+      },
     );
   }
 
@@ -61,6 +79,20 @@ export function CredentialsForm({
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-2.5">
+      {mode === 'signup' && (
+        <input
+          type="text"
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          placeholder="Your name"
+          aria-label="Your name"
+          autoComplete="nickname"
+          maxLength={50}
+          required
+          className="w-full rounded-full border border-fg/10 bg-fg/5 px-4 py-2.5 text-sm text-fg placeholder:text-fg/30 focus:border-spotify-green/50 focus:outline-none transition-colors"
+        />
+      )}
+
       {!lockedEmail && (
         <input
           type="email"
