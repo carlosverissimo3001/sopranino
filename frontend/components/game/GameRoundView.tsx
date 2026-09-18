@@ -114,7 +114,7 @@ export function GameRoundView({
 
   return (
     <div
-      className="min-h-screen min-h-[100dvh] overflow-x-clip"
+      className="min-h-[100svh] overflow-x-clip"
       style={{ background: 'rgb(var(--bg))' }}
     >
       {preloadAlbumUrl && (
@@ -140,7 +140,7 @@ export function GameRoundView({
       <motion.div
         variants={SHAKE_VARIANTS}
         animate={shouldShake ? 'shake' : ''}
-        className="p-3 sm:p-6 md:p-8 lg:p-10 relative z-10 flex flex-col min-h-screen min-h-[100dvh] safe-area-inset"
+        className="p-3 sm:p-6 md:p-8 lg:p-10 relative z-10 flex flex-col min-h-[100svh] safe-area-inset"
       >
         <div className="max-w-2xl mx-auto w-full flex-1 flex flex-col">
           {header}
