@@ -148,7 +148,7 @@ export function ShuffleModeNav({
           {/* One height for every tab: the sheet resizing as tabs were
               switched moved the tabs themselves. Long lists scroll, short ones
               leave a little room under them. */}
-          <DrawerContent className="h-[46svh] border-fg/15 bg-surface shadow-[0_-12px_40px_rgba(0,0,0,0.55)]">
+          <DrawerContent className="h-[56svh] border-fg/15 bg-surface shadow-[0_-12px_40px_rgba(0,0,0,0.55)]">
             <DrawerHeader className="pb-3 pt-3 text-left">
               <DrawerTitle className="text-xs font-bold uppercase tracking-wider text-fg/40">
                 Pick a set
@@ -156,7 +156,7 @@ export function ShuffleModeNav({
             </DrawerHeader>
             {/* Chrome on iOS keeps its toolbar over the page and reports no
                 safe-area inset, so the room has to be asked for. */}
-            <div className="overflow-y-auto px-4 pb-[calc(env(safe-area-inset-bottom)+2rem)]">
+            <div className="overflow-y-auto px-4 pb-[calc(env(safe-area-inset-bottom)+3.5rem)]">
               <SetChips
                 selectedId={trackGroupId ?? selectedPlaylistId}
                 onPick={(set) =>
