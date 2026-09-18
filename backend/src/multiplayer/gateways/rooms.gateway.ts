@@ -14,6 +14,7 @@ import {
   MessageBody,
   ConnectedSocket,
 } from '@nestjs/websockets';
+import { ConfigService } from '@nestjs/config';
 import { Server, Socket } from 'socket.io';
 import { parse as parseCookie } from 'cookie';
 import { AuthService } from '../../auth/services/auth.service';
@@ -22,8 +23,11 @@ import { RoomRepository } from '../repositories/room.repository';
 import { RoomPresenceService } from '../services/room-presence.service';
 import { MultiplayerGameService } from '../services/multiplayer-game.service';
 import { RoomService } from '../services/room.service';
+import { ChatService } from '../services/chat.service';
 import { RoomDto } from '../dto/room.dto';
 import {
+  CHAT_BURST,
+  CHAT_BURST_WINDOW_MS,
   LOBBY_BROADCAST_DEBOUNCE_MS,
   LOBBY_ROOM,
   ROOM_HOST_GONE_GRACE_MS,
@@ -83,7 +87,14 @@ export class RoomsGateway
     private readonly gameService: MultiplayerGameService,
     @Inject(forwardRef(() => RoomService))
     private readonly roomService: RoomService,
-  ) {}
+    private readonly chat: ChatService,
+    config: ConfigService,
+  ) {
+    this.chatEnabled = config.get<string>('CHAT_ENABLED') === 'true';
+  }
+
+  /** Off until a message is checked before it is broadcast (CAR-356). */
+  private readonly chatEnabled: boolean;
 
   onModuleInit(): void {
     // Every instance sweeps; the claim inside makes each room announce once.
@@ -130,6 +141,10 @@ export class RoomsGateway
 
       client.data.userId = user.id;
       client.data.sessionId = sessionId;
+      // Read once here rather than per message: a chat line carries its
+      // author's name, and the room list is not keyed by it.
+      client.data.displayName = user.displayName;
+      client.data.avatarUrl = user.avatarUrl ?? undefined;
 
       this.logger.debug(`Client connected: ${client.id} (user ${user.id})`);
       client.emit('authenticated');
@@ -224,6 +239,13 @@ export class RoomsGateway
           `Host reconnected, cancelled disconnect timer for room ${payload.roomId}`,
         );
       }
+    }
+
+    if (this.chatEnabled) {
+      client.emit('messageHistory', {
+        channel: payload.roomId,
+        messages: await this.chat.history(payload.roomId),
+      });
     }
 
     this.logger.debug(`Client ${client.id} joined room ${payload.roomId}`);
@@ -387,11 +409,74 @@ export class RoomsGateway
     client.emit('lobbyUpdated', {
       rooms: await this.roomService.listOpenRooms(),
     });
+    if (this.chatEnabled) {
+      client.emit('messageHistory', {
+        channel: LOBBY_ROOM,
+        messages: await this.chat.history(LOBBY_ROOM),
+      });
+    }
   }
 
   @SubscribeMessage('leaveLobby')
   async handleLeaveLobby(@ConnectedSocket() client: Socket): Promise<void> {
     await client.leave(LOBBY_ROOM);
+  }
+
+  /**
+   * A message reaches the channel the sender is already in: `joinRoom` refuses
+   * anyone who is not a member, so socket.io's own rooms are the check. An
+   * absent roomId is the lobby, which anybody with a session may talk in.
+   */
+  @SubscribeMessage('sendMessage')
+  async handleSendMessage(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: { roomId?: string; text?: string },
+  ): Promise<void> {
+    const userId = client.data.userId as string | undefined;
+    if (!this.chatEnabled || !userId) {
+      return;
+    }
+
+    const channel = payload.roomId ?? LOBBY_ROOM;
+    if (!client.rooms.has(channel)) {
+      return;
+    }
+
+    const text = this.chat.clean(payload.text ?? '');
+    if (!text) {
+      return;
+    }
+
+    if (!this.claimChatSlot(client)) {
+      client.emit('messageRefused', { reason: 'tooFast' });
+      return;
+    }
+
+    const message = await this.chat.append(
+      channel,
+      {
+        userId,
+        displayName: (client.data.displayName as string) ?? 'Someone',
+        avatarUrl: client.data.avatarUrl as string | undefined,
+      },
+      text,
+    );
+
+    this.server.to(channel).emit('message', { channel, message });
+  }
+
+  private claimChatSlot(client: Socket): boolean {
+    const now = Date.now();
+    const recent = ((client.data.chatSentAt as number[]) ?? []).filter(
+      (at) => now - at < CHAT_BURST_WINDOW_MS,
+    );
+    if (recent.length >= CHAT_BURST) {
+      client.data.chatSentAt = recent;
+      return false;
+    }
+    recent.push(now);
+    client.data.chatSentAt = recent;
+    return true;
   }
 
   emitRoomUpdate(roomId: string, room: RoomDto): void {
