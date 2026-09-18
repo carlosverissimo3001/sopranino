@@ -120,7 +120,8 @@ export function AskForASet() {
       }}
       type="button"
       onClick={() => setIsOpen(true)}
-      className="inline-flex items-center gap-1.5 text-xs text-fg/40 transition-colors hover:text-fg/70"
+      // A line of 10px text is not a tap target; the padding is the target.
+      className="-mx-2 inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-xs text-fg/40 transition-colors hover:text-fg/70"
     >
       <Plus className="h-3.5 w-3.5 shrink-0" />
       Missing an artist? Tell us

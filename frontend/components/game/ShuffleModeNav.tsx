@@ -146,7 +146,7 @@ export function ShuffleModeNav({
           {/* Lighter than the page and a ring above it, so the sheet reads as
               sitting on top rather than being part of the round. */}
           <DrawerContent className="max-h-[70svh] border-fg/15 bg-surface shadow-[0_-12px_40px_rgba(0,0,0,0.55)]">
-            <DrawerHeader className="pb-1 pt-2 text-left">
+            <DrawerHeader className="pb-3 pt-3 text-left">
               <DrawerTitle className="text-xs font-bold uppercase tracking-wider text-fg/40">
                 Pick a set
               </DrawerTitle>
