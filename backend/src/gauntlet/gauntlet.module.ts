@@ -18,5 +18,6 @@ import { TrackModule } from '../track/track.module';
   ],
   controllers: [GauntletController],
   providers: [GauntletService, GauntletRunRepository],
+  exports: [GauntletService],
 })
 export class GauntletModule {}

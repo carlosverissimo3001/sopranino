@@ -21,6 +21,7 @@ import { UserSessionDto } from '../dto/user-session.dto';
 import { PatchUserDto } from '../dto/patch-user.dto';
 import { AvatarSource } from '@prisma/client';
 import { EmailChangeService } from './email-change.service';
+import { UserPreferencesRepository } from '../../user-preferences/repositories/user-preferences.repository';
 
 @Injectable()
 export class AuthService {
@@ -32,6 +33,7 @@ export class AuthService {
     private accountMergeService: AccountMergeService,
     private emailVerification: EmailVerificationService,
     private emailChange: EmailChangeService,
+    private preferences: UserPreferencesRepository,
   ) {}
 
   /**
@@ -254,6 +256,11 @@ export class AuthService {
       throw new UnauthorizedException('User not found');
     }
 
+    const [pendingEmail, preferences] = await Promise.all([
+      user.passwordHash ? this.emailChange.pendingFor(user.id) : null,
+      this.preferences.findByUserId(user.id),
+    ]);
+
     const effectiveAvatarUrl =
       user.avatarSource === AvatarSource.CUSTOM
         ? user.customAvatarUrl
@@ -268,9 +275,8 @@ export class AuthService {
       hasAccount: hasCredential(user),
       email: user.email,
       emailVerified: !!user.emailVerifiedAt,
-      pendingEmail: user.passwordHash
-        ? ((await this.emailChange.pendingFor(user.id)) ?? undefined)
-        : undefined,
+      pendingEmail: pendingEmail ?? undefined,
+      preferences,
       displayName: session.displayName,
       isTrusted: user.isTrusted,
       isAdmin: user.isAdmin,

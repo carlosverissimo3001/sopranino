@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
+import type { UserPreferenceDto } from './UserPreferenceDto';
+import {
+    UserPreferenceDtoFromJSON,
+    UserPreferenceDtoFromJSONTyped,
+    UserPreferenceDtoToJSON,
+    UserPreferenceDtoToJSONTyped,
+} from './UserPreferenceDto';
+
 /**
  * 
  * @export
@@ -61,6 +69,12 @@ export interface AuthMeResponseDto {
      * @memberof AuthMeResponseDto
      */
     pendingEmail?: string;
+    /**
+     * The player preferences, here so pages need not ask for them separately
+     * @type {UserPreferenceDto}
+     * @memberof AuthMeResponseDto
+     */
+    preferences: UserPreferenceDto;
     /**
      * John Doe
      * @type {string}
@@ -130,6 +144,7 @@ export function instanceOfAuthMeResponseDto(value: object): value is AuthMeRespo
     if (!('hasLinkedAccount' in value) || value['hasLinkedAccount'] === undefined) return false;
     if (!('hasAccount' in value) || value['hasAccount'] === undefined) return false;
     if (!('emailVerified' in value) || value['emailVerified'] === undefined) return false;
+    if (!('preferences' in value) || value['preferences'] === undefined) return false;
     if (!('displayName' in value) || value['displayName'] === undefined) return false;
     if (!('avatarSource' in value) || value['avatarSource'] === undefined) return false;
     if (!('isTrusted' in value) || value['isTrusted'] === undefined) return false;
@@ -154,6 +169,7 @@ export function AuthMeResponseDtoFromJSONTyped(json: any, ignoreDiscriminator: b
         'email': json['email'] == null ? undefined : json['email'],
         'emailVerified': json['emailVerified'],
         'pendingEmail': json['pendingEmail'] == null ? undefined : json['pendingEmail'],
+        'preferences': UserPreferenceDtoFromJSON(json['preferences']),
         'displayName': json['displayName'],
         'avatarUrl': json['avatarUrl'] == null ? undefined : json['avatarUrl'],
         'customAvatarUrl': json['customAvatarUrl'] == null ? undefined : json['customAvatarUrl'],
@@ -183,6 +199,7 @@ export function AuthMeResponseDtoToJSONTyped(value?: AuthMeResponseDto | null, i
         'email': value['email'],
         'emailVerified': value['emailVerified'],
         'pendingEmail': value['pendingEmail'],
+        'preferences': UserPreferenceDtoToJSON(value['preferences']),
         'displayName': value['displayName'],
         'avatarUrl': value['avatarUrl'],
         'customAvatarUrl': value['customAvatarUrl'],

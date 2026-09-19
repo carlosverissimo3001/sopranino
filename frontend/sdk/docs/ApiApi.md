@@ -47,6 +47,7 @@ All URIs are relative to *http://localhost*
 | [**gauntletControllerGetRunState**](ApiApi.md#gauntletcontrollergetrunstate) | **GET** /gauntlet/{id} | Get current gauntlet run state |
 | [**gauntletControllerStartRun**](ApiApi.md#gauntletcontrollerstartrun) | **POST** /gauntlet/start | Start a new gauntlet run |
 | [**gauntletControllerSubmitGuess**](ApiApi.md#gauntletcontrollersubmitguess) | **POST** /gauntlet/{id}/guess | Submit a guess for the current gauntlet track |
+| [**meStatusControllerGet**](ApiApi.md#mestatuscontrollerget) | **GET** /me/status | Streak, daily and speed run state, at once |
 | [**multiplayerControllerCreateRoom**](ApiApi.md#multiplayercontrollercreateroom) | **POST** /multiplayer/rooms | Create a new multiplayer room |
 | [**multiplayerControllerGetRoomState**](ApiApi.md#multiplayercontrollergetroomstate) | **GET** /multiplayer/rooms/{id} | Get room state with players |
 | [**multiplayerControllerGetRoundState**](ApiApi.md#multiplayercontrollergetroundstate) | **GET** /multiplayer/rooms/{id}/round | Get current round state for the player |
@@ -73,6 +74,7 @@ All URIs are relative to *http://localhost*
 | [**streakControllerSubmitAnswer**](ApiApi.md#streakcontrollersubmitanswer) | **POST** /streak/quiz/answer | Submit a quiz answer to earn a streak freeze |
 | [**streakControllerUseFreeze**](ApiApi.md#streakcontrollerusefreeze) | **POST** /streak/use-freeze | Apply streak freezes to bridge a gap |
 | [**trackGroupControllerBySlug**](ApiApi.md#trackgroupcontrollerbyslug) | **GET** /track-groups/{slug} | One group, by the name in its URL |
+| [**trackGroupControllerCatalog**](ApiApi.md#trackgroupcontrollercatalog) | **GET** /track-groups/catalog | Every kind of set this player may see, at once |
 | [**trackGroupControllerList**](ApiApi.md#trackgroupcontrollerlist) | **GET** /track-groups | Curated sets of songs anyone can play, library or not |
 | [**userAvatarControllerUpdateSource**](ApiApi.md#useravatarcontrollerupdatesource) | **PATCH** /user-avatar/source | Switch between Spotify and custom avatar |
 | [**userAvatarControllerUpload**](ApiApi.md#useravatarcontrollerupload) | **POST** /user-avatar/upload | Upload a custom avatar image |
@@ -3015,6 +3017,67 @@ example().catch(console.error);
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 
+## meStatusControllerGet
+
+> MeStatusDto meStatusControllerGet()
+
+Streak, daily and speed run state, at once
+
+### Example
+
+```ts
+import {
+  Configuration,
+  ApiApi,
+} from '';
+import type { MeStatusControllerGetRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: cookie
+    apiKey: "YOUR API KEY",
+  });
+  const api = new ApiApi(config);
+
+  try {
+    const data = await api.meStatusControllerGet();
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+[**MeStatusDto**](MeStatusDto.md)
+
+### Authorization
+
+[cookie](../README.md#cookie)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** |  |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
 ## multiplayerControllerCreateRoom
 
 > RoomDto multiplayerControllerCreateRoom(createRoomControllerDto)
@@ -4775,6 +4838,63 @@ No authorization required
 |-------------|-------------|------------------|
 | **200** |  |  -  |
 | **404** | No such group, or not for you |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## trackGroupControllerCatalog
+
+> TrackGroupCatalogDto trackGroupControllerCatalog()
+
+Every kind of set this player may see, at once
+
+### Example
+
+```ts
+import {
+  Configuration,
+  ApiApi,
+} from '';
+import type { TrackGroupControllerCatalogRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const api = new ApiApi();
+
+  try {
+    const data = await api.trackGroupControllerCatalog();
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+[**TrackGroupCatalogDto**](TrackGroupCatalogDto.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** |  |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
