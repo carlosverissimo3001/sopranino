@@ -7,8 +7,17 @@ import {
   NotFoundException,
   forwardRef,
 } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 import { GameStatus, RoomStatus } from '@prisma/client';
+import {
+  CLOSE_ROOM_FINISH_WINDOW_JOB,
+  ROOM_CLEANUP_QUEUE,
+  ROOM_FINISH_WINDOW_MAX_MS,
+  ROOM_FINISH_WINDOW_PER_ROUND_MS,
+} from '../../consts';
 import { AuthService } from '../../auth/services/auth.service';
+import { AppLoggerService } from '../../logger/logger.service';
 import { GuessDto } from '../../game/dto/guess/guess.dto';
 import { GuessResultDto } from '../../game/dto/guess/guess-result.dto';
 import { GuessHistoryDto } from '../../game/dto/guess/guess-history.dto';
@@ -54,6 +63,8 @@ function toStandings(room: RoomWithPlayers): ScoreboardPlayerTotalDto[] {
 
 @Injectable()
 export class MultiplayerGameService {
+  private readonly logger: AppLoggerService;
+
   constructor(
     private readonly authService: AuthService,
     private readonly roomRepository: RoomRepository,
@@ -63,7 +74,11 @@ export class MultiplayerGameService {
     private readonly trackService: TrackService,
     private readonly trackArtists: TrackArtistsService,
     private readonly presence: RoomPresenceService,
-  ) {}
+    @InjectQueue(ROOM_CLEANUP_QUEUE) private readonly roomQueue: Queue,
+    appLogger: AppLoggerService,
+  ) {
+    this.logger = appLogger.child(MultiplayerGameService.name);
+  }
 
   /**
    * @param roundIndex the round the page is showing. Without it the player's
@@ -256,8 +271,16 @@ export class MultiplayerGameService {
       });
       this.roomsGateway.standingsChanged(roomId);
 
-      // Check if all players have finished all rounds → complete room
-      await this.checkRoomCompletion(roomId, room.roundCount);
+      // Check if all players have finished all rounds → complete room.
+      // Never at the guess's expense: it is already saved and announced, and
+      // a failure here would leave the player who made it stuck on the round.
+      try {
+        await this.checkRoomCompletion(roomId, room.roundCount);
+      } catch (error) {
+        this.logger.error(
+          `Could not settle room ${roomId} after a round: ${(error as Error).message}`,
+        );
+      }
     }
 
     return {
@@ -386,6 +409,48 @@ export class MultiplayerGameService {
     }
   }
 
+  /** Called by the job when a room's window runs out. */
+  async closeFinishWindow(roomId: string): Promise<void> {
+    const room = await this.roomRepository.findById(roomId);
+    if (room?.status === RoomStatus.PLAYING) {
+      await this.checkRoomCompletion(roomId, room.roundCount);
+    }
+  }
+
+  /**
+   * Starts the window the moment the first player is done, and asks for it to
+   * be closed when it runs out. Already running, it is left alone: the clock
+   * belongs to the room, and restarting it would move the deadline every time
+   * somebody guessed.
+   */
+  private async openFinishWindow(room: RoomWithPlayers): Promise<void> {
+    if (room.finishDeadline) {
+      return;
+    }
+
+    const window = Math.min(
+      room.roundCount * ROOM_FINISH_WINDOW_PER_ROUND_MS,
+      ROOM_FINISH_WINDOW_MAX_MS,
+    );
+    const finishDeadline = new Date(Date.now() + window);
+    const updated = await this.roomRepository.updateStatus(
+      room.id,
+      RoomStatus.PLAYING,
+      { finishDeadline },
+    );
+    this.roomsGateway.emitRoomUpdate(room.id, RoomDto.fromEntity(updated));
+
+    await this.roomQueue.add(
+      CLOSE_ROOM_FINISH_WINDOW_JOB,
+      { roomId: room.id },
+      {
+        // One per room: a second guess must not queue a second closing.
+        jobId: `${CLOSE_ROOM_FINISH_WINDOW_JOB}:${room.id}`,
+        delay: window,
+      },
+    );
+  }
+
   private async checkRoomCompletion(
     roomId: string,
     roundCount: number,
@@ -400,6 +465,8 @@ export class MultiplayerGameService {
     const present = new Set(await this.presence.onlineUserIds(roomId));
 
     let anyoneFinished = false;
+    let hostFinished = false;
+    const stillPlaying: string[] = [];
 
     for (const player of room.players) {
       const completedCount =
@@ -410,6 +477,7 @@ export class MultiplayerGameService {
 
       if (completedCount >= roundCount) {
         anyoneFinished = true;
+        hostFinished ||= player.userId === room.hostId;
         continue;
       }
 
@@ -418,7 +486,7 @@ export class MultiplayerGameService {
       // played out: their results are here when they come back, and a socket
       // that blinked at the wrong moment used to strand them forever.
       if (present.has(player.userId)) {
-        return;
+        stillPlaying.push(player.userId);
       }
     }
 
@@ -428,11 +496,25 @@ export class MultiplayerGameService {
       return;
     }
 
+    // Past the deadline nobody is waited on: that is what the window is for.
+    const windowOpen =
+      !room.finishDeadline || room.finishDeadline.getTime() > Date.now();
+    if (stillPlaying.length > 0 && windowOpen) {
+      // The host's finish starts the clock, nobody else's: a player can skip
+      // every song in seconds, and that must not be a way to cut the room off.
+      if (hostFinished) {
+        await this.openFinishWindow(room);
+      }
+      return;
+    }
+
     // Nobody is left with rounds to play
     const updated = await this.roomRepository.updateStatus(
       roomId,
       RoomStatus.COMPLETED,
-      { completedAt: new Date() },
+      // The window is spent with the room; a finished room counts down to
+      // nothing.
+      { completedAt: new Date(), finishDeadline: null },
     );
     this.roomsGateway.emitRoomUpdate(roomId, RoomDto.fromEntity(updated));
   }

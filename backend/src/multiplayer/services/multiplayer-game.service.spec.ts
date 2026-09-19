@@ -1,4 +1,12 @@
 import { TrackArtistsService } from '../../track/services/track-artists.service';
+import { getQueueToken } from '@nestjs/bullmq';
+import { AppLoggerService } from '../../logger/logger.service';
+import {
+  CLOSE_ROOM_FINISH_WINDOW_JOB,
+  ROOM_CLEANUP_QUEUE,
+  ROOM_FINISH_WINDOW_MAX_MS,
+  ROOM_FINISH_WINDOW_PER_ROUND_MS,
+} from '../../consts';
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   NotFoundException,
@@ -18,6 +26,7 @@ describe('MultiplayerGameService', () => {
   let service: MultiplayerGameService;
 
   const HOST_SESSION = 'session-host';
+  const PLAYER_SESSION = 'session-player';
   const HOST_USER_ID = 'user-host';
   const PLAYER_USER_ID = 'user-player';
   const ROOM_ID = 'room-123';
@@ -114,6 +123,8 @@ describe('MultiplayerGameService', () => {
 
   // Rooms only finish for players who are still in them, so every existing
   // case has to say who that is.
+  const mockQueue = { add: jest.fn() };
+
   const mockPresence = {
     claimFirstSolve: jest.fn().mockResolvedValue(true),
     onlineUserIds: jest.fn(),
@@ -126,6 +137,11 @@ describe('MultiplayerGameService', () => {
       providers: [
         MultiplayerGameService,
         { provide: AuthService, useValue: mockAuthService },
+        { provide: getQueueToken(ROOM_CLEANUP_QUEUE), useValue: mockQueue },
+        {
+          provide: AppLoggerService,
+          useValue: { child: () => ({ error: jest.fn(), log: jest.fn() }) },
+        },
         { provide: RoomRepository, useValue: mockRoomRepository },
         {
           provide: MultiplayerGameSessionRepository,
@@ -552,7 +568,146 @@ describe('MultiplayerGameService', () => {
       expect(mockRoomRepository.updateStatus).toHaveBeenCalledWith(
         ROOM_ID,
         RoomStatus.COMPLETED,
-        { completedAt: expect.any(Date) },
+        { completedAt: expect.any(Date), finishDeadline: null },
+      );
+    });
+
+    it('puts the rest on the clock once the first player is done', async () => {
+      mockAuthService.getUserBySessionId.mockResolvedValue({
+        id: HOST_USER_ID,
+      });
+      mockRoomRepository.findById.mockResolvedValue(makeRoom());
+      mockRoomRepository.updateStatus.mockResolvedValue(makeRoom());
+      mockGameSessionRepository.findActiveSession.mockResolvedValue(
+        makeSession(),
+      );
+      // The host has played it out; the other is still here, mid-round.
+      mockPresence.onlineUserIds.mockResolvedValue([
+        HOST_USER_ID,
+        PLAYER_USER_ID,
+      ]);
+      mockGameSessionRepository.countCompletedSessions.mockImplementation(
+        (userId: string) => Promise.resolve(userId === HOST_USER_ID ? 2 : 1),
+      );
+
+      await service.submitGuess(HOST_SESSION, ROOM_ID, guessDto);
+
+      expect(mockRoomRepository.updateStatus).toHaveBeenCalledWith(
+        ROOM_ID,
+        RoomStatus.PLAYING,
+        { finishDeadline: expect.any(Date) },
+      );
+      expect(mockQueue.add).toHaveBeenCalledWith(
+        CLOSE_ROOM_FINISH_WINDOW_JOB,
+        { roomId: ROOM_ID },
+        // The room in these tests runs two rounds.
+        expect.objectContaining({ delay: 2 * ROOM_FINISH_WINDOW_PER_ROUND_MS }),
+      );
+    });
+
+    it('ignores a player who skipped their way to the end', async () => {
+      mockAuthService.getUserBySessionId.mockResolvedValue({
+        id: PLAYER_USER_ID,
+      });
+      mockRoomRepository.findById.mockResolvedValue(makeRoom());
+      mockGameSessionRepository.findActiveSession.mockResolvedValue(
+        makeSession(),
+      );
+      mockPresence.onlineUserIds.mockResolvedValue([
+        HOST_USER_ID,
+        PLAYER_USER_ID,
+      ]);
+      // The other player raced to the end; the host is still on a song.
+      mockGameSessionRepository.countCompletedSessions.mockImplementation(
+        (userId: string) => Promise.resolve(userId === PLAYER_USER_ID ? 2 : 1),
+      );
+
+      await service.submitGuess(PLAYER_SESSION, ROOM_ID, guessDto);
+
+      expect(mockQueue.add).not.toHaveBeenCalled();
+      expect(mockRoomRepository.updateStatus).not.toHaveBeenCalled();
+    });
+
+    it('never makes anyone wait longer than the ceiling', async () => {
+      mockAuthService.getUserBySessionId.mockResolvedValue({
+        id: HOST_USER_ID,
+      });
+      // Twenty rounds would be 200s of window without the ceiling.
+      mockRoomRepository.findById.mockResolvedValue(
+        makeRoom({ roundCount: 20 }),
+      );
+      mockRoomRepository.updateStatus.mockResolvedValue(makeRoom());
+      mockGameSessionRepository.findActiveSession.mockResolvedValue(
+        makeSession(),
+      );
+      mockPresence.onlineUserIds.mockResolvedValue([
+        HOST_USER_ID,
+        PLAYER_USER_ID,
+      ]);
+      mockGameSessionRepository.countCompletedSessions.mockImplementation(
+        (userId: string) => Promise.resolve(userId === HOST_USER_ID ? 20 : 1),
+      );
+
+      await service.submitGuess(HOST_SESSION, ROOM_ID, guessDto);
+
+      expect(mockQueue.add).toHaveBeenCalledWith(
+        CLOSE_ROOM_FINISH_WINDOW_JOB,
+        { roomId: ROOM_ID },
+        expect.objectContaining({ delay: ROOM_FINISH_WINDOW_MAX_MS }),
+      );
+    });
+
+    it('leaves a window already running where it is', async () => {
+      mockAuthService.getUserBySessionId.mockResolvedValue({
+        id: HOST_USER_ID,
+      });
+      const deadline = new Date(Date.now() + 20_000);
+      mockRoomRepository.findById.mockResolvedValue(
+        makeRoom({ finishDeadline: deadline }),
+      );
+      mockGameSessionRepository.findActiveSession.mockResolvedValue(
+        makeSession(),
+      );
+      mockPresence.onlineUserIds.mockResolvedValue([
+        HOST_USER_ID,
+        PLAYER_USER_ID,
+      ]);
+      mockGameSessionRepository.countCompletedSessions.mockImplementation(
+        (userId: string) => Promise.resolve(userId === HOST_USER_ID ? 2 : 1),
+      );
+
+      await service.submitGuess(HOST_SESSION, ROOM_ID, guessDto);
+
+      expect(mockQueue.add).not.toHaveBeenCalled();
+      expect(mockRoomRepository.updateStatus).not.toHaveBeenCalled();
+    });
+
+    it('stops waiting on anyone once the window has run out', async () => {
+      mockAuthService.getUserBySessionId.mockResolvedValue({
+        id: HOST_USER_ID,
+      });
+      mockRoomRepository.findById.mockResolvedValue(
+        makeRoom({ finishDeadline: new Date(Date.now() - 1) }),
+      );
+      mockRoomRepository.updateStatus.mockResolvedValue(makeRoom());
+      mockGameSessionRepository.findActiveSession.mockResolvedValue(
+        makeSession(),
+      );
+      // Still here, still unfinished, and no longer waited on.
+      mockPresence.onlineUserIds.mockResolvedValue([
+        HOST_USER_ID,
+        PLAYER_USER_ID,
+      ]);
+      mockGameSessionRepository.countCompletedSessions.mockImplementation(
+        (userId: string) => Promise.resolve(userId === HOST_USER_ID ? 2 : 1),
+      );
+
+      await service.submitGuess(HOST_SESSION, ROOM_ID, guessDto);
+
+      expect(mockRoomRepository.updateStatus).toHaveBeenCalledWith(
+        ROOM_ID,
+        RoomStatus.COMPLETED,
+        { completedAt: expect.any(Date), finishDeadline: null },
       );
     });
 
@@ -575,7 +730,7 @@ describe('MultiplayerGameService', () => {
       expect(mockRoomRepository.updateStatus).toHaveBeenCalledWith(
         ROOM_ID,
         RoomStatus.COMPLETED,
-        { completedAt: expect.any(Date) },
+        { completedAt: expect.any(Date), finishDeadline: null },
       );
     });
 
@@ -621,7 +776,7 @@ describe('MultiplayerGameService', () => {
       expect(mockRoomRepository.updateStatus).toHaveBeenCalledWith(
         ROOM_ID,
         RoomStatus.COMPLETED,
-        { completedAt: expect.any(Date) },
+        { completedAt: expect.any(Date), finishDeadline: null },
       );
     });
 
@@ -665,7 +820,7 @@ describe('MultiplayerGameService', () => {
       expect(mockRoomRepository.updateStatus).toHaveBeenCalledWith(
         ROOM_ID,
         RoomStatus.COMPLETED,
-        { completedAt: expect.any(Date) },
+        { completedAt: expect.any(Date), finishDeadline: null },
       );
     });
 

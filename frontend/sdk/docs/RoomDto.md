@@ -21,6 +21,7 @@ Name | Type
 `createdAt` | Date
 `startedAt` | Date
 `completedAt` | Date
+`finishDeadline` | Date
 
 ## Example
 
@@ -44,6 +45,7 @@ const example = {
   "createdAt": null,
   "startedAt": null,
   "completedAt": null,
+  "finishDeadline": null,
 } satisfies RoomDto
 
 console.log(example)
