@@ -11,8 +11,8 @@ import { RevealGuestPrompt } from './RevealGuestPrompt';
 import { GameHeader } from './GameHeader';
 import { GameLogo } from './GameLogo';
 import { ShuffleModeNav } from './ShuffleModeNav';
-import { GameRoundView } from './GameRoundView';
-import { GameScreenError, GameScreenLoading } from './GameScreenStatus';
+import { EMPTY_ROUND, GameRoundView } from './GameRoundView';
+import { GameScreenError } from './GameScreenStatus';
 import { GameStatsDtoModeEnum as GameMode } from '../../sdk';
 
 /**
@@ -41,18 +41,19 @@ export function DailyGamePage() {
   } = useDailyGameOrchestrator({ volume });
 
   useWarnOnLeave(!!gameState && !isGameOver);
-
-  if (isLoading) return <GameScreenLoading />;
+  const startingLine = 'Getting today’s song…';
   if (error) return <GameScreenError error={error} />;
-  if (!gameState) return null;
+  if (!isLoading && !gameState) return null;
+  const starting = isLoading || !gameState;
+  const round = gameState
+    ? { ...gameState, answerImageUrl: gameState.answer?.albumImageUrl }
+    : EMPTY_ROUND;
 
   return (
     <GameRoundView
-      round={{
-        ...gameState,
-        answerImageUrl: gameState.answer?.albumImageUrl,
-      }}
+      round={round}
       isOver={!!isGameOver}
+      startingLine={starting ? startingLine : undefined}
       shouldShake={shouldShake}
       audio={gameAudio}
       guess={{
@@ -85,25 +86,27 @@ export function DailyGamePage() {
           />
           {!isGameOver && (
             <p className="text-xs font-medium text-fg/50">
-              Round {Math.min(gameState.currentRound + 1, gameState.maxRounds)}{' '}
-              of {gameState.maxRounds}
+              Round {Math.min(round.currentRound + 1, round.maxRounds)} of{' '}
+              {round.maxRounds}
             </p>
           )}
         </div>
       }
       reveal={
-        <SongRevealCard
-          status={gameState.status}
-          answer={gameState.answer}
-          previewUrl={gameState.previewUrl}
-          shareGameId={gameState.sessionId}
-          showViewStats
-          isFullSongPlaying={gameAudio.isFullSongPlaying}
-          onToggleFullSong={gameAudio.toggleFullSong}
-          rankTitle={gameState.rankTitle ?? null}
-          tries={gameState.guesses.length}
-          footer={user && !user.hasAccount && <RevealGuestPrompt />}
-        />
+        gameState && (
+          <SongRevealCard
+            status={gameState.status}
+            answer={gameState.answer}
+            previewUrl={gameState.previewUrl}
+            shareGameId={gameState.sessionId}
+            showViewStats
+            isFullSongPlaying={gameAudio.isFullSongPlaying}
+            onToggleFullSong={gameAudio.toggleFullSong}
+            rankTitle={gameState.rankTitle ?? null}
+            tries={gameState.guesses.length}
+            footer={user && !user.hasAccount && <RevealGuestPrompt />}
+          />
+        )
       }
     />
   );

@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useState } from 'react';
+import { Equalizer } from './StartingRound';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Music, Pause, Play } from 'lucide-react';
 
@@ -47,6 +48,8 @@ interface AlbumArtRevealProps {
   onPause?: () => void;
   /** No round yet: a still cover, not a loading one. */
   idle?: boolean;
+  /** A round is being picked: an equalizer stands in for the cover. */
+  waiting?: boolean;
 }
 
 export function AlbumArtReveal({
@@ -57,6 +60,7 @@ export function AlbumArtReveal({
   onPlay,
   onPause,
   idle = false,
+  waiting,
 }: AlbumArtRevealProps) {
   const blur = blurForRound(currentRound, maxRounds);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -87,7 +91,11 @@ export function AlbumArtReveal({
             className="relative isolate h-[min(100cqw,100cqh)] w-[min(100cqw,100cqh)] overflow-hidden rounded-2xl bg-fg/10 [-webkit-mask-image:-webkit-radial-gradient(white,black)] sm:h-40 sm:w-40 sm:rounded-2xl"
             style={blurVars}
           >
-            {idle ? (
+            {waiting ? (
+              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-spotify-green/20 via-fg/5 to-fg/10">
+                <Equalizer className="h-8 sm:h-10" />
+              </div>
+            ) : idle ? (
               <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-spotify-green/25 via-fg/5 to-fg/10">
                 <Music className="hidden h-8 w-8 text-fg/40 sm:block" />
               </div>
@@ -132,7 +140,7 @@ export function AlbumArtReveal({
                 </div>
               </div>
             )}
-            {onPlay && onPause && (
+            {onPlay && onPause && !waiting && (
               <button
                 type="button"
                 onClick={isPlaying ? onPause : onPlay}

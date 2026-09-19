@@ -7,7 +7,6 @@ import { useMe } from '@/hooks/auth/useMe';
 import { useVolume } from '@/hooks/game/useVolume';
 import { useWarnOnLeave } from '@/hooks/useWarnOnLeave';
 import { Button } from '@/components/ui/button';
-import { SNIPPET_STEPS } from '@/lib/snippet-timeline';
 import { SongRevealCard } from './SongRevealCard';
 import { RevealGuestPrompt } from './RevealGuestPrompt';
 import { GameHeader } from './GameHeader';
@@ -21,23 +20,12 @@ import {
 import { guessLine } from '@/lib/track-group-labels';
 import { spotifySetPath } from '@/lib/set-routes';
 import { FameTierPicker } from './FameTierPicker';
-import { GameRoundView, type RoundData } from './GameRoundView';
-import { GameScreenError, GameScreenLoading } from './GameScreenStatus';
+import { EMPTY_ROUND, GameRoundView, type RoundData } from './GameRoundView';
+import { GameScreenError } from './GameScreenStatus';
 import { GameStatsDtoModeEnum as GameMode } from '../../sdk';
 
 /** A decoded track can take a moment; past this the element path is tried. */
 const AUTOPLAY_WAIT_MS = 2500;
-
-const IDLE_ROUND: RoundData = {
-  previewUrl: null,
-  albumImageUrl: null,
-  currentRound: 0,
-  maxRounds: SNIPPET_STEPS.length,
-  guesses: [],
-  snippetSteps: [...SNIPPET_STEPS],
-  snippetDuration: SNIPPET_STEPS[0],
-  hints: [],
-};
 
 interface GamePageProps {
   canSignIn: boolean;
@@ -165,9 +153,16 @@ export function GamePage({
     window.history.replaceState(null, '', path);
   }, [syncUrl, playingPlaylistId, playingSet?.slug]);
 
-  if (!idle && isLoading) return <GameScreenLoading />;
+  const starting = !idle && isLoading;
+  const startingLine =
+    playlistId || trackGroupId
+      ? `Picking a song from ${queuedName}…`
+      : 'Picking a song…';
   if (error) return <GameScreenError error={error} />;
-  if (!idle && !gameState) return null;
+  if (!idle && !starting && !gameState) return null;
+  // The pool orchestrator calls a missing round over; while one is being
+  // started it is neither.
+  const roundOver = !!isGameOver && !idle && !starting;
 
   const startFromTap = () => {
     if (isStarting) return;
@@ -181,17 +176,19 @@ export function GamePage({
   const tierWaits =
     tiersApply &&
     !idle &&
-    !isGameOver &&
+    !roundOver &&
+    !starting &&
     (!gameState?.fameTier || gameState.fameTier !== fameTier);
 
   const round: RoundData = gameState
     ? { ...gameState, answerImageUrl: gameState.answer?.albumImageUrl }
-    : IDLE_ROUND;
+    : EMPTY_ROUND;
 
   return (
     <GameRoundView
       round={round}
-      isOver={!!isGameOver && !idle}
+      isOver={roundOver}
+      startingLine={starting ? startingLine : undefined}
       shouldShake={shouldShake}
       idle={idle}
       audio={idle ? { ...gameAudio, playSnippet: startFromTap } : gameAudio}
@@ -272,7 +269,7 @@ export function GamePage({
             />
             {/* One line for where the round stands and how hard it is. */}
             <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
-              {(idle || !isGameOver) && (
+              {!roundOver && (
                 <p className="text-xs font-medium text-fg/50">
                   Round {Math.min(round.currentRound + 1, round.maxRounds)} of{' '}
                   {round.maxRounds}
@@ -284,7 +281,11 @@ export function GamePage({
                   showWaitNote={false}
                   value={fameTier}
                   onChange={handleFameTierChange}
-                  playing={isGameOver || idle ? undefined : gameState?.fameTier}
+                  playing={
+                    roundOver || idle || starting
+                      ? undefined
+                      : gameState?.fameTier
+                  }
                   disabled={isStarting}
                 />
               )}

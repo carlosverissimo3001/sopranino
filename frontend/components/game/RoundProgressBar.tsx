@@ -20,6 +20,26 @@ interface RoundProgressBarProps {
   /** Peak amplitudes of the track, 0–1. Flat bars are drawn until they arrive. */
   peaks?: number[];
   isPlaying?: boolean;
+  /** A round is being picked: the bars ripple until it arrives. */
+  waiting?: boolean;
+}
+
+/** A ripple travelling along the bars, started mid-cycle so it is already moving. */
+function WaitingBars() {
+  return (
+    <div className="flex h-full w-full items-center gap-px" aria-hidden>
+      {PLACEHOLDER_PEAKS.map((_, index) => (
+        <span
+          key={index}
+          className="motion-waiting h-full flex-1 origin-center rounded-full bg-spotify-green/35"
+          style={{
+            animation: 'round-wave 1.6s ease-in-out infinite',
+            animationDelay: `${-(index % 32) * 0.05}s`,
+          }}
+        />
+      ))}
+    </div>
+  );
 }
 
 /**
@@ -84,6 +104,7 @@ export function RoundProgressBar({
   progress,
   peaks = [],
   isPlaying = false,
+  waiting,
 }: RoundProgressBarProps) {
   const steps =
     snippetSteps && snippetSteps.length === totalRounds
@@ -137,8 +158,8 @@ export function RoundProgressBar({
       </div>
       {/* Fixed height: peaks land after the round loads and must not shift it. */}
       <div className="relative h-7 sm:h-9">
-        <Bars peaks={drawn} lit={false} />
-        {isPlaying && progress ? (
+        {waiting ? <WaitingBars /> : <Bars peaks={drawn} lit={false} />}
+        {waiting ? null : isPlaying && progress ? (
           <Playhead progress={progress} ceiling={ceiling}>
             <Bars peaks={drawn} lit />
           </Playhead>
