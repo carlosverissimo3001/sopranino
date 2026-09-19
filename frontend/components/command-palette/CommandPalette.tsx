@@ -252,7 +252,7 @@ function PaletteBody({ onDone }: { onDone: () => void }) {
                     event.stopPropagation();
                     setRecent(forgetPick(pick.id));
                   }}
-                  className="-my-1 -mr-1 ml-auto flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-md text-fg/40 opacity-0 transition-opacity hover:bg-fg/10 hover:text-fg group-hover:opacity-100 group-data-[selected=true]:opacity-100 [@media(hover:none)]:opacity-100"
+                  className="-my-1 -mr-1 ml-auto flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center text-fg/40 opacity-0 transition-[opacity,color] hover:text-fg group-hover:opacity-100 group-data-[selected=true]:opacity-100 [@media(hover:none)]:opacity-100"
                 >
                   <X className="!size-3.5" />
                 </button>
