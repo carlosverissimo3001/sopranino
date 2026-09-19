@@ -1,9 +1,10 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { History, Zap } from 'lucide-react';
+import { History, Search, Zap } from 'lucide-react';
+import { openCommandPalette } from '@/lib/command-palette';
 import type { AuthMeResponseDto } from '@/sdk';
 
 interface AppHeaderProps {
@@ -11,6 +12,12 @@ interface AppHeaderProps {
 }
 
 function AppHeaderComponent({ user }: AppHeaderProps) {
+  const [shortcut, setShortcut] = useState('Ctrl+K');
+  // After mount, so the server's HTML and the first render agree.
+  useEffect(() => {
+    if (/Mac|iPhone|iPad/.test(navigator.userAgent)) setShortcut('⌘K');
+  }, []);
+
   return (
     <header className="sticky top-0 z-50 px-4 sm:px-6 py-3 sm:py-4 bg-surface/60 backdrop-blur-xl border-t border-fg/10">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -25,6 +32,15 @@ function AppHeaderComponent({ user }: AppHeaderProps) {
 
         {user && (
           <nav className="flex items-center gap-1 sm:gap-3">
+            <button
+              type="button"
+              onClick={openCommandPalette}
+              aria-label="Search"
+              title={`Search (${shortcut})`}
+              className="flex h-9 w-9 items-center justify-center rounded-xl text-fg/50 transition-colors hover:bg-fg/5 hover:text-fg"
+            >
+              <Search className="h-4 w-4" />
+            </button>
             <Link
               href="/history"
               aria-label="History"

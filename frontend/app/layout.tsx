@@ -4,6 +4,7 @@ import { Toaster } from 'sonner';
 import { Analytics } from '@vercel/analytics/react';
 import './globals.css';
 import { QueryProvider } from '@/components/providers/QueryProvider';
+import { CommandPalette } from '@/components/command-palette/CommandPalette';
 import { MotionProvider } from '@/components/providers/MotionProvider';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -85,7 +86,10 @@ export default function RootLayout({
         <ThemeProvider>
           <ErrorBoundary>
             <MotionProvider>
-              <QueryProvider>{children}</QueryProvider>
+              <QueryProvider>
+                {children}
+                <CommandPalette />
+              </QueryProvider>
             </MotionProvider>
           </ErrorBoundary>
           <OfflineBanner />
