@@ -1,11 +1,10 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { GamePage } from '@/components/game/GamePage';
+import { DailyGamePage } from '@/components/game/DailyGamePage';
 import { StreakFreezePrompt } from '@/components/streak/StreakFreezePrompt';
 import { useStreakStatus } from '@/hooks/streak/useStreakStatus';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { GameStatsDtoModeEnum as GameMode } from '../../sdk';
 
 export default function DailyPage() {
   const { data: status, isLoading } = useStreakStatus();
@@ -29,5 +28,5 @@ export default function DailyPage() {
     return <StreakFreezePrompt onResolved={resolvePrompt} />;
   }
 
-  return <GamePage mode={GameMode.Daily} />;
+  return <DailyGamePage />;
 }

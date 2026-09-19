@@ -2,8 +2,6 @@
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
-import { Zap } from 'lucide-react';
 import { usePoolGameOrchestrator } from '@/hooks/game/usePoolGameOrchestrator';
 import { useMe } from '@/hooks/auth/useMe';
 import { useVolume } from '@/hooks/game/useVolume';
@@ -13,6 +11,7 @@ import { SNIPPET_STEPS } from '@/lib/snippet-timeline';
 import { SongRevealCard } from './SongRevealCard';
 import { RevealGuestPrompt } from './RevealGuestPrompt';
 import { GameHeader } from './GameHeader';
+import { GameLogo } from './GameLogo';
 import { ShuffleModeNav } from './ShuffleModeNav';
 import { FAME_TIERS } from '@/lib/fame-tier';
 import {
@@ -208,8 +207,6 @@ export function ShuffleGamePage({
           mode={GameMode.All}
           volume={volume}
           onVolumeChange={setVolume}
-          // The name, not a Back link: this screen is the way in for a new
-          // visitor, and the logo is the way home for everyone else.
           center={
             playingSet && (
               <p className="text-sm font-bold tracking-tight text-fg md:text-base">
@@ -217,16 +214,7 @@ export function ShuffleGamePage({
               </p>
             )
           }
-          leading={
-            <Link href="/" className="flex shrink-0 items-center gap-2">
-              <span className="rounded-lg bg-spotify-green p-1.5">
-                <Zap className="h-4 w-4 fill-black text-black" />
-              </span>
-              <span className="text-sm font-black uppercase italic tracking-tighter sm:text-base">
-                Sopranino
-              </span>
-            </Link>
-          }
+          leading={<GameLogo />}
           trailing={
             headerTrailing ??
             // Nothing at all while the site is gated: /api/auth/login is
