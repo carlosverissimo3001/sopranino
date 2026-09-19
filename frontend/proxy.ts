@@ -11,7 +11,7 @@ const SHUFFLE_ROUTE = '/shuffle';
 
 // Presence only; the backend validates. Multiplayer join is absent on purpose:
 // it routes signed out visitors through login itself.
-const NEEDS_SESSION = ['/playlist', '/history', '/preferences', '/admin'];
+const NEEDS_SESSION = ['/playlist', '/history', '/profile', '/admin'];
 
 function needsSession(pathname: string): boolean {
   if (pathname.startsWith('/multiplayer/join')) return false;

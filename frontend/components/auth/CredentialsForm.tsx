@@ -20,7 +20,7 @@ interface CredentialsFormProps {
    */
   lockedEmail?: string;
   /**
-   * Only where signing up creates a new person. In preferences it claims the
+   * Only where signing up creates a new person. On the profile it claims the
    * row the player already has, so there is nothing to start over from.
    */
   warnAboutSpotify?: boolean;
