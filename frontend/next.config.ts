@@ -8,11 +8,6 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_COMMIT_SHA:
       process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? '',
   },
-  async redirects() {
-    return [
-      { source: '/preferences', destination: '/profile', permanent: true },
-    ];
-  },
   async rewrites() {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
