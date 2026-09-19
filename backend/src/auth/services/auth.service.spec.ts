@@ -9,6 +9,7 @@ import { UserRepository } from '../repositories/user.repository';
 import { hashPassword } from '../utils/password';
 import { AccountMergeService } from './account-merge.service';
 import { EmailVerificationService } from './email-verification.service';
+import { EmailChangeService } from './email-change.service';
 import { UserSessionDto } from '../dto/user-session.dto';
 import { UserEntity } from '../entities/user.entity';
 
@@ -108,6 +109,10 @@ describe('AuthService', () => {
         {
           provide: EmailVerificationService,
           useValue: mockEmailVerificationService,
+        },
+        {
+          provide: EmailChangeService,
+          useValue: { pendingFor: jest.fn().mockResolvedValue(null) },
         },
       ],
     }).compile();

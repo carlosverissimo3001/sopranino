@@ -38,6 +38,12 @@ export class AuthMeResponseDto {
   })
   emailVerified: boolean;
 
+  @ApiPropertyOptional({
+    description:
+      'An address waiting to replace the email, until its link is clicked',
+  })
+  pendingEmail?: string;
+
   @ApiProperty({ description: 'John Doe' })
   displayName: string;
 

@@ -73,6 +73,12 @@ export class EmailVerificationService {
       return false;
     }
 
+    // A link for an address the account has since moved off verifies nothing.
+    const user = await this.userRepository.findById(record.userId);
+    if (user?.email !== record.email) {
+      return false;
+    }
+
     await this.userRepository.markEmailVerified(record.userId, record.email);
     this.logger.log(`Verified an address for user ${record.userId}`);
     return true;

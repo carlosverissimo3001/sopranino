@@ -14,7 +14,10 @@ const mockTokenRepository = {
   findByHash: jest.fn(),
   consume: jest.fn(),
 };
-const mockUserRepository = { markEmailVerified: jest.fn() };
+const mockUserRepository = {
+  markEmailVerified: jest.fn(),
+  findById: jest.fn(),
+};
 const mockEmailService = { send: jest.fn() };
 const mockLimiter = { claim: jest.fn() };
 
@@ -45,6 +48,10 @@ describe('EmailVerificationService', () => {
     jest.clearAllMocks();
     mockLimiter.claim.mockResolvedValue(true);
     mockEmailService.send.mockResolvedValue(true);
+    mockUserRepository.findById.mockResolvedValue({
+      id: 'user-1',
+      email: 'player@example.com',
+    });
   });
 
   describe('send', () => {
@@ -147,6 +154,18 @@ describe('EmailVerificationService', () => {
       await service.confirm('a-token');
 
       expect(mockTokenRepository.consume).toHaveBeenCalledWith('token-row');
+    });
+
+    it('refuses a link for an address the account has moved off', async () => {
+      mockTokenRepository.findByHash.mockResolvedValue(live);
+      mockUserRepository.findById.mockResolvedValue({
+        id: 'user-1',
+        email: 'new@example.com',
+      });
+      const service = await build();
+
+      await expect(service.confirm('a-token')).resolves.toBe(false);
+      expect(mockUserRepository.markEmailVerified).not.toHaveBeenCalled();
     });
 
     it('refuses a token nobody issued', async () => {

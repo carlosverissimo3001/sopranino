@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   Patch,
@@ -36,6 +37,11 @@ import { ConfirmEmailDto } from '../dto/confirm-email.dto';
 import { EmailVerificationResultDto } from '../dto/email-verification.dto';
 import { EmailVerificationService } from '../services/email-verification.service';
 import { PasswordResetService } from '../services/password-reset.service';
+import { EmailChangeService } from '../services/email-change.service';
+import {
+  EmailChangeResultDto,
+  RequestEmailChangeControllerDto,
+} from '../dto/email-change.dto';
 import {
   ChangePasswordDto,
   ConfirmPasswordResetDto,
@@ -71,6 +77,7 @@ export class AuthController {
     private authService: AuthService,
     private readonly emailVerification: EmailVerificationService,
     private readonly passwordReset: PasswordResetService,
+    private readonly emailChange: EmailChangeService,
     private configService: ConfigService,
     appLogger: AppLoggerService,
   ) {
@@ -357,6 +364,94 @@ export class AuthController {
       dto.currentPassword,
       dto.newPassword,
     );
+  }
+
+  @Post('email-change')
+  @HttpCode(202)
+  @UseGuards(ThrottlerGuard)
+  @Throttle({
+    [THROTTLE_CREDENTIALS]: {
+      limit: THROTTLE_CREDENTIALS_LIMIT,
+      ttl: THROTTLE_TTL,
+    },
+  })
+  @ApiOperation({ summary: 'Ask to move the account to a new address' })
+  @ApiCookieAuth()
+  @ApiResponse({
+    status: 202,
+    description:
+      'A link went to the new address. The old one stays the email until it is clicked.',
+  })
+  @ApiResponse({ status: 401, description: 'Current password is incorrect' })
+  @ApiResponse({ status: 409, description: 'That email is already registered' })
+  async requestEmailChange(
+    @SessionId() sessionId: string,
+    @Body() dto: RequestEmailChangeControllerDto,
+  ): Promise<void> {
+    await this.authService.requestEmailChange(
+      sessionId,
+      dto.currentPassword,
+      dto.newEmail,
+    );
+  }
+
+  @Post('email-change/resend')
+  @HttpCode(202)
+  @UseGuards(ThrottlerGuard)
+  @Throttle({
+    [THROTTLE_CREDENTIALS]: {
+      limit: THROTTLE_CREDENTIALS_LIMIT,
+      ttl: THROTTLE_TTL,
+    },
+  })
+  @ApiOperation({ summary: 'Send the link to the pending address again' })
+  @ApiCookieAuth()
+  @ApiResponse({ status: 202, description: 'Accepted, sent or not' })
+  async resendEmailChange(@SessionId() sessionId: string): Promise<void> {
+    await this.authService.resendEmailChange(sessionId);
+  }
+
+  @Delete('email-change')
+  @HttpCode(204)
+  @ApiOperation({ summary: 'Drop the pending address' })
+  @ApiCookieAuth()
+  @ApiResponse({ status: 204, description: 'Nothing is pending any more' })
+  async cancelEmailChange(@SessionId() sessionId: string): Promise<void> {
+    await this.authService.cancelEmailChange(sessionId);
+  }
+
+  @Post('email-change/confirm')
+  @HttpCode(200)
+  @UseGuards(ThrottlerGuard)
+  @Throttle({
+    [THROTTLE_CREDENTIALS]: {
+      limit: THROTTLE_CREDENTIALS_LIMIT,
+      ttl: THROTTLE_TTL,
+    },
+  })
+  @ApiOperation({ summary: 'Spend the link sent to the new address' })
+  @ApiResponse({ status: 200, type: EmailChangeResultDto })
+  async confirmEmailChange(
+    @Body() dto: ConfirmEmailDto,
+  ): Promise<EmailChangeResultDto> {
+    return { done: await this.emailChange.confirm(dto.token) };
+  }
+
+  @Post('email-change/cancel')
+  @HttpCode(200)
+  @UseGuards(ThrottlerGuard)
+  @Throttle({
+    [THROTTLE_CREDENTIALS]: {
+      limit: THROTTLE_CREDENTIALS_LIMIT,
+      ttl: THROTTLE_TTL,
+    },
+  })
+  @ApiOperation({ summary: 'Spend the cancel link sent to the old address' })
+  @ApiResponse({ status: 200, type: EmailChangeResultDto })
+  async cancelEmailChangeByLink(
+    @Body() dto: ConfirmEmailDto,
+  ): Promise<EmailChangeResultDto> {
+    return { done: await this.emailChange.cancel(dto.token) };
   }
 
   @Post('logout')

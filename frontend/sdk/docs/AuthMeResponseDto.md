@@ -12,6 +12,7 @@ Name | Type
 `hasAccount` | boolean
 `email` | string
 `emailVerified` | boolean
+`pendingEmail` | string
 `displayName` | string
 `avatarUrl` | string
 `customAvatarUrl` | string
@@ -34,6 +35,7 @@ const example = {
   "hasAccount": false,
   "email": null,
   "emailVerified": false,
+  "pendingEmail": null,
   "displayName": null,
   "avatarUrl": null,
   "customAvatarUrl": null,

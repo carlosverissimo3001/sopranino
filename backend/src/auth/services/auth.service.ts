@@ -20,6 +20,7 @@ import { AuthMeResponseDto } from '../dto/auth.dto';
 import { UserSessionDto } from '../dto/user-session.dto';
 import { PatchUserDto } from '../dto/patch-user.dto';
 import { AvatarSource } from '@prisma/client';
+import { EmailChangeService } from './email-change.service';
 
 @Injectable()
 export class AuthService {
@@ -30,6 +31,7 @@ export class AuthService {
     private userRepository: UserRepository,
     private accountMergeService: AccountMergeService,
     private emailVerification: EmailVerificationService,
+    private emailChange: EmailChangeService,
   ) {}
 
   /**
@@ -266,6 +268,9 @@ export class AuthService {
       hasAccount: hasCredential(user),
       email: user.email,
       emailVerified: !!user.emailVerifiedAt,
+      pendingEmail: user.passwordHash
+        ? ((await this.emailChange.pendingFor(user.id)) ?? undefined)
+        : undefined,
       displayName: session.displayName,
       isTrusted: user.isTrusted,
       isAdmin: user.isAdmin,
@@ -389,6 +394,34 @@ export class AuthService {
     // Everywhere but here. Whoever is doing this stays signed in; anything
     // else signed in as them does not.
     await this.sessionService.deleteSessionsForUser(user.id, sessionId);
+  }
+
+  async requestEmailChange(
+    sessionId: string,
+    currentPassword: string,
+    newEmail: string,
+  ): Promise<void> {
+    await this.emailChange.request({
+      userId: await this.userIdOf(sessionId),
+      currentPassword,
+      newEmail,
+    });
+  }
+
+  async resendEmailChange(sessionId: string): Promise<void> {
+    await this.emailChange.resend(await this.userIdOf(sessionId));
+  }
+
+  async cancelEmailChange(sessionId: string): Promise<void> {
+    await this.emailChange.cancelFor(await this.userIdOf(sessionId));
+  }
+
+  private async userIdOf(sessionId: string): Promise<string> {
+    const session = await this.sessionService.getSession(sessionId);
+    if (!session) {
+      throw new UnauthorizedException('Session expired');
+    }
+    return session.userId;
   }
 
   /**

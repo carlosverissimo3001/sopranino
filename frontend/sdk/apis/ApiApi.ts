@@ -25,6 +25,7 @@ import type {
   CreateFeedbackControllerDto,
   CreateRoomControllerDto,
   CreateStreakQuestionDto,
+  EmailChangeResultDto,
   EmailVerificationResultDto,
   FeedbackDto,
   FeedbackPageDto,
@@ -53,6 +54,7 @@ import type {
   PlaylistSortBy,
   QuizNextResponseDto,
   QuizResultDto,
+  RequestEmailChangeControllerDto,
   RequestPasswordResetDto,
   RoomDto,
   ScoreboardDto,
@@ -98,6 +100,8 @@ import {
     CreateRoomControllerDtoToJSON,
     CreateStreakQuestionDtoFromJSON,
     CreateStreakQuestionDtoToJSON,
+    EmailChangeResultDtoFromJSON,
+    EmailChangeResultDtoToJSON,
     EmailVerificationResultDtoFromJSON,
     EmailVerificationResultDtoToJSON,
     FeedbackDtoFromJSON,
@@ -154,6 +158,8 @@ import {
     QuizNextResponseDtoToJSON,
     QuizResultDtoFromJSON,
     QuizResultDtoToJSON,
+    RequestEmailChangeControllerDtoFromJSON,
+    RequestEmailChangeControllerDtoToJSON,
     RequestPasswordResetDtoFromJSON,
     RequestPasswordResetDtoToJSON,
     RoomDtoFromJSON,
@@ -259,11 +265,19 @@ export interface AuthControllerCallbackRequest {
     ubi?: object;
 }
 
+export interface AuthControllerCancelEmailChangeByLinkRequest {
+    confirmEmailDto: ConfirmEmailDto;
+}
+
 export interface AuthControllerChangePasswordRequest {
     changePasswordDto: ChangePasswordDto;
 }
 
 export interface AuthControllerConfirmEmailRequest {
+    confirmEmailDto: ConfirmEmailDto;
+}
+
+export interface AuthControllerConfirmEmailChangeRequest {
     confirmEmailDto: ConfirmEmailDto;
 }
 
@@ -273,6 +287,10 @@ export interface AuthControllerConfirmPasswordResetRequest {
 
 export interface AuthControllerLoginWithPasswordRequest {
     loginDto: LoginDto;
+}
+
+export interface AuthControllerRequestEmailChangeRequest {
+    requestEmailChangeControllerDto: RequestEmailChangeControllerDto;
 }
 
 export interface AuthControllerRequestPasswordResetRequest {
@@ -947,6 +965,73 @@ export class ApiApi extends runtime.BaseAPI {
     }
 
     /**
+     * Drop the pending address
+     */
+    async authControllerCancelEmailChangeRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/auth/email-change`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Drop the pending address
+     */
+    async authControllerCancelEmailChange(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.authControllerCancelEmailChangeRaw(initOverrides);
+    }
+
+    /**
+     * Spend the cancel link sent to the old address
+     */
+    async authControllerCancelEmailChangeByLinkRaw(requestParameters: AuthControllerCancelEmailChangeByLinkRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<EmailChangeResultDto>> {
+        if (requestParameters['confirmEmailDto'] == null) {
+            throw new runtime.RequiredError(
+                'confirmEmailDto',
+                'Required parameter "confirmEmailDto" was null or undefined when calling authControllerCancelEmailChangeByLink().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/auth/email-change/cancel`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: ConfirmEmailDtoToJSON(requestParameters['confirmEmailDto']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => EmailChangeResultDtoFromJSON(jsonValue));
+    }
+
+    /**
+     * Spend the cancel link sent to the old address
+     */
+    async authControllerCancelEmailChangeByLink(requestParameters: AuthControllerCancelEmailChangeByLinkRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EmailChangeResultDto> {
+        const response = await this.authControllerCancelEmailChangeByLinkRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Change the password of the signed in account
      */
     async authControllerChangePasswordRaw(requestParameters: AuthControllerChangePasswordRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
@@ -1020,6 +1105,45 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async authControllerConfirmEmail(requestParameters: AuthControllerConfirmEmailRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EmailVerificationResultDto> {
         const response = await this.authControllerConfirmEmailRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Spend the link sent to the new address
+     */
+    async authControllerConfirmEmailChangeRaw(requestParameters: AuthControllerConfirmEmailChangeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<EmailChangeResultDto>> {
+        if (requestParameters['confirmEmailDto'] == null) {
+            throw new runtime.RequiredError(
+                'confirmEmailDto',
+                'Required parameter "confirmEmailDto" was null or undefined when calling authControllerConfirmEmailChange().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/auth/email-change/confirm`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: ConfirmEmailDtoToJSON(requestParameters['confirmEmailDto']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => EmailChangeResultDtoFromJSON(jsonValue));
+    }
+
+    /**
+     * Spend the link sent to the new address
+     */
+    async authControllerConfirmEmailChange(requestParameters: AuthControllerConfirmEmailChangeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EmailChangeResultDto> {
+        const response = await this.authControllerConfirmEmailChangeRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1216,6 +1340,44 @@ export class ApiApi extends runtime.BaseAPI {
     }
 
     /**
+     * Ask to move the account to a new address
+     */
+    async authControllerRequestEmailChangeRaw(requestParameters: AuthControllerRequestEmailChangeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters['requestEmailChangeControllerDto'] == null) {
+            throw new runtime.RequiredError(
+                'requestEmailChangeControllerDto',
+                'Required parameter "requestEmailChangeControllerDto" was null or undefined when calling authControllerRequestEmailChange().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/auth/email-change`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: RequestEmailChangeControllerDtoToJSON(requestParameters['requestEmailChangeControllerDto']),
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Ask to move the account to a new address
+     */
+    async authControllerRequestEmailChange(requestParameters: AuthControllerRequestEmailChangeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.authControllerRequestEmailChangeRaw(requestParameters, initOverrides);
+    }
+
+    /**
      * Ask for a link to choose a new password
      */
     async authControllerRequestPasswordResetRaw(requestParameters: AuthControllerRequestPasswordResetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
@@ -1251,6 +1413,34 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async authControllerRequestPasswordReset(requestParameters: AuthControllerRequestPasswordResetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
         await this.authControllerRequestPasswordResetRaw(requestParameters, initOverrides);
+    }
+
+    /**
+     * Send the link to the pending address again
+     */
+    async authControllerResendEmailChangeRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/auth/email-change/resend`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Send the link to the pending address again
+     */
+    async authControllerResendEmailChange(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.authControllerResendEmailChangeRaw(initOverrides);
     }
 
     /**
