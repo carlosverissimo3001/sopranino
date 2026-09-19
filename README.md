@@ -38,7 +38,6 @@
 - [Development workflow](#development-workflow)
 - [Testing & CI](#testing--ci)
 - [Deployment](#deployment)
-- [UI tour](#ui-tour)
 - [Roadmap / What I'd add next](#roadmap--what-id-add-next)
 
 ---
@@ -244,7 +243,7 @@ Paste a public Deezer playlist link and the backend resolves it (including `link
 
 Any service works, in fact, not only the ones with a pill: the mechanism is a Deezer link, so a playlist from Amazon Music or Tidal can be copied over by hand and pasted in. What is lost is only the label - the card says Deezer rather than where it started.
 
-Spotify, Apple Music and YouTube Music playlists arrive the same way, via a copy on Deezer made with a free transfer tool. The app carries a per-service guide, with screenshots, rather than pretending the detour is not there. Where the copy came from is recorded on the player's own membership row, so the card can say "Spotify playlist, copied to Deezer" for one player and plain Deezer for another.
+A playlist from any other service arrives the same way, via a copy on Deezer made with a free transfer tool. The player says where it came from, and one guide with screenshots walks the detour rather than pretending it is not there. Where the copy came from is recorded on the player's own membership row, so the card can say "Spotify playlist, copied to Deezer" for one player and plain Deezer for another.
 
 ### Preview-URL resilience
 

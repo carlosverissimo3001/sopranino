@@ -1,5 +1,6 @@
 'use client';
 
+import { TrackGroupDtoTypeEnum } from '@/sdk';
 import { memo, useState } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
@@ -13,8 +14,6 @@ import type { PlaylistSource } from '@/lib/playlist-links';
 interface TrackGroupCardProps {
   /** Where it comes from, shown beside the track count. */
   source?: PlaylistSource;
-  /** The service holding the copy, tucked behind `source` to mark it as one. */
-  via?: PlaylistSource;
   /** Takes the count's place while its songs are being read. */
   busyLabel?: string;
   group: TrackGroupDto;
@@ -30,10 +29,10 @@ function TrackGroupCardComponent({
   group,
   onHover,
   source,
-  via,
   busyLabel,
 }: TrackGroupCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const imported = group.type === TrackGroupDtoTypeEnum.Imported;
   const ambientColor = useImageColor(group.imageUrl, {
     fallback: 'rgba(30, 215, 96, 0.15)',
     alpha: 0.15,
@@ -52,7 +51,7 @@ function TrackGroupCardComponent({
           setIsHovered(false);
           onHover?.(null);
         }}
-        className="group relative bg-surface rounded-xl sm:rounded-2xl p-3 sm:p-5 border border-fg/5 hover:bg-fg/[0.08] max-w-[400px] mx-auto w-full h-full md:h-auto transform-gpu"
+        className={`group relative bg-surface rounded-xl sm:rounded-2xl p-3 sm:p-5 border hover:bg-fg/[0.08] max-w-[400px] mx-auto w-full h-full md:h-auto transform-gpu ${imported ? 'border-[#A238FF]/35' : 'border-fg/5'}`}
         style={{
           boxShadow: isHovered
             ? `0 30px 60px -12px rgba(0,0,0,0.6), 0 0 20px ${glowColor}`
@@ -70,18 +69,11 @@ function TrackGroupCardComponent({
               </div>
             )}
 
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{
-                opacity: isHovered ? 1 : 0,
-                scale: isHovered ? 1 : 0.8,
-              }}
-              className="absolute inset-0 flex items-center justify-center"
-            >
-              <div className="bg-spotify-green p-4 rounded-full shadow-[0_8px_24px_rgba(0,0,0,0.5)] text-black transform group-hover:scale-110 transition-transform">
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-100 motion-reduce:transition-none">
+              <div className="scale-90 rounded-full bg-spotify-green p-4 text-black shadow-[0_8px_24px_rgba(0,0,0,0.5)] transition-transform duration-200 group-hover:scale-100 motion-reduce:transition-none">
                 <Play fill="currentColor" className="w-8 h-8 ml-1" />
               </div>
-            </motion.div>
+            </div>
           </div>
 
           <div className="flex flex-col min-w-0 flex-1">
@@ -92,16 +84,7 @@ function TrackGroupCardComponent({
             <div className="mt-1.5 flex items-center gap-2 sm:gap-3 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.1em] sm:tracking-[0.15em] text-fg/30">
               <div className="flex items-center gap-1.5">
                 {source ? (
-                  <span className="flex items-center">
-                    {via && (
-                      // Behind and dimmed: the pair is one mark, not two.
-                      <SourceMark source={via} className="-mr-1 opacity-50" />
-                    )}
-                    <SourceMark
-                      source={source}
-                      className="relative rounded-full ring-1 ring-surface"
-                    />
-                  </span>
+                  <SourceMark source={source} />
                 ) : (
                   <ListMusic className="w-3.5 h-3.5 opacity-60" />
                 )}

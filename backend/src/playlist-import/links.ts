@@ -8,7 +8,16 @@ const host = (url: URL) => url.hostname.replace(/^www\./, '');
 
 export const DEEZER_SHORT_HOSTS = ['link.deezer.com', 'deezer.page.link'];
 
-const PARSERS: Record<PlaylistSource, Parser> = {
+/**
+ * The services whose links we read. Only Deezer: every other value of the enum
+ * is somewhere a playlist came from, which a player tells us rather than a
+ * link, and the import takes the Deezer copy's link either way.
+ */
+export const LINKED_SOURCES = [PlaylistSource.DEEZER] as const;
+
+export type LinkedSource = (typeof LINKED_SOURCES)[number];
+
+const PARSERS: Record<LinkedSource, Parser> = {
   [PlaylistSource.DEEZER]: (url) => {
     if (DEEZER_SHORT_HOSTS.includes(host(url))) {
       return url.pathname.length > 1 ? { shortUrl: url.href } : null;
@@ -18,26 +27,6 @@ const PARSERS: Record<PlaylistSource, Parser> = {
       url.pathname,
     );
     return match ? { externalId: match[1] } : null;
-  },
-  [PlaylistSource.SPOTIFY]: (url) => {
-    if (host(url) !== 'open.spotify.com') return null;
-    const match = /^\/(?:intl-[a-z-]+\/)?playlist\/([A-Za-z0-9]{22})\/?$/.exec(
-      url.pathname,
-    );
-    return match ? { externalId: match[1] } : null;
-  },
-  [PlaylistSource.APPLE_MUSIC]: (url) => {
-    if (host(url) !== 'music.apple.com') return null;
-    const match =
-      /^\/[a-z]{2}\/playlist\/(?:[^/]+\/)?(pl\.(?:u-)?[A-Za-z0-9]+)\/?$/.exec(
-        url.pathname,
-      );
-    return match ? { externalId: match[1] } : null;
-  },
-  [PlaylistSource.YOUTUBE_MUSIC]: (url) => {
-    if (host(url) !== 'music.youtube.com') return null;
-    const id = url.searchParams.get('list');
-    return id && /^[A-Za-z0-9_-]{10,}$/.test(id) ? { externalId: id } : null;
   },
 };
 
@@ -57,5 +46,5 @@ export function parsePlaylistLink(
   } catch {
     return null;
   }
-  return PARSERS[source]?.(url) ?? null;
+  return PARSERS[source as LinkedSource]?.(url) ?? null;
 }

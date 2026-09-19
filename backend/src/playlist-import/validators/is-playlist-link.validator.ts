@@ -1,13 +1,6 @@
 import { PlaylistSource } from '@prisma/client';
-import { registerDecorator, ValidationArguments } from 'class-validator';
+import { registerDecorator } from 'class-validator';
 import { parsePlaylistLink } from '../links';
-
-export const SOURCE_NAMES: Record<PlaylistSource, string> = {
-  [PlaylistSource.DEEZER]: 'Deezer',
-  [PlaylistSource.SPOTIFY]: 'Spotify',
-  [PlaylistSource.APPLE_MUSIC]: 'Apple Music',
-  [PlaylistSource.YOUTUBE_MUSIC]: 'YouTube Music',
-};
 
 export function IsPlaylistLink(): PropertyDecorator {
   return (target, propertyName) => {
@@ -16,21 +9,16 @@ export function IsPlaylistLink(): PropertyDecorator {
       target: target.constructor,
       propertyName: propertyName as string,
       validator: {
-        validate(value: unknown, args: ValidationArguments) {
-          const { source } = args.object as { source?: PlaylistSource };
+        // Only a Deezer link is ever read. Every other service is an origin
+        // the player names, and reaches us as a copy on Deezer.
+        validate(value: unknown) {
           return (
             typeof value === 'string' &&
-            !!source &&
-            source in SOURCE_NAMES &&
-            parsePlaylistLink(source, value) !== null
+            parsePlaylistLink(PlaylistSource.DEEZER, value) !== null
           );
         },
-        defaultMessage(args: ValidationArguments) {
-          const { source } = args.object as { source?: PlaylistSource };
-          const name = source && SOURCE_NAMES[source];
-          return name
-            ? `That is not a ${name} playlist link`
-            : 'That is not a playlist link';
+        defaultMessage() {
+          return 'That is not a Deezer playlist link';
         },
       },
     });

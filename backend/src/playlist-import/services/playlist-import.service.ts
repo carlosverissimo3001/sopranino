@@ -1,3 +1,4 @@
+import type { LinkedSource } from '../links';
 import {
   BadRequestException,
   HttpException,
@@ -41,15 +42,9 @@ import {
 import { TrackGroupService } from '../../track-group/services/track-group.service';
 import type { SetMemberDto } from '../../track-group/dto/set-member.dto';
 import { Transactional } from '@transaction/transactional.decorator';
-import { SOURCE_NAMES } from '../validators/is-playlist-link.validator';
 
-const EXTERNAL_URLS: Record<PlaylistSource, (id: string) => string> = {
+const EXTERNAL_URLS: Record<LinkedSource, (id: string) => string> = {
   [PlaylistSource.DEEZER]: (id) => `https://www.deezer.com/playlist/${id}`,
-  [PlaylistSource.SPOTIFY]: (id) => `https://open.spotify.com/playlist/${id}`,
-  [PlaylistSource.APPLE_MUSIC]: (id) =>
-    `https://music.apple.com/playlist/${id}`,
-  [PlaylistSource.YOUTUBE_MUSIC]: (id) =>
-    `https://music.youtube.com/playlist?list=${id}`,
 };
 
 @Injectable()
@@ -82,15 +77,13 @@ export class PlaylistImportService {
     const provider = this.providers.get(source);
     if (!provider) {
       throw new UnprocessableEntityException(
-        `Importing from ${SOURCE_NAMES[source]} is not supported yet`,
+        'Only Deezer playlists can be imported',
       );
     }
 
     const externalId = await provider.resolveId(link);
     if (!externalId) {
-      throw new BadRequestException(
-        `That is not a ${SOURCE_NAMES[source]} playlist link`,
-      );
+      throw new BadRequestException('That is not a Deezer playlist link');
     }
 
     // Someone already brought it in: joining costs the service nothing.
@@ -319,7 +312,9 @@ export class PlaylistImportService {
       trackCount: group._count.tracks,
       imageUrl: group.imageUrl ?? undefined,
       source: imported.source,
-      externalUrl: EXTERNAL_URLS[imported.source](imported.externalId),
+      externalUrl: EXTERNAL_URLS[imported.source as LinkedSource]?.(
+        imported.externalId,
+      ),
       pending: !imported.refreshedAt,
       refreshing:
         !!imported.refreshingSince &&

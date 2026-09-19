@@ -21,7 +21,7 @@ import { TrackGroupCard } from '@/components/track-group/TrackGroupCard';
 import { useRefreshImport } from '@/hooks/imports/useRefreshImport';
 import { useRemoveImport } from '@/hooks/imports/useRemoveImport';
 import { timeAgo } from '@/lib/time-ago';
-import { PLAYLIST_SOURCES } from '@/lib/playlist-links';
+import { PLAYLIST_SOURCES, PlaylistSource } from '@/lib/playlist-links';
 import { SourceMark } from './SourceMark';
 import { TrackGroupDtoTypeEnum, type PlaylistItemDto } from '@/sdk';
 
@@ -79,7 +79,6 @@ export function ImportedPlaylistCard({ set }: { set: PlaylistItemDto }) {
             imageUrl: set.imageUrl,
           }}
           source={set.origin ?? set.source}
-          via={set.origin ? set.source : undefined}
           busyLabel={
             set.refreshing || refresh.isPending ? 'Reading songs…' : undefined
           }
@@ -114,8 +113,10 @@ export function ImportedPlaylistCard({ set }: { set: PlaylistItemDto }) {
             <div className="px-2 py-1.5 text-[11px] leading-relaxed text-fg/40">
               {set.origin && set.source && (
                 <p>
-                  {PLAYLIST_SOURCES[set.origin].name} playlist, copied to{' '}
-                  {PLAYLIST_SOURCES[set.source].name}
+                  {set.origin === PlaylistSource.Other
+                    ? 'A copy'
+                    : `${PLAYLIST_SOURCES[set.origin].name} playlist, copied`}{' '}
+                  to {PLAYLIST_SOURCES[set.source].name}
                 </p>
               )}
               <p>

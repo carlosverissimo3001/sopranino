@@ -121,7 +121,14 @@ export const PlaylistItemDtoSourceEnum = {
     Deezer: 'DEEZER',
     Spotify: 'SPOTIFY',
     AppleMusic: 'APPLE_MUSIC',
-    YoutubeMusic: 'YOUTUBE_MUSIC'
+    YoutubeMusic: 'YOUTUBE_MUSIC',
+    Youtube: 'YOUTUBE',
+    AmazonMusic: 'AMAZON_MUSIC',
+    Tidal: 'TIDAL',
+    Soundcloud: 'SOUNDCLOUD',
+    Pandora: 'PANDORA',
+    Napster: 'NAPSTER',
+    Other: 'OTHER'
 } as const;
 export type PlaylistItemDtoSourceEnum = typeof PlaylistItemDtoSourceEnum[keyof typeof PlaylistItemDtoSourceEnum];
 
@@ -132,7 +139,14 @@ export const PlaylistItemDtoOriginEnum = {
     Deezer: 'DEEZER',
     Spotify: 'SPOTIFY',
     AppleMusic: 'APPLE_MUSIC',
-    YoutubeMusic: 'YOUTUBE_MUSIC'
+    YoutubeMusic: 'YOUTUBE_MUSIC',
+    Youtube: 'YOUTUBE',
+    AmazonMusic: 'AMAZON_MUSIC',
+    Tidal: 'TIDAL',
+    Soundcloud: 'SOUNDCLOUD',
+    Pandora: 'PANDORA',
+    Napster: 'NAPSTER',
+    Other: 'OTHER'
 } as const;
 export type PlaylistItemDtoOriginEnum = typeof PlaylistItemDtoOriginEnum[keyof typeof PlaylistItemDtoOriginEnum];
 
