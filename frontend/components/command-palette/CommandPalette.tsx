@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import {
   Calendar,
+  CalendarRange,
   Clock,
   Disc3,
   History,
@@ -13,11 +14,13 @@ import {
   LogIn,
   LogOut,
   MessageSquareWarning,
+  Mic2,
   Moon,
   Plus,
   Shuffle,
   Sun,
   Timer,
+  TrendingUp,
   Trophy,
   User,
   Users,
@@ -53,10 +56,10 @@ import { spotifySetPath } from '@/lib/set-routes';
 import { PlaylistItemKind, TrackGroupDtoTypeEnum } from '@/sdk';
 
 const SET_KINDS = [
-  { type: TrackGroupDtoTypeEnum.Artist, label: 'Artist' },
-  { type: TrackGroupDtoTypeEnum.Decade, label: 'Decade' },
-  { type: TrackGroupDtoTypeEnum.Genre, label: 'Genre' },
-  { type: TrackGroupDtoTypeEnum.Chart, label: 'Chart' },
+  { heading: 'Artists', keyword: 'artist', Icon: Mic2 },
+  { heading: 'Decades', keyword: 'decade', Icon: CalendarRange },
+  { heading: 'Genres', keyword: 'genre', Icon: Disc3 },
+  { heading: 'Charts', keyword: 'chart', Icon: TrendingUp },
 ] as const;
 
 const ITEM =
@@ -116,15 +119,16 @@ function PaletteBody({ onDone }: { onDone: () => void }) {
   const library = useMyPlaylistLibrary();
 
   const setsByKind = [artists, decades, genres, charts];
-  const sets = SET_KINDS.flatMap(({ label }, i) =>
-    (setsByKind[i].data ?? []).map((set) => ({
+  const setGroups = SET_KINDS.map((kind, i) => ({
+    ...kind,
+    sets: (setsByKind[i].data ?? []).map((set) => ({
       id: `set:${set.slug}`,
-      match: `${set.name} ${label} ${set.slug}`,
+      // The kind stays searchable now that it is a heading, not a tag.
+      match: `${set.name} ${kind.keyword} ${set.slug}`,
       label: set.name,
-      tag: label,
       href: `/group/${set.slug}`,
     })),
-  );
+  }));
 
   const playlists = (library.data?.items ?? [])
     .filter(isPlayable)
@@ -284,22 +288,23 @@ function PaletteBody({ onDone }: { onDone: () => void }) {
           </CommandGroup>
         )}
 
-        <CommandGroup heading="Sets">
-          {sets.map((set) => (
-            <CommandItem
-              key={set.id}
-              value={set.match}
-              onSelect={() =>
-                go({ id: set.id, label: set.label, href: set.href })
-              }
-              className={ITEM}
-            >
-              <Disc3 className="text-fg/40" />
-              <span className="truncate">{set.label}</span>
-              <span className={TAG}>{set.tag}</span>
-            </CommandItem>
-          ))}
-        </CommandGroup>
+        {setGroups.map(({ heading, Icon, sets }) => (
+          <CommandGroup key={heading} heading={heading}>
+            {sets.map((set) => (
+              <CommandItem
+                key={set.id}
+                value={set.match}
+                onSelect={() =>
+                  go({ id: set.id, label: set.label, href: set.href })
+                }
+                className={ITEM}
+              >
+                <Icon className="text-fg/40" />
+                <span className="truncate">{set.label}</span>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        ))}
 
         <CommandGroup heading="Pages">
           {pages.map(({ Icon, ...page }) => (
