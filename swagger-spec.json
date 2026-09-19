@@ -4880,6 +4880,11 @@
           "completedAt": {
             "format": "date-time",
             "type": "string"
+          },
+          "finishDeadline": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Somebody has played the room out: when the rest stop being waited on"
           }
         },
         "required": [

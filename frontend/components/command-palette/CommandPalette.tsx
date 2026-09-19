@@ -67,16 +67,12 @@ const ITEM =
 
 const TAG = 'ml-auto shrink-0 text-[11px] text-fg/35';
 
-/**
- * Ctrl+K or Cmd+K from anywhere: a set, a playlist, a page or an action. Not
- * from inside a text field, so the guess box keeps the keystroke.
- */
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.key.toLowerCase() !== 'k' || !(event.metaKey || event.ctrlKey))
+      if (event.key?.toLowerCase() !== 'k' || !(event.metaKey || event.ctrlKey))
         return;
       if (!open && isEditable(event.target)) return;
       event.preventDefault();

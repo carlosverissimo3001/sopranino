@@ -68,6 +68,13 @@ export class RoomDto {
   @ApiPropertyOptional({ type: Date })
   completedAt?: Date;
 
+  @ApiPropertyOptional({
+    type: Date,
+    description:
+      'Somebody has played the room out: when the rest stop being waited on',
+  })
+  finishDeadline?: Date;
+
   static fromEntity(room: RoomWithPlayers): RoomDto {
     return {
       id: room.id,
@@ -85,6 +92,7 @@ export class RoomDto {
       createdAt: room.createdAt,
       startedAt: room.startedAt ?? undefined,
       completedAt: room.completedAt ?? undefined,
+      finishDeadline: room.finishDeadline ?? undefined,
     };
   }
 }

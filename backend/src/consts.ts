@@ -40,6 +40,7 @@ export const CLEAN_UP_ABANDONED_GAMES_JOB = 'abandoned-games-task';
 export const REFRESH_CHARTS_JOB = 'refresh-charts';
 export const FILL_DAILY_TRACK_JOB = 'fill-daily-track';
 export const EXPIRE_ABANDONED_ROOMS_JOB = 'expire-abandoned-rooms';
+export const CLOSE_ROOM_FINISH_WINDOW_JOB = 'close-room-finish-window';
 export const FILL_PLAYLIST_IMPORT_JOB = 'fill-playlist-import';
 export const JOB_OPTIONS_WITH_BACKOFF: JobsOptions = {
   attempts: 3,
@@ -58,6 +59,7 @@ export type JobDataMap = {
   [REFRESH_CHARTS_JOB]: Record<string, never>;
   [FILL_DAILY_TRACK_JOB]: Record<string, never>;
   [EXPIRE_ABANDONED_ROOMS_JOB]: Record<string, never>;
+  [CLOSE_ROOM_FINISH_WINDOW_JOB]: { roomId: string };
   [FILL_PLAYLIST_IMPORT_JOB]: { trackGroupId: string };
 };
 
@@ -163,6 +165,17 @@ export const ROOM_PLAYING_ABANDONED_AFTER_MS = 6 * 60 * 60 * 1000;
 
 /** Every half hour. Rooms are cheap to leave behind and cheap to sweep. */
 export const ROOM_CLEANUP_CRON = '*/30 * * * *';
+
+/**
+ * Once the host has played the room out, how long everyone else keeps, per
+ * round the room was set to. A longer room is a longer way behind, and ten
+ * seconds a round is still short enough that a stream never waits on somebody
+ * who walked away.
+ */
+export const ROOM_FINISH_WINDOW_PER_ROUND_MS = 10 * 1000;
+
+/** However long the room is, nobody waits past this. */
+export const ROOM_FINISH_WINDOW_MAX_MS = 90 * 1000;
 
 /**
  * Claimed by the first correct answer in a round, so twenty simultaneous

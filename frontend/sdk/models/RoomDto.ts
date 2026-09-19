@@ -117,6 +117,12 @@ export interface RoomDto {
      * @memberof RoomDto
      */
     completedAt?: Date;
+    /**
+     * Somebody has played the room out: when the rest stop being waited on
+     * @type {Date}
+     * @memberof RoomDto
+     */
+    finishDeadline?: Date;
 }
 
 
@@ -185,6 +191,7 @@ export function RoomDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean): R
         'createdAt': (new Date(json['createdAt'])),
         'startedAt': json['startedAt'] == null ? undefined : (new Date(json['startedAt'])),
         'completedAt': json['completedAt'] == null ? undefined : (new Date(json['completedAt'])),
+        'finishDeadline': json['finishDeadline'] == null ? undefined : (new Date(json['finishDeadline'])),
     };
 }
 
@@ -214,6 +221,7 @@ export function RoomDtoToJSONTyped(value?: RoomDto | null, ignoreDiscriminator: 
         'createdAt': value['createdAt'].toISOString(),
         'startedAt': value['startedAt'] == null ? value['startedAt'] : value['startedAt'].toISOString(),
         'completedAt': value['completedAt'] == null ? value['completedAt'] : value['completedAt'].toISOString(),
+        'finishDeadline': value['finishDeadline'] == null ? value['finishDeadline'] : value['finishDeadline'].toISOString(),
     };
 }
 

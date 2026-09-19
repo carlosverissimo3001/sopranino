@@ -10,7 +10,8 @@ import {
   type ChatMessage,
   type Refusal,
 } from '@/lib/chat-socket';
-import type { RoomDto, ScoreboardDto, ScoreboardPlayerTotalDto } from '@/sdk';
+import { RoomDtoFromJSON } from '@/sdk';
+import type { ScoreboardDto, ScoreboardPlayerTotalDto } from '@/sdk';
 
 /**
  * Presence is a heartbeat window on the server, so a member who stops sending
@@ -102,10 +103,13 @@ export function useMultiplayerSocket(
       if (socket.connected) socket.emit('heartbeat');
     }, HEARTBEAT_MS);
 
-    socket.on('roomUpdated', (data: RoomDto) => {
+    socket.on('roomUpdated', (data: unknown) => {
       const currentRoomId = roomIdRef.current!;
-      queryClient.setQueryData(queryKeys.multiplayer.room(currentRoomId), data);
-      if (data.status === 'COMPLETED') {
+      // Through the SDK's parser, not raw: a socket carries JSON, so dates
+      // arrive as strings and anything reading one as a Date would break.
+      const room = RoomDtoFromJSON(data);
+      queryClient.setQueryData(queryKeys.multiplayer.room(currentRoomId), room);
+      if (room.status === 'COMPLETED') {
         void queryClient.invalidateQueries({
           queryKey: queryKeys.multiplayer.scoreboard(currentRoomId),
         });

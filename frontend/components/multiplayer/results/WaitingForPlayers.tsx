@@ -1,15 +1,20 @@
+'use client';
+
 import Image from 'next/image';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Check, Loader2 } from 'lucide-react';
 
 import type { RoomPlayerDto } from '@/sdk';
 import { HostDisconnectedBanner } from '../HostDisconnectedBanner';
+import { useFinishCountdown } from '@/hooks/multiplayer/useFinishCountdown';
 
 interface WaitingForPlayersProps {
   players: RoomPlayerDto[];
   totalRounds: number;
   playerProgress: Map<string, number>;
   hostDisconnected: boolean;
+  /** Set once somebody has played the room out: when the rest stop counting. */
+  finishDeadline?: Date;
 }
 
 export function WaitingForPlayers({
@@ -17,7 +22,9 @@ export function WaitingForPlayers({
   totalRounds,
   playerProgress,
   hostDisconnected,
+  finishDeadline,
 }: WaitingForPlayersProps) {
+  const secondsLeft = useFinishCountdown(finishDeadline);
   return (
     <div
       className="flex min-h-screen min-h-[100dvh] justify-center py-10"
@@ -44,9 +51,18 @@ export function WaitingForPlayers({
           <h2 className="mb-2 text-xl font-bold text-fg">
             Waiting for other players
           </h2>
-          <p className="text-sm text-fg/40">
-            Results will appear once everyone finishes
-          </p>
+          {secondsLeft === null ? (
+            <p className="text-sm text-fg/40">
+              Results will appear once everyone finishes
+            </p>
+          ) : (
+            <p className="text-sm text-fg/40">
+              The host has finished, so the rest have{' '}
+              <span className="font-semibold tabular-nums text-fg">
+                {secondsLeft}s
+              </span>
+            </p>
+          )}
         </div>
 
         {/* Host disconnected warning */}

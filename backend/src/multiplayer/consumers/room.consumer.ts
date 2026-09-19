@@ -2,12 +2,15 @@ import { OnModuleInit } from '@nestjs/common';
 import { InjectQueue, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job, Queue } from 'bullmq';
 import {
+  CLOSE_ROOM_FINISH_WINDOW_JOB,
   EXPIRE_ABANDONED_ROOMS_JOB,
+  JobDataMap,
   JobNames,
   ROOM_CLEANUP_CRON,
   ROOM_CLEANUP_QUEUE,
 } from '../../consts';
 import { RoomService } from '../services/room.service';
+import { MultiplayerGameService } from '../services/multiplayer-game.service';
 import { AppLoggerService } from '../../logger/logger.service';
 
 @Processor(ROOM_CLEANUP_QUEUE)
@@ -17,6 +20,7 @@ export class RoomConsumer extends WorkerHost implements OnModuleInit {
   constructor(
     @InjectQueue(ROOM_CLEANUP_QUEUE) private readonly queue: Queue,
     private readonly roomService: RoomService,
+    private readonly multiplayerGame: MultiplayerGameService,
     appLogger: AppLoggerService,
   ) {
     super();
@@ -35,10 +39,17 @@ export class RoomConsumer extends WorkerHost implements OnModuleInit {
     );
   }
 
-  async process(job: Job<Record<string, never>, void, string>): Promise<void> {
+  async process(job: Job<JobDataMap[JobNames], void, string>): Promise<void> {
     const jobName = job.name as JobNames;
 
     switch (jobName) {
+      case CLOSE_ROOM_FINISH_WINDOW_JOB: {
+        const { roomId } =
+          job.data as JobDataMap[typeof CLOSE_ROOM_FINISH_WINDOW_JOB];
+        await this.multiplayerGame.closeFinishWindow(roomId);
+        break;
+      }
+
       case EXPIRE_ABANDONED_ROOMS_JOB: {
         const expired = await this.roomService.expireAbandonedRooms();
         if (expired > 0) {

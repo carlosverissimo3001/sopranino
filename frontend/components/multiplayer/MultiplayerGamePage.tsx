@@ -19,6 +19,8 @@ import { ChatDock } from '@/components/multiplayer/ChatDock';
 import { CHAT_ENABLED } from '@/lib/chat-socket';
 import { useSubmitMultiplayerGuess } from '@/hooks/multiplayer/useSubmitMultiplayerGuess';
 import { useRoom } from '@/hooks/multiplayer/useRoom';
+import { RoomDtoStatusEnum } from '@/sdk';
+import { FinishCountdownBanner } from './FinishCountdownBanner';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
@@ -197,7 +199,12 @@ export function MultiplayerGamePage({ roomId }: MultiplayerGamePageProps) {
     roundState.roundIndex === roundState.totalRounds - 1 &&
     isRoundComplete;
 
-  useWarnOnLeave(!!roundState && !isGameOver);
+  // The room can end without this player: the host finished and the window
+  // ran out. Their round is over whether or not they were on its last song,
+  // and guesses are refused from here on, so the results are where they go.
+  const roomCompleted = room?.status === RoomDtoStatusEnum.Completed;
+
+  useWarnOnLeave(!!roundState && !isGameOver && !roomCompleted);
 
   // Invalidate stats & history so they're fresh when the user navigates away.
   // The last round's reveal is not shown: the results page covers every round,
@@ -212,6 +219,11 @@ export function MultiplayerGamePage({ roomId }: MultiplayerGamePageProps) {
 
     router.replace(`/multiplayer/${roomId}/results`);
   }, [isGameOver, queryClient, roomId, router]);
+
+  useEffect(() => {
+    if (!roomCompleted) return;
+    router.replace(`/multiplayer/${roomId}/results`);
+  }, [roomCompleted, roomId, router]);
 
   // Derive past round results from scoreboard for the round dots
   const pastResults = useMemo(() => {
@@ -314,6 +326,11 @@ export function MultiplayerGamePage({ roomId }: MultiplayerGamePageProps) {
             <div className="mb-2 flex justify-end">
               <VolumeSlider volume={volume} onVolumeChange={setVolume} />
             </div>
+            {/* Not to somebody who has finished: the host sees it for the
+                moment between their last guess and the results otherwise. */}
+            <FinishCountdownBanner
+              deadline={isGameOver ? undefined : room?.finishDeadline}
+            />
           </>
         }
         title={
