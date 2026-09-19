@@ -62,6 +62,7 @@ import type {
   SetTrackSourceDto,
   ShareResultDto,
   SignupDto,
+  SortOrder,
   StartGameDto,
   StartRunDto,
   StreakQuestionDto,
@@ -176,6 +177,8 @@ import {
     ShareResultDtoToJSON,
     SignupDtoFromJSON,
     SignupDtoToJSON,
+    SortOrderFromJSON,
+    SortOrderToJSON,
     StartGameDtoFromJSON,
     StartGameDtoToJSON,
     StartRunDtoFromJSON,
@@ -435,6 +438,7 @@ export interface MultiplayerControllerUpdateRoomSettingsRequest {
 
 export interface MyPlaylistsControllerListRequest {
     sortBy?: PlaylistSortBy;
+    order?: SortOrder;
 }
 
 export interface PlaylistControllerGetPlaylistByIdRequest {
@@ -2746,6 +2750,10 @@ export class ApiApi extends runtime.BaseAPI {
 
         if (requestParameters['sortBy'] != null) {
             queryParameters['sortBy'] = requestParameters['sortBy'];
+        }
+
+        if (requestParameters['order'] != null) {
+            queryParameters['order'] = requestParameters['order'];
         }
 
         const headerParameters: runtime.HTTPHeaders = {};

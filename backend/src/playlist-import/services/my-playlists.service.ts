@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AuthService } from '../../auth/services/auth.service';
 import { LIKED_SONGS_ID_SUFFIX } from '../../consts';
 import { AppLoggerService } from '../../logger/logger.service';
-import { PLAYLIST_SORT_BY } from '../../playlist/consts';
+import { PLAYLIST_SORT_BY, SORT_ORDER } from '../../playlist/consts';
 import type { PlaylistDto } from '../../playlist/dto/playlist.dto';
 import { PlaylistService } from '../../playlist/services/playlist.service';
 import { MyPlaylistsDto } from '../dto/my-playlists.dto';
@@ -28,7 +28,10 @@ export class MyPlaylistsService {
 
   async list(
     sessionId: string,
-    sortBy: PLAYLIST_SORT_BY = PLAYLIST_SORT_BY.DEFAULT,
+    {
+      sortBy = PLAYLIST_SORT_BY.DEFAULT,
+      order,
+    }: { sortBy?: PLAYLIST_SORT_BY; order?: SORT_ORDER } = {},
   ): Promise<MyPlaylistsDto> {
     const user = await this.authService.getUserBySessionId(sessionId);
 
@@ -48,7 +51,7 @@ export class MyPlaylistsService {
         .filter((p) => !p.id.endsWith(LIKED_SONGS_ID_SUFFIX))
         .map(fromSpotify),
     ];
-    const compare = compareFor(sortBy);
+    const compare = compareFor(sortBy, order);
 
     return {
       items: [

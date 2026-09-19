@@ -4052,7 +4052,7 @@ example().catch(console.error);
 
 ## myPlaylistsControllerList
 
-> MyPlaylistsDto myPlaylistsControllerList(sortBy)
+> MyPlaylistsDto myPlaylistsControllerList(sortBy, order)
 
 A player\&#39;s Spotify and imported playlists, in one list
 
@@ -4076,6 +4076,8 @@ async function example() {
   const body = {
     // PlaylistSortBy (optional)
     sortBy: ...,
+    // SortOrder | Which way round, when the natural order is not wanted (optional)
+    order: ...,
   } satisfies MyPlaylistsControllerListRequest;
 
   try {
@@ -4096,6 +4098,7 @@ example().catch(console.error);
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
 | **sortBy** | `PlaylistSortBy` |  | [Optional] [Defaults to `undefined`] [Enum: default, name, tracks] |
+| **order** | `SortOrder` | Which way round, when the natural order is not wanted | [Optional] [Defaults to `undefined`] [Enum: asc, desc] |
 
 ### Return type
 

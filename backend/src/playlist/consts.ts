@@ -10,3 +10,8 @@ export enum PLAYLIST_SORT_BY {
   NAME = 'name',
   TRACKS = 'tracks',
 }
+
+export enum SORT_ORDER {
+  ASC = 'asc',
+  DESC = 'desc',
+}

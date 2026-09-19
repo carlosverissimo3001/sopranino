@@ -2961,6 +2961,15 @@
             "schema": {
               "$ref": "#/components/schemas/PlaylistSortBy"
             }
+          },
+          {
+            "name": "order",
+            "required": false,
+            "in": "query",
+            "description": "Which way round, when the natural order is not wanted",
+            "schema": {
+              "$ref": "#/components/schemas/SortOrder"
+            }
           }
         ],
         "responses": {
@@ -6105,6 +6114,13 @@
           "default",
           "name",
           "tracks"
+        ]
+      },
+      "SortOrder": {
+        "type": "string",
+        "enum": [
+          "asc",
+          "desc"
         ]
       },
       "PlaylistItemKind": {
