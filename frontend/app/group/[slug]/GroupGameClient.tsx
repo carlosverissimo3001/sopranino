@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
-import { ShuffleGamePage } from '@/components/game/ShuffleGamePage';
+import { GamePage } from '@/components/game/GamePage';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import {
   isNotFound,
@@ -51,7 +51,7 @@ export function GroupGameClient({ heading }: { heading?: string }) {
 
   if (spotifyPlaylistId) {
     return (
-      <ShuffleGamePage
+      <GamePage
         canSignIn={false}
         syncUrl
         heading={playlistName ?? heading}
@@ -140,7 +140,7 @@ export function GroupGameClient({ heading }: { heading?: string }) {
   // The shuffle screen, opened on this set: the player can still switch sets
   // and tiers in place, and the page reads the same as the landing.
   return (
-    <ShuffleGamePage
+    <GamePage
       canSignIn={false}
       syncUrl
       heading={heading}

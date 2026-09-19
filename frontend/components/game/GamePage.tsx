@@ -39,7 +39,7 @@ const IDLE_ROUND: RoundData = {
   hints: [],
 };
 
-interface ShuffleGamePageProps {
+interface GamePageProps {
   canSignIn: boolean;
   /**
    * Waits for a tap before starting, then plays the snippet from it. The
@@ -68,7 +68,7 @@ interface ShuffleGamePageProps {
  * A round drawn from the curated pool rather than a playlist. Open to anyone:
  * for a signed-out visitor, starting one is also what mints their account.
  */
-export function ShuffleGamePage({
+export function GamePage({
   canSignIn,
   deferStart = false,
   headerTrailing,
@@ -79,7 +79,7 @@ export function ShuffleGamePage({
   initialPlaylistId,
   initialPlaylistName,
   initialTiersApply = true,
-}: ShuffleGamePageProps) {
+}: GamePageProps) {
   const { volume, setVolume } = useVolume();
   // A chart is all hits, so a tier would promise a difference it cannot make.
   const [tiersApply, setTiersApply] = useState(initialTiersApply);

@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ShuffleGamePage } from '@/components/game/ShuffleGamePage';
+import { GamePage } from '@/components/game/GamePage';
 
 /**
  * What a visitor with no session lands on: a round they can play with one tap,
@@ -13,7 +13,7 @@ import { ShuffleGamePage } from '@/components/game/ShuffleGamePage';
 export function LandingGame({ canSignIn }: { canSignIn: boolean }) {
   return (
     <>
-      <ShuffleGamePage
+      <GamePage
         canSignIn={canSignIn}
         deferStart
         heading="Sopranino: guess the song from a snippet"
