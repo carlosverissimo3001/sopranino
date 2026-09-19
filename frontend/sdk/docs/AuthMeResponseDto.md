@@ -13,6 +13,7 @@ Name | Type
 `email` | string
 `emailVerified` | boolean
 `pendingEmail` | string
+`preferences` | [UserPreferenceDto](UserPreferenceDto.md)
 `displayName` | string
 `avatarUrl` | string
 `customAvatarUrl` | string
@@ -36,6 +37,7 @@ const example = {
   "email": null,
   "emailVerified": false,
   "pendingEmail": null,
+  "preferences": null,
   "displayName": null,
   "avatarUrl": null,
   "customAvatarUrl": null,

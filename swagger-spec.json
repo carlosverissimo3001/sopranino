@@ -1124,6 +1124,28 @@
         ]
       }
     },
+    "/track-groups/catalog": {
+      "get": {
+        "operationId": "TrackGroupController_catalog",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrackGroupCatalogDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Every kind of set this player may see, at once",
+        "tags": [
+          "Api"
+        ]
+      }
+    },
     "/track-groups/{slug}": {
       "get": {
         "operationId": "TrackGroupController_bySlug",
@@ -2668,6 +2690,33 @@
         ]
       }
     },
+    "/me/status": {
+      "get": {
+        "operationId": "MeStatusController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeStatusDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Streak, daily and speed run state, at once",
+        "tags": [
+          "Api"
+        ]
+      }
+    },
     "/demo/playlists": {
       "get": {
         "operationId": "DemoController_getPlaylists",
@@ -2959,6 +3008,39 @@
         "type": "object",
         "properties": {}
       },
+      "UserPreferenceDto": {
+        "type": "object",
+        "properties": {
+          "showAlbumHint": {
+            "type": "boolean",
+            "description": "Show progressively blurred album art hint"
+          },
+          "showTextHints": {
+            "type": "boolean",
+            "description": "Show genre, decade, and other text hints"
+          },
+          "showGuessHistory": {
+            "type": "boolean",
+            "description": "Show guess history during gameplay"
+          },
+          "showStatsToOthers": {
+            "type": "boolean",
+            "description": "Show this player by name on public leaderboards. Off by default: a player ranks anonymously until they choose to be named."
+          },
+          "timezone": {
+            "type": "string",
+            "description": "IANA timezone string (e.g. America/New_York)",
+            "default": "UTC"
+          }
+        },
+        "required": [
+          "showAlbumHint",
+          "showTextHints",
+          "showGuessHistory",
+          "showStatsToOthers",
+          "timezone"
+        ]
+      },
       "AuthMeResponseDto": {
         "type": "object",
         "properties": {
@@ -2992,6 +3074,14 @@
           "pendingEmail": {
             "type": "string",
             "description": "An address waiting to replace the email, until its link is clicked"
+          },
+          "preferences": {
+            "description": "The player preferences, here so pages need not ask for them separately",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UserPreferenceDto"
+              }
+            ]
           },
           "displayName": {
             "type": "string",
@@ -3035,6 +3125,7 @@
           "hasLinkedAccount",
           "hasAccount",
           "emailVerified",
+          "preferences",
           "displayName",
           "avatarSource",
           "isTrusted",
@@ -3954,39 +4045,6 @@
           "maxRounds"
         ]
       },
-      "UserPreferenceDto": {
-        "type": "object",
-        "properties": {
-          "showAlbumHint": {
-            "type": "boolean",
-            "description": "Show progressively blurred album art hint"
-          },
-          "showTextHints": {
-            "type": "boolean",
-            "description": "Show genre, decade, and other text hints"
-          },
-          "showGuessHistory": {
-            "type": "boolean",
-            "description": "Show guess history during gameplay"
-          },
-          "showStatsToOthers": {
-            "type": "boolean",
-            "description": "Show this player by name on public leaderboards. Off by default: a player ranks anonymously until they choose to be named."
-          },
-          "timezone": {
-            "type": "string",
-            "description": "IANA timezone string (e.g. America/New_York)",
-            "default": "UTC"
-          }
-        },
-        "required": [
-          "showAlbumHint",
-          "showTextHints",
-          "showGuessHistory",
-          "showStatsToOthers",
-          "timezone"
-        ]
-      },
       "UpdateUserPreferenceDto": {
         "type": "object",
         "properties": {
@@ -4212,6 +4270,49 @@
           "name",
           "slug",
           "trackCount"
+        ]
+      },
+      "TrackGroupCatalogDto": {
+        "type": "object",
+        "properties": {
+          "artist": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrackGroupDto"
+            }
+          },
+          "decade": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrackGroupDto"
+            }
+          },
+          "genre": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrackGroupDto"
+            }
+          },
+          "chart": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrackGroupDto"
+            }
+          },
+          "special": {
+            "description": "Empty for everyone the special sets were not made for",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrackGroupDto"
+            }
+          }
+        },
+        "required": [
+          "artist",
+          "decade",
+          "genre",
+          "chart",
+          "special"
         ]
       },
       "StreakQuestionDto": {
@@ -5619,6 +5720,33 @@
           "items",
           "meta",
           "summary"
+        ]
+      },
+      "MeStatusDto": {
+        "type": "object",
+        "properties": {
+          "streak": {
+            "description": "Its playedToday means won today: the streak counts wins",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/StreakStatusDto"
+              }
+            ]
+          },
+          "dailyPlayedToday": {
+            "type": "boolean",
+            "description": "Whether today's daily was finished, won or lost"
+          },
+          "speedRunBest": {
+            "type": "number",
+            "example": 42,
+            "description": "Best speed run score, 0 if none"
+          }
+        },
+        "required": [
+          "streak",
+          "dailyPlayedToday",
+          "speedRunBest"
         ]
       },
       "DemoPlaylistDto": {

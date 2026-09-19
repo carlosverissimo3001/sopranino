@@ -3,6 +3,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { TrackGroup, TrackGroupType } from '@prisma/client';
 import { TrackGroupRepository } from '../repositories/track-group.repository';
 import { TrackGroupDto } from '../dto/track-group.dto';
+import { TrackGroupCatalogDto } from '../dto/track-group-catalog.dto';
 import { SetMemberDto } from '../dto/set-member.dto';
 import { UserEntity } from '@/auth/entities/user.entity';
 import { CHART_BY_COUNTRY } from '@/chart/chart.constants';
@@ -93,6 +94,22 @@ export class TrackGroupService {
       members.map((member) => member.trackId),
     );
     this.poolService.forget(trackGroupId);
+  }
+
+  async catalog(user: UserEntity | null): Promise<TrackGroupCatalogDto> {
+    const listFor = (type: TrackGroupType) =>
+      TrackGroupService.isListable(type, user)
+        ? this.list(type, user?.country)
+        : Promise.resolve([]);
+
+    const [artist, decade, genre, chart, special] = await Promise.all([
+      listFor(TrackGroupType.ARTIST),
+      listFor(TrackGroupType.DECADE),
+      listFor(TrackGroupType.GENRE),
+      listFor(TrackGroupType.CHART),
+      listFor(TrackGroupType.SPECIAL),
+    ]);
+    return { artist, decade, genre, chart, special };
   }
 
   async list(type: TrackGroupType, country?: string): Promise<TrackGroupDto[]> {

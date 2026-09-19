@@ -10,6 +10,7 @@ import { hashPassword } from '../utils/password';
 import { AccountMergeService } from './account-merge.service';
 import { EmailVerificationService } from './email-verification.service';
 import { EmailChangeService } from './email-change.service';
+import { UserPreferencesRepository } from '../../user-preferences/repositories/user-preferences.repository';
 import { UserSessionDto } from '../dto/user-session.dto';
 import { UserEntity } from '../entities/user.entity';
 
@@ -113,6 +114,10 @@ describe('AuthService', () => {
         {
           provide: EmailChangeService,
           useValue: { pendingFor: jest.fn().mockResolvedValue(null) },
+        },
+        {
+          provide: UserPreferencesRepository,
+          useValue: { findByUserId: jest.fn().mockResolvedValue({}) },
         },
       ],
     }).compile();

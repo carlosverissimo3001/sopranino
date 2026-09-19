@@ -63,6 +63,50 @@ async function build() {
 describe('TrackGroupService', () => {
   beforeEach(() => jest.clearAllMocks());
 
+  describe('catalog', () => {
+    const trusted = { spotifyUserId: 'sp-1', isTrusted: true, country: 'PT' };
+
+    it('asks for every kind at once and files each under its own', async () => {
+      mockRepository.listWithCounts.mockImplementation((type) =>
+        Promise.resolve(type === TrackGroupType.DECADE ? [EIGHTIES] : []),
+      );
+      const service = await build();
+
+      const catalog = await service.catalog(null);
+
+      expect(catalog.decade.map((group) => group.slug)).toEqual(['1980s']);
+      expect(catalog.artist).toEqual([]);
+      expect(mockRepository.listWithCounts).toHaveBeenCalledWith(
+        TrackGroupType.CHART,
+      );
+    });
+
+    it('leaves the special sets out for anyone they were not made for', async () => {
+      mockRepository.listWithCounts.mockResolvedValue([]);
+      const service = await build();
+
+      await service.catalog(null);
+
+      expect(mockRepository.listWithCounts).not.toHaveBeenCalledWith(
+        TrackGroupType.SPECIAL,
+      );
+    });
+
+    it('lists them for a trusted Spotify account, and never imports', async () => {
+      mockRepository.listWithCounts.mockResolvedValue([]);
+      const service = await build();
+
+      await service.catalog(trusted as never);
+
+      expect(mockRepository.listWithCounts).toHaveBeenCalledWith(
+        TrackGroupType.SPECIAL,
+      );
+      expect(mockRepository.listWithCounts).not.toHaveBeenCalledWith(
+        TrackGroupType.IMPORTED,
+      );
+    });
+  });
+
   it('returns what the picker needs and nothing else', async () => {
     mockRepository.listWithCounts.mockResolvedValue([EIGHTIES]);
     const service = await build();

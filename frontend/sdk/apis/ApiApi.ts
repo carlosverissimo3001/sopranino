@@ -43,6 +43,7 @@ import type {
   ImportedSetDto,
   KickPlayerDto,
   LoginDto,
+  MeStatusDto,
   MultiplayerRoundStateDto,
   MyPlaylistsDto,
   OpenRoomsDto,
@@ -67,6 +68,7 @@ import type {
   StreakStatusDto,
   SubmitGauntletGuessDto,
   SubmitQuizAnswerDto,
+  TrackGroupCatalogDto,
   TrackGroupDto,
   TrackOptionDto,
   UpdateArtistRequestsDto,
@@ -136,6 +138,8 @@ import {
     KickPlayerDtoToJSON,
     LoginDtoFromJSON,
     LoginDtoToJSON,
+    MeStatusDtoFromJSON,
+    MeStatusDtoToJSON,
     MultiplayerRoundStateDtoFromJSON,
     MultiplayerRoundStateDtoToJSON,
     MyPlaylistsDtoFromJSON,
@@ -184,6 +188,8 @@ import {
     SubmitGauntletGuessDtoToJSON,
     SubmitQuizAnswerDtoFromJSON,
     SubmitQuizAnswerDtoToJSON,
+    TrackGroupCatalogDtoFromJSON,
+    TrackGroupCatalogDtoToJSON,
     TrackGroupDtoFromJSON,
     TrackGroupDtoToJSON,
     TrackOptionDtoFromJSON,
@@ -2149,6 +2155,35 @@ export class ApiApi extends runtime.BaseAPI {
     }
 
     /**
+     * Streak, daily and speed run state, at once
+     */
+    async meStatusControllerGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<MeStatusDto>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/me/status`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => MeStatusDtoFromJSON(jsonValue));
+    }
+
+    /**
+     * Streak, daily and speed run state, at once
+     */
+    async meStatusControllerGet(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<MeStatusDto> {
+        const response = await this.meStatusControllerGetRaw(initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Create a new multiplayer room
      */
     async multiplayerControllerCreateRoomRaw(requestParameters: MultiplayerControllerCreateRoomRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RoomDto>> {
@@ -3114,6 +3149,35 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async trackGroupControllerBySlug(requestParameters: TrackGroupControllerBySlugRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TrackGroupDto> {
         const response = await this.trackGroupControllerBySlugRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Every kind of set this player may see, at once
+     */
+    async trackGroupControllerCatalogRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TrackGroupCatalogDto>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/track-groups/catalog`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => TrackGroupCatalogDtoFromJSON(jsonValue));
+    }
+
+    /**
+     * Every kind of set this player may see, at once
+     */
+    async trackGroupControllerCatalog(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TrackGroupCatalogDto> {
+        const response = await this.trackGroupControllerCatalogRaw(initOverrides);
         return await response.value();
     }
 

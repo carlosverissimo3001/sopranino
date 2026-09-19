@@ -4,6 +4,7 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { TrackGroupType } from '@prisma/client';
 import { TrackGroupService } from '../services/track-group.service';
 import { TrackGroupDto } from '../dto/track-group.dto';
+import { TrackGroupCatalogDto } from '../dto/track-group-catalog.dto';
 import { ListTrackGroupsDto } from '../dto/list-track-groups.dto';
 import { AuthService } from '../../auth/services/auth.service';
 import { SESSION_COOKIE_NAME } from '../../consts';
@@ -36,6 +37,14 @@ export class TrackGroupController {
     }
 
     return this.trackGroupService.list(type, user?.country);
+  }
+
+  // Before ':slug', which would otherwise take "catalog" for a set's name.
+  @Get('catalog')
+  @ApiOperation({ summary: 'Every kind of set this player may see, at once' })
+  @ApiResponse({ status: 200, type: TrackGroupCatalogDto })
+  async catalog(@Req() req: Request): Promise<TrackGroupCatalogDto> {
+    return this.trackGroupService.catalog(await this.currentUser(req));
   }
 
   @Get(':slug')

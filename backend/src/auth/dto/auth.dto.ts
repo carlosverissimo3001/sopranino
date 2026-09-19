@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { AvatarSource } from '@prisma/client';
+import { UserPreferenceDto } from '../../user-preferences/dto/user-preference.dto';
 
 export class AuthMeResponseDto {
   @ApiProperty({
@@ -43,6 +44,13 @@ export class AuthMeResponseDto {
       'An address waiting to replace the email, until its link is clicked',
   })
   pendingEmail?: string;
+
+  @ApiProperty({
+    type: UserPreferenceDto,
+    description:
+      'The player preferences, here so pages need not ask for them separately',
+  })
+  preferences: UserPreferenceDto;
 
   @ApiProperty({ description: 'John Doe' })
   displayName: string;

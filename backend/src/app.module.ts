@@ -19,6 +19,7 @@ import { MultiplayerModule } from './multiplayer/multiplayer.module';
 import { UserPreferencesModule } from './user-preferences/user-preferences.module';
 import { UserAvatarModule } from './user-avatar/user-avatar.module';
 import { GauntletModule } from './gauntlet/gauntlet.module';
+import { MeStatusModule } from './me-status/me-status.module';
 import { DemoModule } from './demo/demo.module';
 import { ChartModule } from './chart/chart.module';
 import { TrackGroupModule } from './track-group/track-group.module';
@@ -48,6 +49,7 @@ import { GAME_CLEANUP_QUEUE, JOB_OPTIONS_WITH_BACKOFF } from './consts';
     UserPreferencesModule,
     UserAvatarModule,
     GauntletModule,
+    MeStatusModule,
     DemoModule,
     ChartModule,
     TrackGroupModule,

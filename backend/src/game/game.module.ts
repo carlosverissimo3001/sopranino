@@ -43,5 +43,6 @@ import { GameConsumer } from './consumers/game.consumer';
     GameConsumer,
     ProvisioningSessionGuard,
   ],
+  exports: [GameService],
 })
 export class GameModule {}

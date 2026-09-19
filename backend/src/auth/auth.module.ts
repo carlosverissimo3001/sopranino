@@ -12,9 +12,11 @@ import { EmailSendLimiter } from './services/email-send-limiter.service';
 import { EmailVerificationService } from './services/email-verification.service';
 import { PasswordResetService } from './services/password-reset.service';
 import { EmailChangeService } from './services/email-change.service';
+import { UserPreferencesStoreModule } from '../user-preferences/user-preferences-store.module';
 
 @Module({
   controllers: [AuthController],
+  imports: [UserPreferencesStoreModule],
   providers: [
     AuthService,
     AccountMergeService,
