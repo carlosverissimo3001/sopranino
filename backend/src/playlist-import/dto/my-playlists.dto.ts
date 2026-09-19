@@ -2,7 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PlaylistSource } from '@prisma/client';
 import { IsEnum } from 'class-validator';
 import { IsNotNullableOptional } from '@utils/decorators/notNullableOptional.decorator';
-import { PLAYLIST_SORT_BY } from '../../playlist/consts';
+import { PLAYLIST_SORT_BY, SORT_ORDER } from '../../playlist/consts';
 
 export enum PlaylistItemKind {
   SPOTIFY = 'SPOTIFY',
@@ -14,6 +14,15 @@ export class GetMyPlaylistsDto {
   @IsNotNullableOptional()
   @IsEnum(PLAYLIST_SORT_BY)
   sortBy?: PLAYLIST_SORT_BY = PLAYLIST_SORT_BY.DEFAULT;
+
+  @ApiPropertyOptional({
+    enum: SORT_ORDER,
+    enumName: 'SortOrder',
+    description: 'Which way round, when the natural order is not wanted',
+  })
+  @IsNotNullableOptional()
+  @IsEnum(SORT_ORDER)
+  order?: SORT_ORDER;
 }
 
 export class PlaylistItemDto {

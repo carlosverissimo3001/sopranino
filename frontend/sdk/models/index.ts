@@ -74,6 +74,7 @@ export * from './ScoreboardRoundDto';
 export * from './SetTrackSourceDto';
 export * from './ShareResultDto';
 export * from './SignupDto';
+export * from './SortOrder';
 export * from './StartDemoRoundDto';
 export * from './StartGameDto';
 export * from './StartRunDto';

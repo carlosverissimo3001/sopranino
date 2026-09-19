@@ -2,7 +2,7 @@ import { Test } from '@nestjs/testing';
 import { PlaylistSource, TrackGroupType } from '@prisma/client';
 import { AuthService } from '../../auth/services/auth.service';
 import { AppLoggerService } from '../../logger/logger.service';
-import { PLAYLIST_SORT_BY } from '../../playlist/consts';
+import { PLAYLIST_SORT_BY, SORT_ORDER } from '../../playlist/consts';
 import { PlaylistService } from '../../playlist/services/playlist.service';
 import { PlaylistItemKind } from '../dto/my-playlists.dto';
 import { MyPlaylistsService } from './my-playlists.service';
@@ -66,8 +66,10 @@ describe('MyPlaylistsService', () => {
     service = module.get(MyPlaylistsService);
   });
 
-  const names = async (sortBy: PLAYLIST_SORT_BY) =>
-    (await service.list('session-1', sortBy)).items.map((item) => item.name);
+  const names = async (sortBy: PLAYLIST_SORT_BY, order?: SORT_ORDER) =>
+    (await service.list('session-1', { sortBy, order })).items.map(
+      (item) => item.name,
+    );
 
   it('leads with Liked Songs, then imports as listed, then Spotify', async () => {
     await expect(names(PLAYLIST_SORT_BY.DEFAULT)).resolves.toEqual([
@@ -89,6 +91,18 @@ describe('MyPlaylistsService', () => {
     ]);
   });
 
+  it('reverses the names on the way back, Liked Songs still first', async () => {
+    await expect(
+      names(PLAYLIST_SORT_BY.NAME, SORT_ORDER.DESC),
+    ).resolves.toEqual(['Liked Songs', 'Zebra', 'Mango', 'banana', 'Apple']);
+  });
+
+  it('sorts by size smallest first when asked the other way', async () => {
+    await expect(
+      names(PLAYLIST_SORT_BY.TRACKS, SORT_ORDER.ASC),
+    ).resolves.toEqual(['Liked Songs', 'banana', 'Zebra', 'Mango', 'Apple']);
+  });
+
   it('sorts both kinds together by size, largest first', async () => {
     await expect(names(PLAYLIST_SORT_BY.TRACKS)).resolves.toEqual([
       'Liked Songs',
@@ -100,7 +114,9 @@ describe('MyPlaylistsService', () => {
   });
 
   it('says which kind each item is and how to play it', async () => {
-    const { items } = await service.list('session-1', PLAYLIST_SORT_BY.DEFAULT);
+    const { items } = await service.list('session-1', {
+      sortBy: PLAYLIST_SORT_BY.DEFAULT,
+    });
 
     expect(items[1]).toMatchObject({
       kind: PlaylistItemKind.IMPORTED,
@@ -118,7 +134,7 @@ describe('MyPlaylistsService', () => {
   });
 
   it('reads the first page of Spotify, so no extra Spotify calls', async () => {
-    await service.list('session-1', PLAYLIST_SORT_BY.NAME);
+    await service.list('session-1', { sortBy: PLAYLIST_SORT_BY.NAME });
 
     expect(playlists.getMyPlaylists).toHaveBeenCalledTimes(1);
     expect(playlists.getMyPlaylists).toHaveBeenCalledWith('session-1');
@@ -127,7 +143,7 @@ describe('MyPlaylistsService', () => {
   it('never asks Spotify for an account without it', async () => {
     auth.getUserBySessionId.mockResolvedValue({ id: 'user-1' });
 
-    const result = await service.list('session-1', PLAYLIST_SORT_BY.DEFAULT);
+    const result = await service.list('session-1');
 
     expect(playlists.getMyPlaylists).not.toHaveBeenCalled();
     expect(result.items.map((item) => item.name)).toEqual(['Mango', 'banana']);
@@ -138,7 +154,7 @@ describe('MyPlaylistsService', () => {
   it('still lists imports when Spotify fails', async () => {
     playlists.getMyPlaylists.mockRejectedValue(new Error('429'));
 
-    const result = await service.list('session-1', PLAYLIST_SORT_BY.DEFAULT);
+    const result = await service.list('session-1');
 
     expect(result.items.map((item) => item.name)).toEqual(['Mango', 'banana']);
     expect(result.spotifyUnavailable).toBe(true);

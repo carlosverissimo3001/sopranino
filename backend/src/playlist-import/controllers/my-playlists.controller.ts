@@ -26,6 +26,9 @@ export class MyPlaylistsController {
     @SessionId() sessionId: string,
     @Query() query: GetMyPlaylistsDto,
   ): Promise<MyPlaylistsDto> {
-    return this.myPlaylistsService.list(sessionId, query.sortBy);
+    return this.myPlaylistsService.list(sessionId, {
+      sortBy: query.sortBy,
+      order: query.order,
+    });
   }
 }

@@ -1,5 +1,5 @@
 import { PlaylistSource } from '@prisma/client';
-import { PLAYLIST_SORT_BY } from '../../playlist/consts';
+import { PLAYLIST_SORT_BY, SORT_ORDER } from '../../playlist/consts';
 import type { PlaylistDto } from '../../playlist/dto/playlist.dto';
 import type { ImportedSetDto } from '../dto/imported-set.dto';
 import { PlaylistItemDto, PlaylistItemKind } from '../dto/my-playlists.dto';
@@ -31,17 +31,34 @@ export const fromImport = (set: ImportedSetDto): PlaylistItemDto => ({
   refreshing: set.refreshing,
 });
 
+type Comparator = (a: PlaylistItemDto, b: PlaylistItemDto) => number;
+
+const byName: Comparator = (a, b) =>
+  a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
+
+const bySize: Comparator = (a, b) => a.trackCount - b.trackCount;
+
+/** Which way round each is read when nothing says: A first, biggest first. */
+const NATURAL: Record<string, SORT_ORDER> = {
+  [PLAYLIST_SORT_BY.NAME]: SORT_ORDER.ASC,
+  [PLAYLIST_SORT_BY.TRACKS]: SORT_ORDER.DESC,
+};
+
 /** Absent for the default order, which keeps each source's own. */
 export const compareFor = (
   sortBy: PLAYLIST_SORT_BY,
-): ((a: PlaylistItemDto, b: PlaylistItemDto) => number) | undefined => {
-  switch (sortBy) {
-    case PLAYLIST_SORT_BY.NAME:
-      return (a, b) =>
-        a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
-    case PLAYLIST_SORT_BY.TRACKS:
-      return (a, b) => b.trackCount - a.trackCount;
-    default:
-      return undefined;
+  order?: SORT_ORDER,
+): Comparator | undefined => {
+  const compare =
+    sortBy === PLAYLIST_SORT_BY.NAME
+      ? byName
+      : sortBy === PLAYLIST_SORT_BY.TRACKS
+        ? bySize
+        : undefined;
+  if (!compare) {
+    return undefined;
   }
+
+  const wanted = order ?? NATURAL[sortBy];
+  return wanted === SORT_ORDER.DESC ? (a, b) => compare(b, a) : compare;
 };
