@@ -22,8 +22,7 @@ import type { UserPreferenceDto } from '@/sdk';
 import { AvatarPicker } from './AvatarPicker';
 import { EditableName } from './EditableName';
 import { LinkAccountSection } from './LinkAccountSection';
-import { VerifyEmailSection } from './VerifyEmailSection';
-import { ChangePasswordSection } from './ChangePasswordSection';
+import { EmailRow } from './EmailRow';
 
 interface ToggleRowProps {
   label: string;
@@ -169,13 +168,7 @@ export function ProfilePage({ canSignIn }: { canSignIn: boolean }) {
 
         {!isLoadingUser && user?.hasAccount && (
           <Card title="Account">
-            {user.email && (
-              <div className="px-5">
-                <VerifyEmailSection user={user}>
-                  <ChangePasswordSection />
-                </VerifyEmailSection>
-              </div>
-            )}
+            {user.email && <EmailRow user={user} />}
             <SpotifyRow linked={!!user.spotifyUserId} />
             <div className="px-5 py-3">
               <button
