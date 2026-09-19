@@ -6,7 +6,6 @@ import { motion } from 'framer-motion';
 import { useMe } from '@/hooks/auth/useMe';
 import { consumeAuthReturnUrl, peekAuthReturnUrl } from '@/lib/auth-return';
 import { StreakFreezePrompt } from '@/components/streak/StreakFreezePrompt';
-import { useLogout } from '@/hooks/auth/useLogout';
 import { useAuthError } from '@/hooks/auth/useAuthError';
 import { ErrorBanner } from '@/components/ui/ErrorBanner';
 import { AppHeader } from '@/components/features/AppHeader';
@@ -63,12 +62,7 @@ export function HomeClient({
       }
     }
   }, [hasSpotify]);
-  const logoutMutation = useLogout();
   const [streakDismissed, setStreakDismissed] = useState(false);
-
-  const handleLogout = async () => {
-    logoutMutation.mutate();
-  };
 
   // Latched for the visit: the first round mints a session, and the page must
   // not turn into the home grid under a player halfway through it. A cookie
@@ -129,11 +123,7 @@ export function HomeClient({
         />
       </div>
 
-      <AppHeader
-        user={user}
-        onLogout={handleLogout}
-        isLoggingOut={logoutMutation.isPending}
-      />
+      <AppHeader user={user} />
 
       <div className="flex-1 px-4 sm:px-6 py-2 sm:py-8 relative z-10">
         <div className="max-w-5xl mx-auto flex flex-col gap-3 sm:gap-6">

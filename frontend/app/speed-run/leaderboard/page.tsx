@@ -4,11 +4,9 @@ import { AppHeader } from '@/components/features/AppHeader';
 import { AppFooter } from '@/components/features/AppFooter';
 import { SpeedRunLeaderboard } from '@/components/speed-run/SpeedRunLeaderboard';
 import { useMe } from '@/hooks/auth/useMe';
-import { useLogout } from '@/hooks/auth/useLogout';
 
 export default function LeaderboardPage() {
   const { data: user } = useMe();
-  const logoutMutation = useLogout();
 
   return (
     <main className="min-h-screen flex flex-col relative overflow-x-hidden text-fg">
@@ -23,11 +21,7 @@ export default function LeaderboardPage() {
         />
       </div>
 
-      <AppHeader
-        user={user}
-        onLogout={() => logoutMutation.mutate()}
-        isLoggingOut={logoutMutation.isPending}
-      />
+      <AppHeader user={user} />
 
       <div className="flex-1 px-4 sm:px-6 py-4 sm:py-8 relative z-10">
         <div className="max-w-lg mx-auto">

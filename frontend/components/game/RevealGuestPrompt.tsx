@@ -7,7 +7,7 @@ import { signUpSnoozed, snoozeSignUp } from '@/lib/guest-prompts';
 
 /**
  * What an account adds, in the reveal's footer. Only this: a guest's name and
- * its pencil pulled the eye off the offer, and the preferences page still
+ * its pencil pulled the eye off the offer, and the profile page still
  * holds the rename.
  */
 export function RevealGuestPrompt() {

@@ -15,11 +15,11 @@ export function LinkAccountSection({ canSignIn }: { canSignIn: boolean }) {
         </div>
         <div className="min-w-0">
           <p className="text-sm font-black tracking-tight text-fg">
-            Your progress lives on this device
+            Keep your progress
           </p>
           <p className="mt-0.5 text-xs text-fg/60 leading-relaxed">
-            Rounds, stats and streak are tied to this browser. Create an account
-            to keep them anywhere you sign in.
+            Your rounds, stats and streak live in this browser. Create an
+            account to keep them anywhere you sign in.
           </p>
         </div>
       </div>

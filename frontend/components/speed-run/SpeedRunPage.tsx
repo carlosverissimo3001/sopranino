@@ -3,7 +3,6 @@
 import { AppHeader } from '@/components/features/AppHeader';
 import { AppFooter } from '@/components/features/AppFooter';
 import { useMe } from '@/hooks/auth/useMe';
-import { useLogout } from '@/hooks/auth/useLogout';
 import { useGauntletRun } from '@/hooks/speed-run/useSpeedRun';
 import { useVolume } from '@/hooks/game/useVolume';
 import { usePersonalBest } from '@/hooks/speed-run/useSpeedRunPersonalBest';
@@ -12,7 +11,6 @@ import { SpeedRunGameScreen } from './SpeedRunGameScreen';
 
 export function SpeedRunPage() {
   const { data: user } = useMe();
-  const logoutMutation = useLogout();
   const { volume, setVolume } = useVolume();
   const run = useGauntletRun();
   // Nobody without an identity has a personal best, and asking for one costs
@@ -35,11 +33,7 @@ export function SpeedRunPage() {
         )}
       </div>
 
-      <AppHeader
-        user={user}
-        onLogout={() => logoutMutation.mutate()}
-        isLoggingOut={logoutMutation.isPending}
-      />
+      <AppHeader user={user} />
 
       <div className="flex-1 px-4 sm:px-6 py-4 sm:py-8 relative z-10">
         <div className="max-w-xl mx-auto">

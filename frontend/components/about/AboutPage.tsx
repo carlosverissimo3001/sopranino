@@ -14,7 +14,6 @@ import {
 import { AppHeader } from '@/components/features/AppHeader';
 import { AppFooter } from '@/components/features/AppFooter';
 import { useMe } from '@/hooks/auth/useMe';
-import { useLogout } from '@/hooks/auth/useLogout';
 import { FeedbackForm } from '@/components/about/FeedbackForm';
 
 const linkClass =
@@ -106,7 +105,6 @@ const FAQ: { question: string; answer: React.ReactNode }[] = [
 
 export function AboutPage() {
   const { data: user } = useMe();
-  const logoutMutation = useLogout();
   const indicatorId = useId();
   const [section, setSection] = useState<Section>('about');
 
@@ -148,11 +146,7 @@ export function AboutPage() {
         />
       </div>
 
-      <AppHeader
-        user={user}
-        onLogout={() => logoutMutation.mutate()}
-        isLoggingOut={logoutMutation.isPending}
-      />
+      <AppHeader user={user} />
 
       <div className="relative z-10 flex-1 px-4 py-6 sm:px-6 sm:py-7">
         <article className="mx-auto max-w-[64ch]">

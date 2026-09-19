@@ -1,6 +1,11 @@
+import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
-import { PreferencesPage } from '@/components/preferences/PreferencesPage';
+import { ProfilePage } from '@/components/profile/ProfilePage';
 import { SITE_ACCESS_COOKIE, isAccessTokenValid } from '@/lib/site-access';
+
+export const metadata: Metadata = {
+  title: 'Profile',
+};
 
 export default async function Page() {
   // The access cookie is httpOnly, so the client cannot answer this for itself.
@@ -8,5 +13,5 @@ export default async function Page() {
     (await cookies()).get(SITE_ACCESS_COOKIE)?.value,
   );
 
-  return <PreferencesPage canSignIn={canSignIn} />;
+  return <ProfilePage canSignIn={canSignIn} />;
 }

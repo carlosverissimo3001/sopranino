@@ -51,7 +51,7 @@ describe('proxy route gating', () => {
     expect(response.status).toBe(200);
   });
 
-  test.each(['/history', '/preferences', '/admin'])(
+  test.each(['/history', '/profile', '/admin'])(
     'gates %s on a session',
     async (pathname) => {
       const response = await proxy(request(pathname));
