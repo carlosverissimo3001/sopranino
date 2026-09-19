@@ -17,7 +17,12 @@ import {
 
 interface PlaylistFiltersProps {
   /** Shown only when the list holds more than one kind. */
-  kinds?: { value: KindFilter; label: string }[];
+  kinds?: {
+    value: KindFilter;
+    label: string;
+    /** The selected pill's colours, when it should match what it filters. */
+    accent?: { bg: string; text: string };
+  }[];
   kind?: KindFilter;
   onKindChange?: (value: KindFilter) => void;
   sortBy: SortPlaylistsBy;
@@ -66,7 +71,7 @@ function PlaylistFiltersComponent({
               onClick={() => onKindChange?.(option.value)}
               className={`relative h-full rounded-full px-3 text-[10px] font-black uppercase tracking-wider transition-colors sm:px-4 sm:text-xs ${
                 kind === option.value
-                  ? 'text-black'
+                  ? (option.accent?.text ?? 'text-black')
                   : 'text-fg/40 hover:text-fg/70'
               }`}
             >
@@ -74,7 +79,7 @@ function PlaylistFiltersComponent({
                 <motion.span
                   layoutId={indicatorId}
                   transition={{ type: 'spring', bounce: 0.15, duration: 0.3 }}
-                  className="absolute inset-0 rounded-full bg-spotify-green"
+                  className={`absolute inset-0 rounded-full transition-colors ${option.accent?.bg ?? 'bg-spotify-green'}`}
                 />
               )}
               <span className="relative">{option.label}</span>

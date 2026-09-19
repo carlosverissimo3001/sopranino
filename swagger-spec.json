@@ -5637,10 +5637,7 @@
           "source": {
             "type": "string",
             "enum": [
-              "DEEZER",
-              "SPOTIFY",
-              "APPLE_MUSIC",
-              "YOUTUBE_MUSIC"
+              "DEEZER"
             ]
           },
           "link": {
@@ -5653,9 +5650,16 @@
               "DEEZER",
               "SPOTIFY",
               "APPLE_MUSIC",
-              "YOUTUBE_MUSIC"
+              "YOUTUBE_MUSIC",
+              "YOUTUBE",
+              "AMAZON_MUSIC",
+              "TIDAL",
+              "SOUNDCLOUD",
+              "PANDORA",
+              "NAPSTER",
+              "OTHER"
             ],
-            "description": "Where the player keeps the playlist, when the link is a copy"
+            "description": "Where the player says the playlist came from"
           }
         },
         "required": [
@@ -5707,7 +5711,14 @@
               "DEEZER",
               "SPOTIFY",
               "APPLE_MUSIC",
-              "YOUTUBE_MUSIC"
+              "YOUTUBE_MUSIC",
+              "YOUTUBE",
+              "AMAZON_MUSIC",
+              "TIDAL",
+              "SOUNDCLOUD",
+              "PANDORA",
+              "NAPSTER",
+              "OTHER"
             ]
           },
           "externalUrl": {
@@ -5738,7 +5749,14 @@
               "DEEZER",
               "SPOTIFY",
               "APPLE_MUSIC",
-              "YOUTUBE_MUSIC"
+              "YOUTUBE_MUSIC",
+              "YOUTUBE",
+              "AMAZON_MUSIC",
+              "TIDAL",
+              "SOUNDCLOUD",
+              "PANDORA",
+              "NAPSTER",
+              "OTHER"
             ],
             "description": "The service this player copied it from, when it is a copy"
           },
@@ -5837,7 +5855,14 @@
               "DEEZER",
               "SPOTIFY",
               "APPLE_MUSIC",
-              "YOUTUBE_MUSIC"
+              "YOUTUBE_MUSIC",
+              "YOUTUBE",
+              "AMAZON_MUSIC",
+              "TIDAL",
+              "SOUNDCLOUD",
+              "PANDORA",
+              "NAPSTER",
+              "OTHER"
             ]
           },
           "origin": {
@@ -5846,7 +5871,14 @@
               "DEEZER",
               "SPOTIFY",
               "APPLE_MUSIC",
-              "YOUTUBE_MUSIC"
+              "YOUTUBE_MUSIC",
+              "YOUTUBE",
+              "AMAZON_MUSIC",
+              "TIDAL",
+              "SOUNDCLOUD",
+              "PANDORA",
+              "NAPSTER",
+              "OTHER"
             ],
             "description": "Imports: the service the copy was made from"
           },

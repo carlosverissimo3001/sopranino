@@ -1,13 +1,15 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PlaylistSource } from '@prisma/client';
 import { Transform } from 'class-transformer';
-import { IsEnum, IsString, MaxLength } from 'class-validator';
+import { IsEnum, IsIn, IsString, MaxLength } from 'class-validator';
 import { IsNotNullableOptional } from '@utils/decorators/notNullableOptional.decorator';
 import { IsPlaylistLink } from '../validators/is-playlist-link.validator';
 
 export class ImportPlaylistControllerDto {
-  @ApiProperty({ enum: PlaylistSource })
-  @IsEnum(PlaylistSource)
+  // Only Deezer can be read from. The enum carries the services a playlist can
+  // have come from, which is a longer list than the ones we import from.
+  @ApiProperty({ enum: [PlaylistSource.DEEZER] })
+  @IsIn([PlaylistSource.DEEZER])
   source: PlaylistSource;
 
   @ApiProperty({ example: 'https://www.deezer.com/playlist/1313621735' })
@@ -21,7 +23,7 @@ export class ImportPlaylistControllerDto {
 
   @ApiPropertyOptional({
     enum: PlaylistSource,
-    description: 'Where the player keeps the playlist, when the link is a copy',
+    description: 'Where the player says the playlist came from',
   })
   @IsNotNullableOptional()
   @IsEnum(PlaylistSource)

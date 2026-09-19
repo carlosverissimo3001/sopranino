@@ -72,18 +72,11 @@ function PlaylistCardComponent({
               </div>
             )}
 
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{
-                opacity: isHovered ? 1 : 0,
-                scale: isHovered ? 1 : 0.8,
-              }}
-              className="absolute inset-0 flex items-center justify-center"
-            >
-              <div className="bg-spotify-green p-4 rounded-full shadow-[0_8px_24px_rgba(0,0,0,0.5)] text-black transform group-hover:scale-110 transition-transform">
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-100 motion-reduce:transition-none">
+              <div className="scale-90 rounded-full bg-spotify-green p-4 text-black shadow-[0_8px_24px_rgba(0,0,0,0.5)] transition-transform duration-200 group-hover:scale-100 motion-reduce:transition-none">
                 <Play fill="currentColor" className="w-8 h-8 ml-1" />
               </div>
-            </motion.div>
+            </div>
           </div>
 
           <div className="flex flex-col min-w-0 flex-1">

@@ -8,10 +8,9 @@ import { PlaylistCard } from '@/components/playlist/PlaylistCard';
 import { PlaylistFilters } from '@/components/features/playlist/PlaylistFilters';
 import { ImportPanel } from '@/components/features/imports/ImportPanel';
 import { ImportedPlaylistCard } from '@/components/features/imports/ImportedPlaylistCard';
-import { SourceTiles } from '@/components/features/imports/SourceTiles';
 import { SignUpForPlaylists } from './SignUpForPlaylists';
 import { useMe } from '@/hooks/auth/useMe';
-import { canImport, spotifyIsLinked } from '@/lib/can-import';
+import { canImport } from '@/lib/can-import';
 import { usePlaylistFilters } from '@/hooks/playlists/usePlaylistFilters';
 import { useMyPlaylistLibrary } from '@/hooks/playlists/useMyPlaylistLibrary';
 import { PlaylistSource } from '@/lib/playlist-links';
@@ -21,9 +20,19 @@ const GRID =
   'grid grid-cols-2 md:grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-3 sm:gap-6 justify-center';
 
 const KINDS = [
-  { value: 'ALL' as const, label: 'All' },
+  // Neutral: colour names a kind, and "all" is not one.
+  {
+    value: 'ALL' as const,
+    label: 'All',
+    accent: { bg: 'bg-fg', text: 'text-bg' },
+  },
   { value: PlaylistItemKind.Spotify, label: 'Spotify' },
-  { value: PlaylistItemKind.Imported, label: 'Imported' },
+  // The purple imported cards are edged in, so the filter names them by it.
+  {
+    value: PlaylistItemKind.Imported,
+    label: 'Imported',
+    accent: { bg: 'bg-[#A238FF]', text: 'text-white' },
+  },
 ];
 
 export function YourPlaylists({ defaultOpen }: { defaultOpen: boolean }) {
@@ -31,7 +40,6 @@ export function YourPlaylists({ defaultOpen }: { defaultOpen: boolean }) {
   const allowed = canImport(user);
   const filters = usePlaylistFilters();
   const { data, isLoading } = useMyPlaylistLibrary(filters.sortBy);
-  const [source, setSource] = useState<PlaylistSource>(PlaylistSource.Deezer);
   const [isAdding, setIsAdding] = useState(false);
 
   if (!user) {
@@ -58,7 +66,7 @@ export function YourPlaylists({ defaultOpen }: { defaultOpen: boolean }) {
         type="button"
         onClick={() => setIsAdding(!isAdding)}
         aria-expanded={isAdding}
-        className="inline-flex h-8 items-center gap-1.5 px-1 text-xs font-bold text-fg/60 transition-colors hover:text-fg sm:h-9"
+        className="hidden h-9 items-center gap-1.5 px-1 text-xs font-bold text-fg/60 transition-colors hover:text-fg sm:inline-flex"
       >
         {isAdding ? (
           <X className="h-3.5 w-3.5" />
@@ -77,11 +85,26 @@ export function YourPlaylists({ defaultOpen }: { defaultOpen: boolean }) {
     </div>
   );
 
+  // Beside the title on a phone, where the labelled one would sit alone on
+  // its own row above the filters.
+  const addToggle = hasItems && (
+    <button
+      type="button"
+      onClick={() => setIsAdding(!isAdding)}
+      aria-expanded={isAdding}
+      aria-label={isAdding ? 'Close import' : 'Import a playlist'}
+      className="flex h-8 w-8 items-center justify-center rounded-full text-fg/60 transition-colors hover:bg-fg/10 hover:text-fg"
+    >
+      {isAdding ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+    </button>
+  );
+
   return (
     <CollapsibleSection
       title="Your playlists"
       titleLabel="Your playlists"
       actions={actions || undefined}
+      titleAction={addToggle || undefined}
       defaultOpen={defaultOpen}
     >
       {!hasItems && !isLoading && (
@@ -92,18 +115,7 @@ export function YourPlaylists({ defaultOpen }: { defaultOpen: boolean }) {
 
       {showAdder && !isLoading && (
         <div className={`space-y-3 sm:space-y-4 ${hasItems ? 'mb-6' : ''}`}>
-          <SourceTiles
-            selected={source}
-            onSelect={setSource}
-            unavailable={
-              spotifyIsLinked(user)
-                ? { [PlaylistSource.Spotify]: 'already linked' }
-                : {}
-            }
-          />
           <ImportPanel
-            source={source}
-            onSourceChange={setSource}
             onImported={() => setIsAdding(false)}
             disabled={!allowed}
           />

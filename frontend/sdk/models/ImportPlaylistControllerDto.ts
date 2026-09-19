@@ -32,7 +32,7 @@ export interface ImportPlaylistControllerDto {
      */
     link: string;
     /**
-     * Where the player keeps the playlist, when the link is a copy
+     * Where the player says the playlist came from
      * @type {string}
      * @memberof ImportPlaylistControllerDto
      */
@@ -44,10 +44,7 @@ export interface ImportPlaylistControllerDto {
  * @export
  */
 export const ImportPlaylistControllerDtoSourceEnum = {
-    Deezer: 'DEEZER',
-    Spotify: 'SPOTIFY',
-    AppleMusic: 'APPLE_MUSIC',
-    YoutubeMusic: 'YOUTUBE_MUSIC'
+    Deezer: 'DEEZER'
 } as const;
 export type ImportPlaylistControllerDtoSourceEnum = typeof ImportPlaylistControllerDtoSourceEnum[keyof typeof ImportPlaylistControllerDtoSourceEnum];
 
@@ -58,7 +55,14 @@ export const ImportPlaylistControllerDtoOriginEnum = {
     Deezer: 'DEEZER',
     Spotify: 'SPOTIFY',
     AppleMusic: 'APPLE_MUSIC',
-    YoutubeMusic: 'YOUTUBE_MUSIC'
+    YoutubeMusic: 'YOUTUBE_MUSIC',
+    Youtube: 'YOUTUBE',
+    AmazonMusic: 'AMAZON_MUSIC',
+    Tidal: 'TIDAL',
+    Soundcloud: 'SOUNDCLOUD',
+    Pandora: 'PANDORA',
+    Napster: 'NAPSTER',
+    Other: 'OTHER'
 } as const;
 export type ImportPlaylistControllerDtoOriginEnum = typeof ImportPlaylistControllerDtoOriginEnum[keyof typeof ImportPlaylistControllerDtoOriginEnum];
 

@@ -1,7 +1,7 @@
 import { PlaylistSource } from '@prisma/client';
 import { parsePlaylistLink } from './links';
 
-const { DEEZER, SPOTIFY, APPLE_MUSIC } = PlaylistSource;
+const { DEEZER } = PlaylistSource;
 
 describe('parsePlaylistLink', () => {
   describe('Deezer', () => {
@@ -37,57 +37,14 @@ describe('parsePlaylistLink', () => {
     });
   });
 
-  describe('Spotify', () => {
-    it.each([
-      'https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M?si=abc',
-      'https://open.spotify.com/intl-pt/playlist/37i9dQZF1DXcBWIGoYBM5M',
-    ])('reads %s', (link) => {
-      expect(parsePlaylistLink(SPOTIFY, link)).toEqual({
-        externalId: '37i9dQZF1DXcBWIGoYBM5M',
-      });
-    });
-
-    it('refuses a track link', () => {
-      expect(
-        parsePlaylistLink(
-          SPOTIFY,
-          'https://open.spotify.com/track/37i9dQZF1DXcBWIGoYBM5M',
-        ),
-      ).toBeNull();
-    });
-  });
-
-  describe('Apple Music', () => {
-    it.each([
-      [
-        'https://music.apple.com/us/playlist/todays-hits/pl.f4d106fed2bd41149aaacabb233eb5eb',
-        'pl.f4d106fed2bd41149aaacabb233eb5eb',
-      ],
-      [
-        'https://music.apple.com/pt/playlist/mine/pl.u-8aAVZAvCoP4K8x',
-        'pl.u-8aAVZAvCoP4K8x',
-      ],
-      [
-        'https://music.apple.com/pt/playlist/pl.u-8aAVZAvCoP4K8x',
-        'pl.u-8aAVZAvCoP4K8x',
-      ],
-    ])('reads %s', (link, externalId) => {
-      expect(parsePlaylistLink(APPLE_MUSIC, link)).toEqual({ externalId });
-    });
-
-    it('refuses an album link', () => {
-      expect(
-        parsePlaylistLink(
-          APPLE_MUSIC,
-          'https://music.apple.com/us/album/x/123',
-        ),
-      ).toBeNull();
-    });
-  });
-
-  it('never reads one service as another', () => {
+  // A link from a service we cannot read never reaches the server: the
+  // player copies the playlist to Deezer and pastes that link instead.
+  it('reads nothing for a service with no parser', () => {
     expect(
-      parsePlaylistLink(SPOTIFY, 'https://www.deezer.com/playlist/1313621735'),
+      parsePlaylistLink(
+        PlaylistSource.SPOTIFY,
+        'https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M',
+      ),
     ).toBeNull();
   });
 });

@@ -11,6 +11,11 @@ interface CollapsibleSectionProps {
   badge?: ReactNode;
   /** Controls for the section. On the title's row, and only while it is open. */
   actions?: ReactNode;
+  /**
+   * One control for the title's own row on a phone, where `actions` drop to a
+   * row of their own. Only while open, like `actions`.
+   */
+  titleAction?: ReactNode;
   defaultOpen?: boolean;
   children: ReactNode;
 }
@@ -48,6 +53,7 @@ export function CollapsibleSection({
   titleLabel,
   badge,
   actions,
+  titleAction,
   defaultOpen = true,
   children,
 }: CollapsibleSectionProps) {
@@ -74,12 +80,10 @@ export function CollapsibleSection({
               {badge}
             </button>
 
-            <Chevron
-              open={open}
-              label={titleLabel}
-              onClick={toggle}
-              className="sm:hidden"
-            />
+            <div className="flex items-center gap-1 sm:hidden">
+              {open && titleAction}
+              <Chevron open={open} label={titleLabel} onClick={toggle} />
+            </div>
           </div>
 
           {open && actions ? (

@@ -390,6 +390,13 @@ enum PlaylistSource {
   SPOTIFY
   APPLE_MUSIC
   YOUTUBE_MUSIC
+  YOUTUBE
+  AMAZON_MUSIC
+  TIDAL
+  SOUNDCLOUD
+  PANDORA
+  NAPSTER
+  OTHER
 }
 
 model TrackGroup {
