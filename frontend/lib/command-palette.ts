@@ -40,6 +40,24 @@ export function rememberPick(pick: RecentPick) {
   }
 }
 
+export function forgetPick(id: string): RecentPick[] {
+  const rest = readRecent().filter((recent) => recent.id !== id);
+  try {
+    localStorage.setItem(RECENT_KEY, JSON.stringify(rest));
+  } catch {
+    // Nothing stored, so nothing to forget.
+  }
+  return rest;
+}
+
+export function clearRecent() {
+  try {
+    localStorage.removeItem(RECENT_KEY);
+  } catch {
+    // As above.
+  }
+}
+
 /** A field the player is typing into, the guess box above all. */
 export function isEditable(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;

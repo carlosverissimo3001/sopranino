@@ -21,6 +21,7 @@ import {
   Trophy,
   User,
   Users,
+  X,
 } from 'lucide-react';
 import {
   Command,
@@ -40,6 +41,8 @@ import {
 import { useTrackGroups } from '@/hooks/track-groups/useTrackGroups';
 import { canImport } from '@/lib/can-import';
 import {
+  clearRecent,
+  forgetPick,
   isEditable,
   onOpenCommandPalette,
   readRecent,
@@ -95,13 +98,16 @@ export function CommandPalette() {
   );
 }
 
+const recentValue = (pick: RecentPick) => `${pick.label} ${pick.id}`;
+
 function PaletteBody({ onDone }: { onDone: () => void }) {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
   const { data: user } = useMe();
   const logout = useLogout();
   const [search, setSearch] = useState('');
-  const [recent] = useState(readRecent);
+  const [recent, setRecent] = useState(readRecent);
+  const [selected, setSelected] = useState('');
 
   const artists = useTrackGroups(TrackGroupDtoTypeEnum.Artist);
   const decades = useTrackGroups(TrackGroupDtoTypeEnum.Decade);
@@ -189,6 +195,16 @@ function PaletteBody({ onDone }: { onDone: () => void }) {
   return (
     <Command
       loop
+      value={selected}
+      onValueChange={setSelected}
+      onKeyDown={(event) => {
+        // Delete on an empty box forgets the highlighted recent pick.
+        if (event.key !== 'Delete' || search) return;
+        const pick = recent.find((r) => recentValue(r) === selected);
+        if (!pick) return;
+        event.preventDefault();
+        setRecent(forgetPick(pick.id));
+      }}
       className="bg-transparent [&_[cmdk-input-wrapper]]:border-fg/10 [&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:pb-1.5 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-fg/40"
     >
       <CommandInput
@@ -203,16 +219,43 @@ function PaletteBody({ onDone }: { onDone: () => void }) {
         </CommandEmpty>
 
         {!search && recent.length > 0 && (
-          <CommandGroup heading="Recent">
+          <CommandGroup
+            heading={
+              <span className="flex items-center justify-between">
+                Recent
+                <button
+                  type="button"
+                  onClick={() => {
+                    clearRecent();
+                    setRecent([]);
+                  }}
+                  className="cursor-pointer font-normal text-fg/40 transition-colors hover:text-fg"
+                >
+                  Clear
+                </button>
+              </span>
+            }
+          >
             {recent.map((pick) => (
               <CommandItem
                 key={`recent:${pick.id}`}
-                value={`${pick.label} ${pick.id}`}
+                value={recentValue(pick)}
                 onSelect={() => go(pick)}
-                className={ITEM}
+                className={`group ${ITEM}`}
               >
                 <Clock className="text-fg/40" />
                 <span className="truncate">{pick.label}</span>
+                <button
+                  type="button"
+                  aria-label={`Remove ${pick.label} from recent`}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setRecent(forgetPick(pick.id));
+                  }}
+                  className="-my-1 -mr-1 ml-auto flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-md text-fg/40 opacity-0 transition-opacity hover:bg-fg/10 hover:text-fg group-hover:opacity-100 group-data-[selected=true]:opacity-100 [@media(hover:none)]:opacity-100"
+                >
+                  <X className="!size-3.5" />
+                </button>
               </CommandItem>
             ))}
           </CommandGroup>
