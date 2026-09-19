@@ -2,9 +2,18 @@
 
 import { memo, useId } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronDown, ArrowDownAZ, ListOrdered, Undo2 } from 'lucide-react';
-import { type KindFilter } from '@/hooks/playlists/usePlaylistFilters';
-import { PlaylistSortBy as SortPlaylistsBy } from '@/sdk';
+import {
+  ChevronDown,
+  ArrowDownAZ,
+  ArrowUpAZ,
+  ListOrdered,
+  Undo2,
+} from 'lucide-react';
+import {
+  NATURAL_ORDER,
+  type KindFilter,
+} from '@/hooks/playlists/usePlaylistFilters';
+import { PlaylistSortBy as SortPlaylistsBy, SortOrder } from '@/sdk';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -26,14 +35,40 @@ interface PlaylistFiltersProps {
   kind?: KindFilter;
   onKindChange?: (value: KindFilter) => void;
   sortBy: SortPlaylistsBy;
+  /** Which way the chosen order runs; picking it again turns it around. */
+  order: SortOrder;
   onSortByChange: (value: SortPlaylistsBy) => void;
 }
 
+/** One row per order; each says which way it runs once it is the chosen one. */
 const SORT_OPTIONS = [
   { value: SortPlaylistsBy.Default, label: 'Default', icon: Undo2 },
-  { value: SortPlaylistsBy.Name, label: 'Name A-Z', icon: ArrowDownAZ },
-  { value: SortPlaylistsBy.Tracks, label: 'Most Tracks', icon: ListOrdered },
+  {
+    value: SortPlaylistsBy.Name,
+    icon: ArrowDownAZ,
+    flippedIcon: ArrowUpAZ,
+    labels: { asc: 'Name A-Z', desc: 'Name Z-A' },
+  },
+  {
+    value: SortPlaylistsBy.Tracks,
+    icon: ListOrdered,
+    labels: { desc: 'Most tracks', asc: 'Least tracks' },
+  },
 ] as const;
+
+type SortRow = (typeof SORT_OPTIONS)[number];
+
+/** What a row reads and looks like, given the order in force for it. */
+function rowState(option: SortRow, order: SortOrder) {
+  if (!('labels' in option)) {
+    return { label: option.label, Icon: option.icon };
+  }
+  const flipped = order === SortOrder.Desc;
+  return {
+    label: option.labels[order],
+    Icon: flipped && 'flippedIcon' in option ? option.flippedIcon : option.icon,
+  };
+}
 
 const PILL_BASE =
   'relative overflow-hidden min-w-[72px] sm:min-w-[88px] h-8 sm:h-9 px-4 sm:px-5 rounded-full border text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all duration-500 active:scale-90 flex items-center justify-center';
@@ -47,11 +82,12 @@ function PlaylistFiltersComponent({
   kind,
   onKindChange,
   sortBy,
+  order,
   onSortByChange,
 }: PlaylistFiltersProps) {
   const indicatorId = useId();
-  const activeSort =
-    SORT_OPTIONS.find((o) => o.value === sortBy) ?? SORT_OPTIONS[0];
+  const active = SORT_OPTIONS.find((option) => option.value === sortBy);
+  const activeSort = rowState(active ?? SORT_OPTIONS[0], order);
   const isSortActive = sortBy !== SortPlaylistsBy.Default;
 
   return (
@@ -118,16 +154,24 @@ function PlaylistFiltersComponent({
             value={sortBy}
             onValueChange={(v) => onSortByChange(v as SortPlaylistsBy)}
           >
-            {SORT_OPTIONS.map((option) => (
-              <DropdownMenuRadioItem
-                key={option.value}
-                value={option.value}
-                className="text-xs text-fg/70 focus:bg-fg/[0.08] focus:text-fg data-[state=checked]:text-fg cursor-pointer gap-2"
-              >
-                <option.icon className="size-3.5 opacity-50" />
-                {option.label}
-              </DropdownMenuRadioItem>
-            ))}
+            {SORT_OPTIONS.map((option) => {
+              // A row that is not the chosen one shows the way it would start.
+              const chosen = option.value === sortBy;
+              const { label, Icon } = rowState(
+                option,
+                chosen ? order : NATURAL_ORDER[option.value],
+              );
+              return (
+                <DropdownMenuRadioItem
+                  key={option.value}
+                  value={option.value}
+                  className="text-xs text-fg/70 focus:bg-fg/[0.08] focus:text-fg data-[state=checked]:text-fg cursor-pointer gap-2"
+                >
+                  <Icon className="size-3.5 opacity-50" />
+                  {label}
+                </DropdownMenuRadioItem>
+              );
+            })}
           </DropdownMenuRadioGroup>
         </DropdownMenuContent>
       </DropdownMenu>
