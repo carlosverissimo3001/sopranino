@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Plus, X } from 'lucide-react';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { PlaylistSkeleton } from '@/components/playlist/PlaylistSkeleton';
@@ -40,7 +41,18 @@ export function YourPlaylists({ defaultOpen }: { defaultOpen: boolean }) {
   const allowed = canImport(user);
   const filters = usePlaylistFilters();
   const { data, isLoading } = useMyPlaylistLibrary(filters.sortBy);
-  const [isAdding, setIsAdding] = useState(false);
+  const router = useRouter();
+  // The palette's "Import a playlist" lands here with the panel open.
+  const askedToImport = useSearchParams().has('import');
+  const [isAdding, setIsAdding] = useState(askedToImport);
+  // Scrolled to and focused once it mounts, which waits on the library.
+  const scrollToAdder = useRef(askedToImport);
+
+  useEffect(() => {
+    if (!askedToImport) return;
+    setIsAdding(true);
+    router.replace('/', { scroll: false });
+  }, [askedToImport, router]);
 
   if (!user) {
     return null;
@@ -114,7 +126,19 @@ export function YourPlaylists({ defaultOpen }: { defaultOpen: boolean }) {
       )}
 
       {showAdder && !isLoading && (
-        <div className={`space-y-3 sm:space-y-4 ${hasItems ? 'mb-6' : ''}`}>
+        <div
+          ref={(node) => {
+            if (node && scrollToAdder.current) {
+              scrollToAdder.current = false;
+              // A frame late, or the page is still settling underneath it.
+              requestAnimationFrame(() => {
+                node.scrollIntoView({ block: 'center' });
+                node.querySelector('input')?.focus({ preventScroll: true });
+              });
+            }
+          }}
+          className={`space-y-3 sm:space-y-4 ${hasItems ? 'mb-6' : ''}`}
+        >
           <ImportPanel
             onImported={() => setIsAdding(false)}
             disabled={!allowed}
