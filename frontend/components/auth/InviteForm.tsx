@@ -2,7 +2,6 @@
 
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
 import { useSiteUnlock } from '@/hooks/auth/useSiteUnlock';
 
 export function InviteForm() {
@@ -17,11 +16,8 @@ export function InviteForm() {
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex w-full max-w-sm flex-col gap-3"
-    >
-      <p className="text-xs text-fg/40 leading-relaxed">
+    <form onSubmit={handleSubmit} className="flex w-full flex-col gap-2.5">
+      <p className="text-[11px] text-fg/40 leading-relaxed">
         Spotify caps development apps at 5 users, so playing with your own
         library is invite only for now.
       </p>
@@ -37,16 +33,15 @@ export function InviteForm() {
           aria-label="Secret word"
           autoComplete="off"
           disabled={pending}
-          className="min-w-0 flex-1 rounded-full border border-fg/20 bg-fg/10 px-5 py-3 text-sm text-fg placeholder:text-fg/40 focus:outline-none focus:ring-2 focus:ring-spotify-green"
+          className="min-w-0 flex-1 rounded-full border border-fg/10 bg-fg/5 px-4 py-2.5 text-sm text-fg placeholder:text-fg/30 focus:border-spotify-green/50 focus:outline-none transition-colors"
         />
-        <Button
+        <button
           type="submit"
-          variant="spotify"
           disabled={pending || !secret}
-          className="!rounded-full px-6 shrink-0"
+          className="shrink-0 cursor-pointer rounded-full bg-spotify-green px-5 text-sm font-black text-black transition-[background-color,opacity] hover:bg-spotify-green/90 disabled:cursor-not-allowed disabled:opacity-40"
         >
           {pending ? '…' : 'Unlock'}
-        </Button>
+        </button>
       </div>
       {error && (
         <p className="text-sm text-red-400">That is not the secret word.</p>

@@ -1,12 +1,8 @@
-import { cookies } from 'next/headers';
 import { JoinByCodeClient } from '@/components/multiplayer/JoinByCodeClient';
-import { SITE_ACCESS_COOKIE, isAccessTokenValid } from '@/lib/site-access';
+import { canSignInWithSpotify } from '@/lib/can-sign-in';
 
 export default async function JoinByCodePage() {
-  // The access cookie is httpOnly, so the client cannot answer this for itself.
-  const canSignIn = await isAccessTokenValid(
-    (await cookies()).get(SITE_ACCESS_COOKIE)?.value,
-  );
+  const canSignIn = await canSignInWithSpotify();
 
   return <JoinByCodeClient canSignIn={canSignIn} />;
 }
