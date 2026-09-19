@@ -40,7 +40,10 @@ export function YourPlaylists({ defaultOpen }: { defaultOpen: boolean }) {
   const { data: user } = useMe();
   const allowed = canImport(user);
   const filters = usePlaylistFilters();
-  const { data, isLoading } = useMyPlaylistLibrary(filters.sortBy);
+  const { data, isLoading } = useMyPlaylistLibrary(
+    filters.sortBy,
+    filters.order,
+  );
   const router = useRouter();
   // The palette's "Import a playlist" lands here with the panel open.
   const askedToImport = useSearchParams().has('import');
@@ -92,7 +95,8 @@ export function YourPlaylists({ defaultOpen }: { defaultOpen: boolean }) {
         kind={filters.kind}
         onKindChange={filters.setKind}
         sortBy={filters.sortBy}
-        onSortByChange={filters.setSortBy}
+        order={filters.order}
+        onSortByChange={filters.chooseSort}
       />
     </div>
   );

@@ -8,6 +8,7 @@ import { api } from '@/sdk/client';
 import {
   PlaylistItemKind,
   PlaylistSortBy,
+  SortOrder,
   type MyPlaylistsDto,
   type PlaylistItemDto,
 } from '@/sdk';
@@ -18,11 +19,12 @@ const THIRTY_MINUTES = 30 * 60 * 1000;
 /** A player's Spotify and imported playlists, in one list. */
 export function useMyPlaylistLibrary(
   sortBy: PlaylistSortBy = PlaylistSortBy.Default,
+  order: SortOrder = SortOrder.Asc,
 ) {
   const { data: user } = useMe();
   return useQuery<MyPlaylistsDto>({
-    queryKey: queryKeys.imports.library(sortBy),
-    queryFn: () => api.myPlaylistsControllerList({ sortBy }),
+    queryKey: queryKeys.imports.library(sortBy, order),
+    queryFn: () => api.myPlaylistsControllerList({ sortBy, order }),
     enabled: canImport(user),
     staleTime: THIRTY_MINUTES,
     refetchInterval: (query) =>

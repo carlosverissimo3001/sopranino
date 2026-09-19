@@ -7,7 +7,8 @@ import { StartRunDtoDifficultyEnum as GauntletDifficulty } from '@sdk';
 export const queryKeys = {
   imports: {
     all: ['imports'] as const,
-    library: (sortBy: string) => ['imports', 'library', sortBy] as const,
+    library: (sortBy: string, order: string) =>
+      ['imports', 'library', sortBy, order] as const,
     quota: ['imports', 'quota'] as const,
   },
   // Game-related queries
