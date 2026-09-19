@@ -7,8 +7,8 @@ import { api } from '@/sdk/client';
 import type { GameStateDto, StartGameDto } from '@/sdk';
 
 /**
- * Mutation hook to start a new game session (playlist or daily).
- * On success, invalidates and sets the game state query.
+ * Starts a game session (playlist, set or daily). The answer is the game's
+ * state, so it goes straight into the cache the round reads.
  */
 export function useStartGame() {
   const queryClient = useQueryClient();
@@ -43,11 +43,12 @@ export function useStartGame() {
           : queryKeys.game.startedSessionForDaily;
       queryClient.setQueryData(sessionKey, data.sessionId);
       // A first round mints the guest, so "who is this" has a new answer.
-      void queryClient.invalidateQueries({ queryKey: queryKeys.auth.me });
-      // Invalidate related queries
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.game.session(data.sessionId),
-      });
+      // Anyone already known is still the same person.
+      if (!queryClient.getQueryData(queryKeys.auth.me)) {
+        void queryClient.invalidateQueries({ queryKey: queryKeys.auth.me });
+      }
+      // Nothing is invalidated under game.session: the state set above lives
+      // there, and invalidating it would fetch what the start just returned.
     },
   });
 }

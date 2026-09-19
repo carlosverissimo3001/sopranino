@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '@/lib/queryKeys';
 import {
   addDays,
   differenceInSeconds,
@@ -30,7 +31,7 @@ export function DailyChallengeCountdown() {
       );
 
       if (secondsLeft <= 0) {
-        void queryClient.invalidateQueries({ queryKey: ['playedToday'] });
+        void queryClient.invalidateQueries({ queryKey: queryKeys.me.status });
       }
 
       setNext(formatDistanceToNowStrict(tomorrow, { roundingMethod: 'floor' }));

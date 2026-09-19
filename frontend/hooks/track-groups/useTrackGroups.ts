@@ -4,19 +4,33 @@ import { useQuery } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queryKeys';
 import { api } from '@/sdk/client';
 import { ResponseError, TrackGroupControllerListTypeEnum } from '@/sdk';
-import type { TrackGroupDto } from '@/sdk';
+import type { TrackGroupCatalogDto, TrackGroupDto } from '@/sdk';
+
+const KEY_BY_TYPE = {
+  [TrackGroupControllerListTypeEnum.Artist]: 'artist',
+  [TrackGroupControllerListTypeEnum.Decade]: 'decade',
+  [TrackGroupControllerListTypeEnum.Genre]: 'genre',
+  [TrackGroupControllerListTypeEnum.Chart]: 'chart',
+  [TrackGroupControllerListTypeEnum.Special]: 'special',
+} as const satisfies Partial<
+  Record<TrackGroupControllerListTypeEnum, keyof TrackGroupCatalogDto>
+>;
+
+export type ListedType = keyof typeof KEY_BY_TYPE;
 
 /**
- * The curated sets anyone can play. Unlike playlists this needs no account, so
- * it is never gated on one.
+ * The curated sets anyone can play, one kind at a time. Every kind comes from
+ * one request, so a picker showing all of them asks once. Unlike playlists
+ * this needs no account, so it is never gated on one.
  */
 export function useTrackGroups(
-  type: TrackGroupControllerListTypeEnum = TrackGroupControllerListTypeEnum.Decade,
+  type: ListedType = TrackGroupControllerListTypeEnum.Decade,
 ) {
-  return useQuery<TrackGroupDto[]>({
-    queryKey: queryKeys.trackGroups.byType(type),
-    queryFn: () => api.trackGroupControllerList({ type }),
-    // Six rows that change when the pool is reseeded, which is not often.
+  return useQuery({
+    queryKey: queryKeys.trackGroups.catalog,
+    queryFn: () => api.trackGroupControllerCatalog(),
+    select: (catalog): TrackGroupDto[] => catalog[KEY_BY_TYPE[type]],
+    // Rows that change when the pool is reseeded, which is not often.
     staleTime: 30 * 60 * 1000,
   });
 }

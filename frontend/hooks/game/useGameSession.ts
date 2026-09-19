@@ -49,7 +49,7 @@ export function useGameSession(
 
   // Subscribe to the cache key. `enabled: false` → never fetches, but the
   // observer still re-renders when setQueryData writes to this key.
-  const { data: cachedSessionId } = useQuery<string>({
+  const { data: cachedSessionId } = useQuery<string | null>({
     queryKey: sessionCacheKey,
     queryFn: () => Promise.reject(new Error('cache-only')),
     enabled: false,
@@ -62,9 +62,8 @@ export function useGameSession(
     if (!shouldStart || hasStarted.current) return;
     hasStarted.current = true;
 
-    // Clear stale session from a previous game so the old game state
-    // doesn't briefly flash (e.g. SongRevealCard) before the new one loads
-    queryClient.setQueryData(sessionCacheKey, undefined);
+    // null, not undefined: setQueryData ignores undefined.
+    queryClient.setQueryData(sessionCacheKey, null);
 
     startGameMutation.mutate(
       isPlaylist && trackGroupId
@@ -76,8 +75,14 @@ export function useGameSession(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shouldStart]);
 
-  const sessionId =
-    startGameMutation.data?.sessionId ?? cachedSessionId ?? undefined;
+  // Until this visit's start has cleared the key, what it holds is the last
+  // visit's round: shown, its reveal came back and played. After the clear,
+  // anything written is this visit's, even the same id, as the daily gives.
+  const ownCachedId =
+    shouldStart && !hasStarted.current
+      ? undefined
+      : (cachedSessionId ?? undefined);
+  const sessionId = startGameMutation.data?.sessionId ?? ownCachedId;
   const error = startGameMutation.error;
   const isLoading = shouldStart && !sessionId && !error;
 

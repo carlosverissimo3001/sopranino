@@ -1,14 +1,12 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
-import { api } from '@/sdk/client';
-import { queryKeys } from '@/lib/queryKeys';
+import { useMeStatus } from '@/hooks/me/useMeStatus';
+import type { MeStatusDto } from '@/sdk';
+
+const selectBest = (status: MeStatusDto) => ({
+  personalBest: status.speedRunBest,
+});
 
 export function usePersonalBest(enabled = true) {
-  return useQuery({
-    queryKey: queryKeys.gauntlet.personalBest,
-    queryFn: () => api.gauntletControllerGetPersonalBest(),
-    staleTime: 5 * 60 * 1000,
-    enabled,
-  });
+  return useMeStatus(selectBest, { enabled });
 }

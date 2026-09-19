@@ -21,7 +21,7 @@ export function useStreakQuizAnswer() {
       }
     },
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.streak.status });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.me.status });
     },
   });
 }

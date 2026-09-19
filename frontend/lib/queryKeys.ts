@@ -34,7 +34,6 @@ export const queryKeys = {
     }) => ['game', 'history', params] as const,
     allStats: ['game', 'stats'] as const,
     stats: (mode?: string) => ['game', 'stats', mode] as const,
-    playedToday: ['game', 'playedToday'] as const,
     share: (gameId: string) => ['game', 'share', gameId] as const,
   },
   // Playlist-related queries
@@ -45,8 +44,12 @@ export const queryKeys = {
   // Auth-related queries
   trackGroups: {
     all: ['trackGroups'] as const,
-    byType: (type: string) => ['trackGroups', type] as const,
+    catalog: ['trackGroups', 'catalog'] as const,
     bySlug: (slug: string) => ['trackGroups', 'slug', slug] as const,
+  },
+  /** Streak, daily and speed run state, from one request. */
+  me: {
+    status: ['me', 'status'] as const,
   },
   auth: {
     all: ['auth'] as const,
@@ -55,7 +58,6 @@ export const queryKeys = {
   // Streak queries
   streak: {
     all: ['streak'] as const,
-    status: ['streak', 'status'] as const,
     quiz: ['streak', 'quiz'] as const,
   },
   // Admin queries
@@ -79,10 +81,6 @@ export const queryKeys = {
       ['multiplayer', 'scoreboard', roomId] as const,
   },
   // User preferences queries
-  userPreferences: {
-    all: ['userPreferences'] as const,
-    me: ['userPreferences', 'me'] as const,
-  },
   // Search queries
   search: {
     all: ['search'] as const,
@@ -91,7 +89,6 @@ export const queryKeys = {
   // Gauntlet queries
   gauntlet: {
     all: ['gauntlet'] as const,
-    personalBest: ['gauntlet', 'personalBest'] as const,
     leaderboard: (period?: string, difficulty?: string) =>
       ['gauntlet', 'leaderboard', period, difficulty] as const,
     allHistory: ['gauntlet', 'history'] as const,

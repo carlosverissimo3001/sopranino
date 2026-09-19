@@ -38,7 +38,10 @@ export function useDailyGameOrchestrator({
   const spotifySearch = useSpotifyTrackSearch();
   const { data: stats } = useGameStats({ mode, useCached: false });
 
-  const isGameOver = gameState?.status !== GameStateDtoStatusEnum.Playing;
+  // Not over before there is a round: the effect below refreshes the
+  // status, stats and history on game over, and did so on every load.
+  const isGameOver =
+    !!gameState && gameState.status !== GameStateDtoStatusEnum.Playing;
   const gameAudio = useGameAudio({
     previewUrl: gameState?.previewUrl,
     isGameOver: !!isGameOver,
@@ -67,10 +70,9 @@ export function useDailyGameOrchestrator({
     if (!isGameOver) return;
     const keys = [
       queryKeys.game.allStats,
-      queryKeys.game.playedToday,
+      queryKeys.me.status,
       queryKeys.game.allHistory,
       queryKeys.daily.allHistory,
-      queryKeys.streak.status,
     ];
     void Promise.all(
       keys.map((queryKey) => queryClient.invalidateQueries({ queryKey })),
