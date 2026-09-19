@@ -1,3 +1,4 @@
+import { TrackArtistsService } from '../../track/services/track-artists.service';
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   NotFoundException,
@@ -132,6 +133,14 @@ describe('MultiplayerGameService', () => {
         },
         { provide: RoomsGateway, useValue: mockRoomsGateway },
         { provide: RoomPresenceService, useValue: mockPresence },
+        {
+          provide: TrackArtistsService,
+          useValue: {
+            artistsOf: jest.fn((track: { artistName?: string | null }) =>
+              Promise.resolve(track.artistName ? [track.artistName] : []),
+            ),
+          },
+        },
         {
           provide: TrackService,
           useValue: {

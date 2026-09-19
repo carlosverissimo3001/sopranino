@@ -1,3 +1,4 @@
+import { TrackArtistsService } from '../../track/services/track-artists.service';
 import { PlaylistService } from '@/playlist/services/playlist.service';
 import { TrackDto } from '@/track/dto/track.dto';
 import { TrackRepository } from '@/track/repositories/track.repository';
@@ -50,7 +51,7 @@ import {
 import {
   addGuessToHistory,
   calculateNextState,
-  evaluateGuess,
+  scoreGuess,
 } from '../utils/guess-evaluator';
 import { buildHintsForRound, HintSet } from '../utils/hint-builder';
 import { buildShareText, guessToEmoji } from '../utils/share.utils';
@@ -63,6 +64,10 @@ import { GameStatsService } from './game-stats.service';
 import { TrackGroupService } from '../../track-group/services/track-group.service';
 import { DailyTrackService } from '../../daily/services/daily-track.service';
 
+type GameWithTrack = NonNullable<
+  Awaited<ReturnType<GameSessionRepository['findByIdWithTrack']>>
+>;
+
 @Injectable()
 export class GameService {
   private readonly logger: AppLoggerService;
@@ -70,6 +75,7 @@ export class GameService {
   constructor(
     private readonly playlistService: PlaylistService,
     private readonly trackService: TrackService,
+    private readonly trackArtists: TrackArtistsService,
     private readonly trackRepository: TrackRepository,
     private readonly gameSessionRepository: GameSessionRepository,
     private readonly userPreferencesService: UserPreferencesService,
@@ -449,7 +455,6 @@ export class GameService {
       : state;
   }
 
-  @Transactional()
   async submitGuess(
     sessionId: string,
     gameSessionId: string,
@@ -476,12 +481,39 @@ export class GameService {
       throw new NotFoundException('Associated track not found');
     }
 
-    const result = evaluateGuess(guess, game.track);
+    // Scored before the transaction opens: it may wait on Deezer for who else
+    // is credited, and nothing should hold a transaction while it does.
+    const result = await scoreGuess(guess, game.track, (track) =>
+      this.trackArtists.artistsOf(track),
+    );
 
+    return this.recordGuess({
+      gameSessionId,
+      game,
+      track: game.track,
+      guess,
+      result,
+    });
+  }
+
+  @Transactional()
+  private async recordGuess({
+    gameSessionId,
+    game,
+    track,
+    guess,
+    result,
+  }: {
+    gameSessionId: string;
+    game: GameWithTrack;
+    track: NonNullable<GameWithTrack['track']>;
+    guess: GuessDto;
+    result: GuessResult;
+  }): Promise<GuessResultDto> {
     const updatedGuesses = addGuessToHistory(
       game.guesses as unknown as GuessHistoryDto[],
       result,
-      game.track,
+      track,
       guess,
     );
     const nextRound = game.currentRound + 1;
@@ -502,7 +534,7 @@ export class GameService {
       !gameOver &&
       nextRound === MAX_ROUNDS - 1 &&
       game.choiceTrackIds.length === 0
-        ? await this.choiceService.pickChoiceIds(game, game.track)
+        ? await this.choiceService.pickChoiceIds(game, track)
         : undefined;
 
     await this.gameSessionRepository.updateSessionProgress(gameSessionId, {
@@ -514,9 +546,9 @@ export class GameService {
     });
 
     const hints =
-      !gameOver && game.track.previewUrl
+      !gameOver && track.previewUrl
         ? buildHintsForRound(
-            game.track,
+            track,
             nextRound,
             await this.hintSet(game.trackGroupId),
           )

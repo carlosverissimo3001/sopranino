@@ -1,3 +1,4 @@
+import { TrackArtistsService } from '../../track/services/track-artists.service';
 import {
   BadRequestException,
   ForbiddenException,
@@ -13,7 +14,7 @@ import { GuessResultDto } from '../../game/dto/guess/guess-result.dto';
 import { GuessHistoryDto } from '../../game/dto/guess/guess-history.dto';
 import { MAX_ROUNDS, ROUND_DURATIONS } from '../../game/consts';
 import {
-  evaluateGuess,
+  scoreGuess,
   addGuessToHistory,
   calculateNextState,
   getSnippetDuration,
@@ -60,6 +61,7 @@ export class MultiplayerGameService {
     @Inject(forwardRef(() => RoomsGateway))
     private readonly roomsGateway: RoomsGateway,
     private readonly trackService: TrackService,
+    private readonly trackArtists: TrackArtistsService,
     private readonly presence: RoomPresenceService,
   ) {}
 
@@ -205,7 +207,9 @@ export class MultiplayerGameService {
 
     const actual = activeSession.track;
     // TODO, fix this cast
-    const result = evaluateGuess(guess, actual as TrackEntity);
+    const result = await scoreGuess(guess, actual as TrackEntity, (track) =>
+      this.trackArtists.artistsOf(track),
+    );
 
     const existingGuesses =
       (activeSession.guesses as unknown as GuessHistoryDto[]) ?? [];

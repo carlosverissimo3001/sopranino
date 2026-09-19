@@ -1,3 +1,4 @@
+import { TrackArtistsService } from '../../track/services/track-artists.service';
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { FameTier, GameMode, GameStatus, TrackGroupType } from '@prisma/client';
@@ -155,6 +156,14 @@ describe('GameService', () => {
         { provide: GameStatsService, useValue: mockGameStatsService },
         { provide: PlaylistService, useValue: mockPlaylistService },
         { provide: TrackService, useValue: mockTrackService },
+        {
+          provide: TrackArtistsService,
+          useValue: {
+            artistsOf: jest.fn((track: { artistName?: string | null }) =>
+              Promise.resolve(track.artistName ? [track.artistName] : []),
+            ),
+          },
+        },
         { provide: PoolService, useValue: mockPoolService },
         { provide: DailyTrackService, useValue: mockDailyTrackService },
         { provide: TrackGroupService, useValue: mockTrackGroupService },
