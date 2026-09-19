@@ -24,8 +24,5 @@ export const EMAIL_SEND_DAY_SECONDS = 24 * 60 * 60;
 export const EMAIL_COOLDOWN_PREFIX = 'mail:cooldown:';
 export const EMAIL_DAILY_PREFIX = 'mail:daily:';
 
-/**
- * An hour. Long enough to find the mail, short enough that a link left in an
- * inbox stops being a way in.
- */
 export const PASSWORD_RESET_TTL_SECONDS = 60 * 60;
+export const EMAIL_CHANGE_TTL_SECONDS = 24 * 60 * 60;

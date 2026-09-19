@@ -364,6 +364,144 @@
         ]
       }
     },
+    "/auth/email-change": {
+      "post": {
+        "operationId": "AuthController_requestEmailChange",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestEmailChangeControllerDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "A link went to the new address. The old one stays the email until it is clicked."
+          },
+          "401": {
+            "description": "Current password is incorrect"
+          },
+          "409": {
+            "description": "That email is already registered"
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Ask to move the account to a new address",
+        "tags": [
+          "Api"
+        ]
+      },
+      "delete": {
+        "operationId": "AuthController_cancelEmailChange",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "Nothing is pending any more"
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Drop the pending address",
+        "tags": [
+          "Api"
+        ]
+      }
+    },
+    "/auth/email-change/resend": {
+      "post": {
+        "operationId": "AuthController_resendEmailChange",
+        "parameters": [],
+        "responses": {
+          "202": {
+            "description": "Accepted, sent or not"
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Send the link to the pending address again",
+        "tags": [
+          "Api"
+        ]
+      }
+    },
+    "/auth/email-change/confirm": {
+      "post": {
+        "operationId": "AuthController_confirmEmailChange",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmEmailDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailChangeResultDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Spend the link sent to the new address",
+        "tags": [
+          "Api"
+        ]
+      }
+    },
+    "/auth/email-change/cancel": {
+      "post": {
+        "operationId": "AuthController_cancelEmailChangeByLink",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmEmailDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailChangeResultDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Spend the cancel link sent to the old address",
+        "tags": [
+          "Api"
+        ]
+      }
+    },
     "/auth/logout": {
       "post": {
         "operationId": "AuthController_logout",
@@ -2851,6 +2989,10 @@
             "example": false,
             "description": "Whether the address has been proved. False on an account with no email at all, and on one whose address is only claimed."
           },
+          "pendingEmail": {
+            "type": "string",
+            "description": "An address waiting to replace the email, until its link is clicked"
+          },
           "displayName": {
             "type": "string",
             "description": "John Doe"
@@ -3027,6 +3169,36 @@
         "required": [
           "currentPassword",
           "newPassword"
+        ]
+      },
+      "RequestEmailChangeControllerDto": {
+        "type": "object",
+        "properties": {
+          "currentPassword": {
+            "type": "string",
+            "description": "The password of the signed in account"
+          },
+          "newEmail": {
+            "type": "string",
+            "description": "The address to move the account to"
+          }
+        },
+        "required": [
+          "currentPassword",
+          "newEmail"
+        ]
+      },
+      "EmailChangeResultDto": {
+        "type": "object",
+        "properties": {
+          "done": {
+            "type": "boolean",
+            "example": false,
+            "description": "Whether the link was live. False covers wrong, expired, used and replaced alike."
+          }
+        },
+        "required": [
+          "done"
         ]
       },
       "PlaylistDto": {

@@ -33,6 +33,18 @@ export class AuthTokenRepository {
     return this.prisma.authToken.findFirst({ where: { tokenHash, type } });
   }
 
+  findLive(userId: string, type: AuthTokenType): Promise<AuthToken | null> {
+    return this.prisma.authToken.findFirst({
+      where: { userId, type, expiresAt: { gt: new Date() } },
+    });
+  }
+
+  async retire(userId: string, types: AuthTokenType[]): Promise<void> {
+    await this.prisma.authToken.deleteMany({
+      where: { userId, type: { in: types } },
+    });
+  }
+
   async consume(id: string): Promise<void> {
     await this.prisma.authToken.delete({ where: { id } });
   }

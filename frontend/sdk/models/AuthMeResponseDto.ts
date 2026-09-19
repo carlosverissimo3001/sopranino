@@ -56,6 +56,12 @@ export interface AuthMeResponseDto {
      */
     emailVerified: boolean;
     /**
+     * An address waiting to replace the email, until its link is clicked
+     * @type {string}
+     * @memberof AuthMeResponseDto
+     */
+    pendingEmail?: string;
+    /**
      * John Doe
      * @type {string}
      * @memberof AuthMeResponseDto
@@ -147,6 +153,7 @@ export function AuthMeResponseDtoFromJSONTyped(json: any, ignoreDiscriminator: b
         'hasAccount': json['hasAccount'],
         'email': json['email'] == null ? undefined : json['email'],
         'emailVerified': json['emailVerified'],
+        'pendingEmail': json['pendingEmail'] == null ? undefined : json['pendingEmail'],
         'displayName': json['displayName'],
         'avatarUrl': json['avatarUrl'] == null ? undefined : json['avatarUrl'],
         'customAvatarUrl': json['customAvatarUrl'] == null ? undefined : json['customAvatarUrl'],
@@ -175,6 +182,7 @@ export function AuthMeResponseDtoToJSONTyped(value?: AuthMeResponseDto | null, i
         'hasAccount': value['hasAccount'],
         'email': value['email'],
         'emailVerified': value['emailVerified'],
+        'pendingEmail': value['pendingEmail'],
         'displayName': value['displayName'],
         'avatarUrl': value['avatarUrl'],
         'customAvatarUrl': value['customAvatarUrl'],

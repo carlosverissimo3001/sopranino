@@ -15,15 +15,20 @@ All URIs are relative to *http://localhost*
 | [**adminControllerUpdateStreakQuestion**](ApiApi.md#admincontrollerupdatestreakquestion) | **PATCH** /admin/streak-questions/{id} | Update a streak quiz question |
 | [**adminControllerUpdateUserRole**](ApiApi.md#admincontrollerupdateuserrole) | **PATCH** /admin/users/{id} | Update user role flags |
 | [**authControllerCallback**](ApiApi.md#authcontrollercallback) | **GET** /auth/callback | Handle Spotify OAuth callback |
+| [**authControllerCancelEmailChange**](ApiApi.md#authcontrollercancelemailchange) | **DELETE** /auth/email-change | Drop the pending address |
+| [**authControllerCancelEmailChangeByLink**](ApiApi.md#authcontrollercancelemailchangebylink) | **POST** /auth/email-change/cancel | Spend the cancel link sent to the old address |
 | [**authControllerChangePassword**](ApiApi.md#authcontrollerchangepassword) | **POST** /auth/password | Change the password of the signed in account |
 | [**authControllerConfirmEmail**](ApiApi.md#authcontrollerconfirmemail) | **POST** /auth/verify-email/confirm | Spend a verification link |
+| [**authControllerConfirmEmailChange**](ApiApi.md#authcontrollerconfirmemailchange) | **POST** /auth/email-change/confirm | Spend the link sent to the new address |
 | [**authControllerConfirmPasswordReset**](ApiApi.md#authcontrollerconfirmpasswordreset) | **POST** /auth/password-reset/confirm | Spend a reset link and set a new password |
 | [**authControllerEnsureSession**](ApiApi.md#authcontrollerensuresession) | **POST** /auth/session | Ensure the caller has an identity, minting one if they have none |
 | [**authControllerLogin**](ApiApi.md#authcontrollerlogin) | **GET** /auth/login | Start Spotify OAuth flow |
 | [**authControllerLoginWithPassword**](ApiApi.md#authcontrollerloginwithpassword) | **POST** /auth/signin | Sign in with an email and password |
 | [**authControllerLogout**](ApiApi.md#authcontrollerlogout) | **POST** /auth/logout | Logout and clear session |
 | [**authControllerMe**](ApiApi.md#authcontrollerme) | **GET** /auth/me | Get current authenticated user |
+| [**authControllerRequestEmailChange**](ApiApi.md#authcontrollerrequestemailchange) | **POST** /auth/email-change | Ask to move the account to a new address |
 | [**authControllerRequestPasswordReset**](ApiApi.md#authcontrollerrequestpasswordreset) | **POST** /auth/password-reset | Ask for a link to choose a new password |
+| [**authControllerResendEmailChange**](ApiApi.md#authcontrollerresendemailchange) | **POST** /auth/email-change/resend | Send the link to the pending address again |
 | [**authControllerResendVerification**](ApiApi.md#authcontrollerresendverification) | **POST** /auth/verify-email/resend | Send the verification link again |
 | [**authControllerSignup**](ApiApi.md#authcontrollersignup) | **POST** /auth/signup | Create an account, keeping any guest progress |
 | [**authControllerUpdateMe**](ApiApi.md#authcontrollerupdateme) | **PATCH** /auth/me | Update current user profile |
@@ -875,6 +880,132 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 
+## authControllerCancelEmailChange
+
+> authControllerCancelEmailChange()
+
+Drop the pending address
+
+### Example
+
+```ts
+import {
+  Configuration,
+  ApiApi,
+} from '';
+import type { AuthControllerCancelEmailChangeRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: cookie
+    apiKey: "YOUR API KEY",
+  });
+  const api = new ApiApi(config);
+
+  try {
+    const data = await api.authControllerCancelEmailChange();
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+`void` (Empty response body)
+
+### Authorization
+
+[cookie](../README.md#cookie)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: Not defined
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **204** | Nothing is pending any more |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## authControllerCancelEmailChangeByLink
+
+> EmailChangeResultDto authControllerCancelEmailChangeByLink(confirmEmailDto)
+
+Spend the cancel link sent to the old address
+
+### Example
+
+```ts
+import {
+  Configuration,
+  ApiApi,
+} from '';
+import type { AuthControllerCancelEmailChangeByLinkRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const api = new ApiApi();
+
+  const body = {
+    // ConfirmEmailDto
+    confirmEmailDto: ...,
+  } satisfies AuthControllerCancelEmailChangeByLinkRequest;
+
+  try {
+    const data = await api.authControllerCancelEmailChangeByLink(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **confirmEmailDto** | [ConfirmEmailDto](ConfirmEmailDto.md) |  | |
+
+### Return type
+
+[**EmailChangeResultDto**](EmailChangeResultDto.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** |  |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
 ## authControllerChangePassword
 
 > authControllerChangePassword(changePasswordDto)
@@ -991,6 +1122,71 @@ example().catch(console.error);
 ### Return type
 
 [**EmailVerificationResultDto**](EmailVerificationResultDto.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** |  |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## authControllerConfirmEmailChange
+
+> EmailChangeResultDto authControllerConfirmEmailChange(confirmEmailDto)
+
+Spend the link sent to the new address
+
+### Example
+
+```ts
+import {
+  Configuration,
+  ApiApi,
+} from '';
+import type { AuthControllerConfirmEmailChangeRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const api = new ApiApi();
+
+  const body = {
+    // ConfirmEmailDto
+    confirmEmailDto: ...,
+  } satisfies AuthControllerConfirmEmailChangeRequest;
+
+  try {
+    const data = await api.authControllerConfirmEmailChange(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **confirmEmailDto** | [ConfirmEmailDto](ConfirmEmailDto.md) |  | |
+
+### Return type
+
+[**EmailChangeResultDto**](EmailChangeResultDto.md)
 
 ### Authorization
 
@@ -1377,6 +1573,77 @@ This endpoint does not need any parameter.
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 
+## authControllerRequestEmailChange
+
+> authControllerRequestEmailChange(requestEmailChangeControllerDto)
+
+Ask to move the account to a new address
+
+### Example
+
+```ts
+import {
+  Configuration,
+  ApiApi,
+} from '';
+import type { AuthControllerRequestEmailChangeRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: cookie
+    apiKey: "YOUR API KEY",
+  });
+  const api = new ApiApi(config);
+
+  const body = {
+    // RequestEmailChangeControllerDto
+    requestEmailChangeControllerDto: ...,
+  } satisfies AuthControllerRequestEmailChangeRequest;
+
+  try {
+    const data = await api.authControllerRequestEmailChange(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **requestEmailChangeControllerDto** | [RequestEmailChangeControllerDto](RequestEmailChangeControllerDto.md) |  | |
+
+### Return type
+
+`void` (Empty response body)
+
+### Authorization
+
+[cookie](../README.md#cookie)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: Not defined
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **202** | A link went to the new address. The old one stays the email until it is clicked. |  -  |
+| **401** | Current password is incorrect |  -  |
+| **409** | That email is already registered |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
 ## authControllerRequestPasswordReset
 
 > authControllerRequestPasswordReset(requestPasswordResetDto)
@@ -1438,6 +1705,67 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **202** | Accepted, and deliberately says nothing else. An unknown address, an unverified one and a Spotify-only account all get this same answer, so the endpoint cannot be used to find out which addresses are registered. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## authControllerResendEmailChange
+
+> authControllerResendEmailChange()
+
+Send the link to the pending address again
+
+### Example
+
+```ts
+import {
+  Configuration,
+  ApiApi,
+} from '';
+import type { AuthControllerResendEmailChangeRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: cookie
+    apiKey: "YOUR API KEY",
+  });
+  const api = new ApiApi(config);
+
+  try {
+    const data = await api.authControllerResendEmailChange();
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+`void` (Empty response body)
+
+### Authorization
+
+[cookie](../README.md#cookie)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: Not defined
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **202** | Accepted, sent or not |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 

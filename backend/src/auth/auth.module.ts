@@ -11,6 +11,7 @@ import { AuthTokenRepository } from './repositories/auth-token.repository';
 import { EmailSendLimiter } from './services/email-send-limiter.service';
 import { EmailVerificationService } from './services/email-verification.service';
 import { PasswordResetService } from './services/password-reset.service';
+import { EmailChangeService } from './services/email-change.service';
 
 @Module({
   controllers: [AuthController],
@@ -25,6 +26,7 @@ import { PasswordResetService } from './services/password-reset.service';
     EmailSendLimiter,
     EmailVerificationService,
     PasswordResetService,
+    EmailChangeService,
     ProvisioningSessionGuard,
   ],
   exports: [

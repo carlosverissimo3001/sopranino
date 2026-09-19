@@ -355,6 +355,8 @@ model RoomPlayer {
 enum AuthTokenType {
   EMAIL_VERIFICATION
   PASSWORD_RESET
+  EMAIL_CHANGE
+  EMAIL_CHANGE_CANCEL
 }
 
 model AuthToken {

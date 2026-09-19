@@ -9,7 +9,7 @@ import {
 } from '../consts';
 import { emailFingerprint } from '../utils/auth-token';
 
-export type EmailPurpose = 'verify' | 'reset';
+export type EmailPurpose = 'verify' | 'reset' | 'change';
 
 /**
  * How often one address may be mailed, whether or not anyone is registered at
