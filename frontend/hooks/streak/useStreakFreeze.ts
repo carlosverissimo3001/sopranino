@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queryKeys';
 import { getApiErrorMessage } from '@/lib/api-error';
 import { api } from '@/sdk/client';
-import type { StreakStatusDto } from '@/sdk';
+import type { MeStatusDto, StreakStatusDto } from '@/sdk';
 
 export function useStreakFreeze() {
   const queryClient = useQueryClient();
@@ -19,7 +19,9 @@ export function useStreakFreeze() {
       }
     },
     onSuccess: (data) => {
-      queryClient.setQueryData(queryKeys.streak.status, data);
+      queryClient.setQueryData<MeStatusDto>(queryKeys.me.status, (status) =>
+        status ? { ...status, streak: data } : status,
+      );
       void queryClient.invalidateQueries({ queryKey: queryKeys.game.allStats });
       void queryClient.invalidateQueries({
         queryKey: queryKeys.game.allHistory,

@@ -16,7 +16,8 @@ export function useGameState(sessionId: string | null | undefined) {
       return api.gameControllerGetGameState({ id: sessionId });
     },
     enabled: !!sessionId,
-    staleTime: 0,
+    // Only this browser's own guesses change it, and they write the cache.
+    staleTime: 30 * 1000,
     gcTime: 5 * 60 * 1000,
   });
 }

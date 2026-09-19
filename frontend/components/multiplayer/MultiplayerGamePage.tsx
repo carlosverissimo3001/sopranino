@@ -207,7 +207,7 @@ export function MultiplayerGamePage({ roomId }: MultiplayerGamePageProps) {
     void queryClient.invalidateQueries({ queryKey: queryKeys.game.allStats });
     void queryClient.invalidateQueries({ queryKey: queryKeys.game.allHistory });
     void queryClient.invalidateQueries({
-      queryKey: queryKeys.game.playedToday,
+      queryKey: queryKeys.me.status,
     });
 
     router.replace(`/multiplayer/${roomId}/results`);

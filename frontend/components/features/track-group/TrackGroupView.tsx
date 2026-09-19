@@ -4,13 +4,16 @@ import { memo } from 'react';
 import { motion } from 'framer-motion';
 import { TrackGroupCard } from '@/components/track-group/TrackGroupCard';
 import { PlaylistSkeleton } from '@/components/playlist/PlaylistSkeleton';
-import { useTrackGroups } from '@/hooks/track-groups/useTrackGroups';
+import {
+  useTrackGroups,
+  type ListedType,
+} from '@/hooks/track-groups/useTrackGroups';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { TrackGroupControllerListTypeEnum } from '@/sdk';
 
 interface TrackGroupViewProps {
   defaultOpen: boolean;
-  type?: TrackGroupControllerListTypeEnum;
+  type?: ListedType;
   title?: string;
 }
 

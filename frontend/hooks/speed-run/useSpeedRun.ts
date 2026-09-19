@@ -124,7 +124,7 @@ export function useGauntletRun() {
         }));
         // Invalidate personal best so the banner/setup refreshes
         void queryClient.invalidateQueries({
-          queryKey: queryKeys.gauntlet.personalBest,
+          queryKey: queryKeys.me.status,
         });
       } else {
         setState((prev) => ({
@@ -158,7 +158,7 @@ export function useGauntletRun() {
     onSuccess: () => {
       setState((prev) => ({ ...prev, phase: 'ENDED' }));
       void queryClient.invalidateQueries({
-        queryKey: queryKeys.gauntlet.personalBest,
+        queryKey: queryKeys.me.status,
       });
     },
   });
