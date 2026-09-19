@@ -10,6 +10,12 @@ export function normalizeIsrc(value?: string | null): string {
   return (value || '').replace(/[^a-z0-9]/gi, '').toUpperCase();
 }
 
+/** Everybody credited on each side, when they have been looked up. */
+export interface GuessArtists {
+  guess: string[];
+  actual: string[];
+}
+
 /**
  * Evaluates a guess against the actual track.
  * Match on exact trackId, ISRC, OR normalized trackName + artistName.
@@ -17,6 +23,7 @@ export function normalizeIsrc(value?: string | null): string {
 export function evaluateGuess(
   guess: GuessDto,
   actual: TrackEntity,
+  artists?: GuessArtists,
 ): GuessResult {
   const { trackId, skip } = guess;
 
@@ -52,10 +59,11 @@ export function evaluateGuess(
     }
   }
 
-  const isArtistCorrect =
-    guess.artistName != null &&
-    normalizeText(guess.artistName).toLowerCase() ===
-      normalizeText(actual.artistName).toLowerCase();
+  const isArtistCorrect = artists
+    ? shareAnArtist(artists.guess, artists.actual)
+    : guess.artistName != null &&
+      normalizeText(guess.artistName).toLowerCase() ===
+        normalizeText(actual.artistName).toLowerCase();
   const isAlbumCorrect =
     guess.albumName != null &&
     actual.albumName != null &&
@@ -72,6 +80,49 @@ export function evaluateGuess(
   }
 
   return result;
+}
+
+const artistKey = (name: string) => normalizeText(name).toLowerCase();
+
+function shareAnArtist(guess: string[], actual: string[]): boolean {
+  const credited = new Set(actual.map(artistKey));
+  return guess.some((name) => credited.has(artistKey(name)));
+}
+
+/**
+ * The evaluator, looking up everybody credited on each side only when that
+ * could change the answer: a correct guess or a main-artist match needs no
+ * lookup, and a wrong one might be a shared artist the main names hid.
+ */
+export async function scoreGuess(
+  guess: GuessDto,
+  actual: TrackEntity,
+  artistsOf: (track: {
+    id?: string | null;
+    isrc?: string | null;
+    artistName?: string | null;
+  }) => Promise<string[]>,
+): Promise<GuessResult> {
+  const plain = evaluateGuess(guess, actual);
+  if (plain !== GuessResult.Wrong && plain !== GuessResult.Album) {
+    return plain;
+  }
+
+  // A track from Spotify already carries its full credits; one from Deezer
+  // carries only its main artist, so that is the side that needs a lookup.
+  const known = actual.allArtists ?? [];
+  const [guessArtists, actualArtists] = await Promise.all([
+    artistsOf({
+      id: guess.trackId,
+      isrc: guess.isrc,
+      artistName: guess.artistName,
+    }),
+    known.length > 1 ? known : artistsOf(actual),
+  ]);
+  return evaluateGuess(guess, actual, {
+    guess: guessArtists,
+    actual: actualArtists,
+  });
 }
 
 export function addGuessToHistory(

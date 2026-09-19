@@ -4,6 +4,7 @@ import { GuessResult, ROUND_DURATIONS } from '../consts';
 import { GuessDto } from '../dto/guess/guess.dto';
 import {
   evaluateGuess,
+  scoreGuess,
   normalizeIsrc,
   addGuessToHistory,
   calculateNextState,
@@ -27,6 +28,129 @@ describe('guess-evaluator', () => {
       updatedAt: new Date(),
       ...overrides,
     }) as TrackEntity;
+
+  // The case that raised it: Creepin' is filed under Metro Boomin, and both
+  // guesses share The Weeknd with it.
+  describe('shared artists', () => {
+    const creepin = makeTrack({
+      id: 'dz:1',
+      name: "Creepin'",
+      artistName: 'Metro Boomin',
+      albumName: 'HEROES & VILLAINS',
+      allArtists: ['Metro Boomin'],
+    });
+    const blindingLights = {
+      trackId: '2',
+      trackName: 'Blinding Lights',
+      artistName: 'The Weeknd',
+      albumName: 'After Hours',
+    };
+
+    it('scores a shared artist as right when both lists are known', () => {
+      expect(
+        evaluateGuess(blindingLights, creepin, {
+          guess: ['The Weeknd'],
+          actual: ['Metro Boomin', 'The Weeknd', '21 Savage'],
+        }),
+      ).toBe(GuessResult.Artist);
+    });
+
+    it('compares names as the main-artist check does, ignoring case', () => {
+      expect(
+        evaluateGuess(blindingLights, creepin, {
+          guess: ['the weeknd'],
+          actual: ['THE WEEKND'],
+        }),
+      ).toBe(GuessResult.Artist);
+    });
+
+    it('stays wrong when nobody is shared', () => {
+      expect(
+        evaluateGuess(blindingLights, creepin, {
+          guess: ['The Weeknd'],
+          actual: ['Metro Boomin', '21 Savage'],
+        }),
+      ).toBe(GuessResult.Wrong);
+    });
+
+    it('turns a right album into right artist and album', () => {
+      expect(
+        evaluateGuess(
+          { ...blindingLights, albumName: 'HEROES & VILLAINS' },
+          creepin,
+          { guess: ['The Weeknd'], actual: ['Metro Boomin', 'The Weeknd'] },
+        ),
+      ).toBe(GuessResult.ArtistAndAlbum);
+    });
+
+    describe('scoreGuess', () => {
+      const credits: Record<string, string[]> = {
+        '2': ['The Weeknd'],
+        'dz:1': ['Metro Boomin', 'The Weeknd', '21 Savage'],
+      };
+      const artistsOf = jest.fn((track: { id?: string | null }) =>
+        Promise.resolve(credits[track.id ?? ''] ?? []),
+      );
+
+      beforeEach(() => artistsOf.mockClear());
+
+      it('looks the credits up when the plain check says wrong', async () => {
+        await expect(
+          scoreGuess(blindingLights, creepin, artistsOf),
+        ).resolves.toBe(GuessResult.Artist);
+        expect(artistsOf).toHaveBeenCalledTimes(2);
+      });
+
+      it('looks nothing up for a guess that is already right', async () => {
+        await expect(
+          scoreGuess(
+            {
+              trackId: 'dz:1',
+              trackName: "Creepin'",
+              artistName: 'Metro Boomin',
+            },
+            creepin,
+            artistsOf,
+          ),
+        ).resolves.toBe(GuessResult.Correct);
+        expect(artistsOf).not.toHaveBeenCalled();
+      });
+
+      it('looks nothing up when the main artists already match', async () => {
+        await scoreGuess(
+          { trackId: '9', trackName: 'Superhero', artistName: 'Metro Boomin' },
+          creepin,
+          artistsOf,
+        );
+        expect(artistsOf).not.toHaveBeenCalled();
+      });
+
+      it('uses the credits a track already carries instead of looking them up', async () => {
+        const fromSpotify = makeTrack({
+          ...creepin,
+          allArtists: ['Metro Boomin', 'The Weeknd', '21 Savage'],
+        });
+
+        await expect(
+          scoreGuess(blindingLights, fromSpotify, artistsOf),
+        ).resolves.toBe(GuessResult.Artist);
+        expect(artistsOf).toHaveBeenCalledTimes(1);
+        expect(artistsOf).toHaveBeenCalledWith(
+          expect.objectContaining({ id: '2' }),
+        );
+      });
+
+      it('scores as it does today when the lookup only knows the main artist', async () => {
+        const mainOnly = jest.fn((track: { artistName?: string | null }) =>
+          Promise.resolve(track.artistName ? [track.artistName] : []),
+        );
+
+        await expect(
+          scoreGuess(blindingLights, creepin, mainOnly),
+        ).resolves.toBe(GuessResult.Wrong);
+      });
+    });
+  });
 
   describe('normalizeIsrc', () => {
     it('strips separators and upcases', () => {

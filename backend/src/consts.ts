@@ -204,3 +204,7 @@ export const CHAT_BURST_WINDOW_MS = 10_000;
  */
 export const CHAT_STRIKES = 3;
 export const CHAT_STRIKE_PREFIX = 'room:chat-strikes:';
+
+export const TRACK_ARTISTS_PREFIX = 'track:artists:';
+export const TRACK_ARTISTS_TTL = 30 * 24 * 60 * 60;
+export const TRACK_ARTISTS_TIMEOUT_MS = 1500;
