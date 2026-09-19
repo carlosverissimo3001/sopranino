@@ -11,30 +11,24 @@ import { useSubmitGuess } from './useSubmitGuess';
 import { useGameAudio } from './useGameAudio';
 import { useGameStats } from './useGameStats';
 import { useSpotifyTrackSearch } from '@/hooks/spotify/useSpotifyTrackSearch';
-import { usePlaylistById } from '@/hooks/playlists/usePlaylistById';
 import { GameStatsDtoModeEnum as GameMode } from '../../sdk';
 
-/** Playlist and daily rounds. Curated sets play on the shuffle screen. */
-export function useGameOrchestrator(
-  mode: GameMode,
-  playlistId?: string,
-  { volume = 0.8 }: { volume?: number } = {},
-) {
+/**
+ * The daily round: one song a day, the same for everybody, resumed rather than
+ * restarted. Everything else plays through usePoolGameOrchestrator.
+ */
+export function useDailyGameOrchestrator({
+  volume = 0.8,
+}: { volume?: number } = {}) {
+  const mode = GameMode.Daily;
   const queryClient = useQueryClient();
   const [lastGuessResult, setLastGuessResult] = useState<string | null>(null);
-  const [isResetting, setIsResetting] = useState(false);
-
-  const isPlaylist = mode === GameMode.All;
-  const isDaily = mode === GameMode.Daily;
-
-  const { data: playlist } = usePlaylistById(playlistId ?? '');
 
   const {
     sessionId,
     isLoading: sessionLoading,
     error: sessionError,
-    startGameMutation,
-  } = useGameSession(mode, { playlistId });
+  } = useGameSession(mode);
   const {
     data: gameState,
     isLoading: loadingState,
@@ -44,8 +38,7 @@ export function useGameOrchestrator(
   const spotifySearch = useSpotifyTrackSearch();
   const { data: stats } = useGameStats({ mode, useCached: false });
 
-  const isGameOver =
-    !isResetting && gameState?.status !== GameStateDtoStatusEnum.Playing;
+  const isGameOver = gameState?.status !== GameStateDtoStatusEnum.Playing;
   const gameAudio = useGameAudio({
     previewUrl: gameState?.previewUrl,
     isGameOver: !!isGameOver,
@@ -55,8 +48,7 @@ export function useGameOrchestrator(
   });
   const { getAudioReport } = gameAudio;
 
-  const isLoading =
-    isPlaylist || isDaily ? sessionLoading || loadingState : false;
+  const isLoading = sessionLoading || loadingState;
   const error = sessionError ?? errorState;
   const submitPending = submitGuessMutation.isPending;
 
@@ -78,12 +70,12 @@ export function useGameOrchestrator(
       queryKeys.game.playedToday,
       queryKeys.game.allHistory,
       queryKeys.daily.allHistory,
-      ...(isDaily ? [queryKeys.streak.status] : []),
+      queryKeys.streak.status,
     ];
     void Promise.all(
       keys.map((queryKey) => queryClient.invalidateQueries({ queryKey })),
     );
-  }, [isDaily, isGameOver, queryClient]);
+  }, [isGameOver, queryClient]);
 
   const handleSubmit = useCallback(() => {
     if (!gameState || submitPending) {
@@ -124,46 +116,16 @@ export function useGameOrchestrator(
     });
   }, [gameState, submitPending, submitGuessMutation, getAudioReport]);
 
-  const handlePlayAgain = useCallback(() => {
-    gameAudio.stopFullSong();
-    setIsResetting(true);
-
-    if (gameState?.sessionId) {
-      queryClient.setQueryData(queryKeys.game.state(gameState.sessionId), null);
-      queryClient.removeQueries({
-        queryKey: queryKeys.game.state(gameState.sessionId),
-      });
-    }
-    if (!playlistId) {
-      setIsResetting(false);
-      return;
-    }
-    // So "play again" does not read back the session it is replacing.
-    queryClient.setQueryData(
-      queryKeys.game.startedSessionForPlaylist(playlistId),
-      null,
-    );
-
-    startGameMutation.reset();
-    startGameMutation.mutate(
-      { playlistId, mode: GameMode.All },
-      { onSettled: () => setIsResetting(false) },
-    );
-  }, [gameAudio, gameState, queryClient, startGameMutation, playlistId]);
-
   const lastGuess = gameState?.guesses?.[gameState.guesses.length - 1];
   const shouldShake = lastGuess?.result === GuessResult.Wrong;
 
   return {
     // State
-    playlist,
     gameState,
     stats,
     isLoading,
     error,
     isGameOver,
-    isPlaylist,
-    isDaily,
     submitPending,
     shouldShake,
     // Sub-systems
@@ -172,6 +134,5 @@ export function useGameOrchestrator(
     // Handlers
     handleSubmit,
     handleSkip,
-    handlePlayAgain,
   };
 }

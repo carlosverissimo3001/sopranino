@@ -45,6 +45,12 @@ interface ShuffleModeNavProps {
   onPlaylistChange?: (playlist: PlaylistItemDto) => void;
   /** The playlist picked, so its chip reads as chosen like a set's does. */
   selectedPlaylistId?: string;
+  /**
+   * A mode with its own page, shown as the one being played. The daily plays
+   * on the same screen but is not drawn from the pool, so neither of the pool's
+   * pills is lit there.
+   */
+  current?: '/daily';
   /** `hasTiers` is false for a set whose songs are all one fame, such as a chart. */
   onTrackGroupChange: (
     groupId: string | undefined,
@@ -64,6 +70,7 @@ export function ShuffleModeNav({
   onTrackGroupChange,
   onPlaylistChange,
   selectedPlaylistId,
+  current,
 }: ShuffleModeNavProps) {
   const [setsOpen, setSetsOpen] = useState(false);
   const panelRef = useRef<HTMLElement>(null);
@@ -111,9 +118,9 @@ export function ShuffleModeNav({
       <div className="mx-auto flex w-fit max-w-full gap-1.5 overflow-x-auto [scrollbar-width:none] sm:flex-wrap sm:justify-center sm:overflow-visible">
         <button
           type="button"
-          aria-pressed={!trackGroupId}
+          aria-pressed={!current && !trackGroupId}
           onClick={() => pick(undefined)}
-          className={`${PILL} ${playingTrackGroupId || playingLabel ? PILL_IDLE : PILL_ACTIVE}`}
+          className={`${PILL} ${current || playingTrackGroupId || playingLabel ? PILL_IDLE : PILL_ACTIVE}`}
         >
           <Shuffle className="hidden h-3.5 w-3.5 sm:block" />
           All songs
@@ -134,7 +141,12 @@ export function ShuffleModeNav({
         </button>
 
         {LINKED_MODES.map(({ href, icon: Icon, label }) => (
-          <Link key={href} href={href} className={`${PILL} ${PILL_IDLE}`}>
+          <Link
+            key={href}
+            href={href}
+            aria-current={current === href ? 'page' : undefined}
+            className={`${PILL} ${current === href ? PILL_ACTIVE : PILL_IDLE}`}
+          >
             <Icon className="hidden h-3.5 w-3.5 sm:block" />
             {label}
           </Link>

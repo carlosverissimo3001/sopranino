@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers';
-import { ShuffleGamePage } from '@/components/game/ShuffleGamePage';
+import { GamePage } from '@/components/game/GamePage';
 import { SITE_ACCESS_COOKIE, isAccessTokenValid } from '@/lib/site-access';
 
 export default async function ShufflePage() {
@@ -8,5 +8,5 @@ export default async function ShufflePage() {
     (await cookies()).get(SITE_ACCESS_COOKIE)?.value,
   );
 
-  return <ShuffleGamePage canSignIn={canSignIn} syncUrl />;
+  return <GamePage canSignIn={canSignIn} syncUrl />;
 }
