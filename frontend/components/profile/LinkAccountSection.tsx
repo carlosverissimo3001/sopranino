@@ -1,12 +1,16 @@
 'use client';
 
 import Image from 'next/image';
+import { useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CredentialsForm } from '@/components/auth/CredentialsForm';
+import { InviteForm } from '@/components/auth/InviteForm';
 
 /** Where a guest turns into an account holder. */
 export function LinkAccountSection({ canSignIn }: { canSignIn: boolean }) {
+  const [showInvite, setShowInvite] = useState(false);
+
   return (
     <div className="rounded-2xl border border-spotify-green/25 bg-spotify-green/[0.06] p-4 space-y-3">
       <div className="flex items-start gap-3">
@@ -26,12 +30,22 @@ export function LinkAccountSection({ canSignIn }: { canSignIn: boolean }) {
 
       <CredentialsForm />
 
-      {!canSignIn && (
-        <p className="text-[11px] text-fg/40 leading-relaxed">
-          Linking Spotify to play your own playlists is invite-only: Spotify
-          limits apps like this one to a handful of accounts.
-        </p>
-      )}
+      {!canSignIn &&
+        (showInvite ? (
+          <InviteForm />
+        ) : (
+          <p className="text-[11px] text-fg/40 leading-relaxed">
+            Linking Spotify to play your own playlists is invite-only: Spotify
+            limits apps like this one to a handful of accounts.{' '}
+            <button
+              type="button"
+              onClick={() => setShowInvite(true)}
+              className="cursor-pointer text-fg/60 underline underline-offset-4 hover:text-fg"
+            >
+              Invited? Enter your secret word
+            </button>
+          </p>
+        ))}
 
       {canSignIn && (
         <>
