@@ -1,6 +1,5 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
 import { getGuessResultStyle } from './guess-result-styles';
 import { GuessHistoryDtoResultEnum } from '@/sdk/models/GuessHistoryDto';
 
@@ -17,22 +16,6 @@ interface GuessHistoryListProps {
   title?: string;
   isGameOver?: boolean;
 }
-
-const STAGGER_DELAY = 0.06;
-
-const ITEM_VARIANTS = {
-  initial: { opacity: 0, y: 8 },
-  animate: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.25,
-      ease: [0.25, 0.1, 0.25, 1] as const,
-      delay: i * STAGGER_DELAY,
-    },
-  }),
-  exit: { opacity: 0, y: -6, transition: { duration: 0.15 } },
-};
 
 type Row =
   | { type: 'guess'; index: number; guess: Guess }
@@ -59,6 +42,15 @@ function groupGuesses(guesses: Guess[]): Row[] {
   return rows;
 }
 
+const albumMatched = (result: GuessHistoryDtoResultEnum | null) =>
+  result === GuessHistoryDtoResultEnum.Album ||
+  result === GuessHistoryDtoResultEnum.ArtistAndAlbum;
+
+/**
+ * A record of the round, so it sits lighter than the answer above it: plain
+ * lines, and each thing said once. A set from one artist used to repeat the
+ * artist and "Right artist" on every row.
+ */
 export function GuessHistoryList({
   guesses,
   isGameOver = false,
@@ -67,88 +59,69 @@ export function GuessHistoryList({
   if (!showSection) return null;
 
   const rows = groupGuesses(guesses);
+  let lastArtist: string | null | undefined;
+  let lastLabel: string | undefined;
 
   return (
-    <div className="relative z-0 mt-4 sm:mt-5">
-      <motion.div className="space-y-1.5">
-        <AnimatePresence mode="popLayout">
-          {rows.map((row, rowIdx) => {
-            const staggerIndex = rows.length - 1 - rowIdx;
+    <ol className="mt-4 space-y-1 px-1 sm:mt-5" aria-label="Your guesses">
+      {rows.map((row) => {
+        if (row.type === 'skip-group') {
+          // A skip breaks the run, so the next guess says its artist again.
+          lastArtist = undefined;
+          lastLabel = undefined;
+          const label =
+            row.from === row.to
+              ? `Round ${row.from + 1} skipped`
+              : `Rounds ${row.from + 1}-${row.to + 1} skipped`;
+          return (
+            <li
+              key={`skip-${row.from}-${row.to}`}
+              className="py-0.5 pl-10 text-xs italic text-fg/30"
+            >
+              {label}
+            </li>
+          );
+        }
 
-            if (row.type === 'skip-group') {
-              const count = row.to - row.from + 1;
-              const label =
-                count === 1
-                  ? `Round ${row.from + 1} skipped`
-                  : `Rounds ${row.from + 1}–${row.to + 1} skipped`;
+        const { guess, index } = row;
+        const style = getGuessResultStyle(guess.result);
+        const showArtist =
+          !!guess.artistName && guess.artistName !== lastArtist;
+        const showLabel = style.label !== lastLabel;
+        lastArtist = guess.artistName;
+        lastLabel = style.label;
 
-              return (
-                <motion.div
-                  key={`skip-${row.from}-${row.to}`}
-                  variants={ITEM_VARIANTS}
-                  initial="initial"
-                  animate="animate"
-                  custom={staggerIndex}
-                  exit="exit"
-                  className="flex items-center gap-2.5 rounded-xl px-3 py-2 bg-fg/[0.05]"
-                >
-                  {count === 1 && (
-                    <span className="flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold shrink-0 bg-fg/10 text-fg/40">
-                      {row.from + 1}
-                    </span>
-                  )}
-                  <p className="min-w-0 flex-1 text-sm text-fg/30 italic">
-                    {label}
-                  </p>
-                </motion.div>
-              );
-            }
-
-            const { guess, index } = row;
-            const style = getGuessResultStyle(guess.result);
-
-            return (
-              <motion.div
-                key={`${index}-${guess.trackId}-${guess.result}`}
-                variants={ITEM_VARIANTS}
-                initial="initial"
-                animate="animate"
-                custom={staggerIndex}
-                exit="exit"
-                className="flex items-center gap-2.5 rounded-xl px-3 py-2 bg-fg/[0.07] border border-fg/[0.10]"
-              >
-                <span
-                  className={`flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold shrink-0 ${style.dotClass} text-black`}
-                >
-                  {index + 1}
-                </span>
-                <p className="min-w-0 flex-1 text-sm sm:text-base text-fg/90">
-                  <span className="font-medium">{guess.trackName ?? '—'}</span>
-                  {guess.artistName && (
-                    <span className="text-fg/40">
-                      {' · '}
-                      {guess.artistName}
-                    </span>
-                  )}
-                  {/* Named only where the album is what matched. */}
-                  {guess.albumName &&
-                    (guess.result === GuessHistoryDtoResultEnum.Album ||
-                      guess.result ===
-                        GuessHistoryDtoResultEnum.ArtistAndAlbum) && (
-                      <span className="text-fg/40">
-                        {' · '}
-                        {guess.albumName}
-                      </span>
-                    )}
-                </p>
-                <span className="flex shrink-0 items-center gap-1.5 text-xs text-fg/50">
-                  {style.label}
-                </span>
-              </motion.div>
-            );
-          })}
-        </AnimatePresence>
-      </motion.div>
-    </div>
+        return (
+          <li
+            key={`${index}-${guess.trackId}`}
+            className="flex items-baseline gap-3 py-0.5 text-sm"
+          >
+            <span
+              aria-hidden
+              className={`h-2 w-2 shrink-0 self-center rounded-full ${style.dotClass}`}
+            />
+            <span className="w-3 shrink-0 text-right text-xs tabular-nums text-fg/30">
+              {index + 1}
+            </span>
+            <span className="min-w-0 flex-1 truncate text-fg/75">
+              {guess.trackName ?? 'Unknown'}
+              {showArtist && (
+                <span className="text-fg/35"> - {guess.artistName}</span>
+              )}
+              {guess.albumName && albumMatched(guess.result) && (
+                <span className="text-fg/35"> - {guess.albumName}</span>
+              )}
+            </span>
+            {/* Repeated only when it changes; always there for a screen
+                reader, since the dot's colour alone says nothing. */}
+            <span
+              className={`shrink-0 text-xs text-fg/40 ${showLabel ? '' : 'sr-only'}`}
+            >
+              {style.label}
+            </span>
+          </li>
+        );
+      })}
+    </ol>
   );
 }
