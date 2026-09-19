@@ -170,6 +170,7 @@ export function ResultsContainer({ roomId }: ResultsContainerProps) {
           totalRounds={room?.roundCount ?? 0}
           playerProgress={playerProgress}
           hostDisconnected={hostDisconnected}
+          finishDeadline={room?.finishDeadline}
         />
         {chat}
       </>
