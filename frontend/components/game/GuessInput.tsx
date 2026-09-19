@@ -44,6 +44,8 @@ interface GuessInputProps {
   pinned?: boolean;
   /** Before a round exists there is nothing to guess or skip. */
   disabled?: boolean;
+  /** What the disabled box says: a round waiting on a tap, or one on its way. */
+  disabledHint?: string;
 }
 
 interface TrackRowProps {
@@ -100,6 +102,7 @@ export function GuessInput({
   choices,
   pinned = false,
   disabled = false,
+  disabledHint = 'Press play to start',
 }: GuessInputProps) {
   const isBelowSm = useIsBelowSm();
   const givesUp = gameMode === GameMode.Gauntlet || !nextSnippetDuration;
@@ -237,7 +240,7 @@ export function GuessInput({
                     onFocus={() => setShowDropdown(true)}
                     disabled={disabled}
                     placeholder={
-                      disabled ? 'Press play to start' : 'Search for a song...'
+                      disabled ? disabledHint : 'Search for a song...'
                     }
                     // Ring colour is set unconditionally and only the width
                     // changes on focus: transitioning the colour too animates it

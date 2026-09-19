@@ -15,6 +15,8 @@ import { HintPanel } from './HintPanel';
 import { knownFromGuesses } from '@/lib/guess-match';
 import { PlaySnippetButton } from './PlaySnippetButton';
 import { RoundProgressBar } from './RoundProgressBar';
+import { StartingLine } from './StartingRound';
+import { SNIPPET_STEPS } from '@/lib/snippet-timeline';
 import { GameStatsDtoModeEnum as GameMode } from '../../sdk';
 
 const SHAKE_VARIANTS: Variants = {
@@ -22,6 +24,18 @@ const SHAKE_VARIANTS: Variants = {
     x: [0, -12, 12, -12, 12, -6, 6, 0],
     transition: { duration: 0.5, ease: 'easeOut' },
   },
+};
+
+/** A round before there is one: the frame drawn while waiting or idle. */
+export const EMPTY_ROUND: RoundData = {
+  previewUrl: null,
+  albumImageUrl: null,
+  currentRound: 0,
+  maxRounds: SNIPPET_STEPS.length,
+  guesses: [],
+  snippetSteps: [...SNIPPET_STEPS],
+  snippetDuration: SNIPPET_STEPS[0],
+  hints: [],
 };
 
 export interface RoundGuess {
@@ -72,6 +86,8 @@ interface GameRoundViewProps {
   showCover?: boolean;
   /** No round has been started yet: play starts one, and there is nothing to guess. */
   idle?: boolean;
+  /** A round is being started: what the waiting frame says it is picking. */
+  startingLine?: string;
 }
 
 /**
@@ -90,7 +106,9 @@ export function GameRoundView({
   roundKey = 0,
   showCover = true,
   idle = false,
+  startingLine,
 }: GameRoundViewProps) {
+  const starting = startingLine !== undefined;
   const { data: preferences } = useUserPreferences();
   const cover = showCover && (preferences?.showAlbumHint ?? true);
   const showTextHints = preferences?.showTextHints ?? true;
@@ -164,6 +182,8 @@ export function GameRoundView({
             />
           )}
 
+          {starting && <StartingLine text={startingLine} />}
+
           {!isOver && (
             <RoundProgressBar
               currentRound={round.currentRound}
@@ -173,6 +193,7 @@ export function GameRoundView({
               progress={snippetProgress}
               peaks={snippetPeaks}
               isPlaying={isPlaying}
+              waiting={starting}
             />
           )}
 
@@ -190,6 +211,7 @@ export function GameRoundView({
                 onPlay={playSnippet}
                 onPause={pauseSnippet}
                 idle={idle}
+                waiting={starting}
               />
             )}
 
@@ -201,6 +223,7 @@ export function GameRoundView({
                   isPlaying={isPlaying}
                   onPlay={playSnippet}
                   onPause={pauseSnippet}
+                  disabled={starting}
                 />
               </div>
             )}
@@ -246,7 +269,8 @@ export function GameRoundView({
                   }
                   choices={round.choices}
                   gameMode={guess.gameMode}
-                  disabled={idle}
+                  disabled={idle || starting}
+                  disabledHint={starting ? 'Search for a song...' : undefined}
                 />
               </div>
             )}
