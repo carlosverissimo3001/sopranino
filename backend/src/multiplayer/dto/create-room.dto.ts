@@ -15,4 +15,7 @@ export class CreateRoomDto {
 
   @ApiProperty()
   findable: boolean;
+
+  @ApiProperty()
+  maxPlayers: number;
 }

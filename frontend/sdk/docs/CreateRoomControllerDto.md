@@ -7,6 +7,7 @@
 Name | Type
 ------------ | -------------
 `roundCount` | number
+`maxPlayers` | number
 `findable` | boolean
 
 ## Example
@@ -17,6 +18,7 @@ import type { CreateRoomControllerDto } from ''
 // TODO: Update the object below with actual values
 const example = {
   "roundCount": null,
+  "maxPlayers": null,
   "findable": null,
 } satisfies CreateRoomControllerDto
 

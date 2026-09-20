@@ -3,7 +3,7 @@ import { toBoolean } from '@/utils/transformers/toBoolean.transform';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsBoolean, IsIn, IsInt, IsString, Length } from 'class-validator';
-import { ROOM_NAME_MAX_LENGTH } from '../../consts';
+import { ROOM_NAME_MAX_LENGTH, ROOM_SIZE_OPTIONS } from '../../consts';
 
 export class UpdateRoomSettingsControllerDto {
   @ApiPropertyOptional({
@@ -33,4 +33,13 @@ export class UpdateRoomSettingsControllerDto {
   @IsInt()
   @IsIn([3, 5, 10])
   roundCount?: number;
+
+  @ApiPropertyOptional({
+    description: 'Seats in the room',
+    enum: ROOM_SIZE_OPTIONS,
+  })
+  @IsNotNullableOptional()
+  @IsInt()
+  @IsIn([...ROOM_SIZE_OPTIONS])
+  maxPlayers?: number;
 }

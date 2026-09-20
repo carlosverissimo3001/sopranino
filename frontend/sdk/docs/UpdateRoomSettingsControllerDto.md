@@ -9,6 +9,7 @@ Name | Type
 `name` | string
 `findable` | boolean
 `roundCount` | number
+`maxPlayers` | number
 
 ## Example
 
@@ -20,6 +21,7 @@ const example = {
   "name": null,
   "findable": null,
   "roundCount": null,
+  "maxPlayers": null,
 } satisfies UpdateRoomSettingsControllerDto
 
 console.log(example)

@@ -145,12 +145,8 @@ export const LOBBY_ROOM = 'lobby';
  */
 export const LOBBY_BROADCAST_DEBOUNCE_MS = 300;
 
-/**
- * Seats in a room. A product decision rather than a limit anything technical
- * imposes: the roster and scoreboard were not drawn for a crowd, and per-round
- * socket fan-out is quadratic in the number of players.
- */
-export const ROOM_MAX_PLAYERS = 20;
+export const ROOM_DEFAULT_PLAYERS = 20;
+export const ROOM_SIZE_OPTIONS = [5, 10, 20, 50] as const;
 
 /** A room name reaches the public lobby, so it is capped like any public string. */
 export const ROOM_NAME_MAX_LENGTH = 40;

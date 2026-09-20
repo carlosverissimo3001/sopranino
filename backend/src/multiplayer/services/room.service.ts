@@ -11,7 +11,7 @@ import { TrackGroupService } from '../../track-group/services/track-group.servic
 import { SetTrackSourceDto } from '../dto/set-track-source.dto';
 import {
   LOBBY_MAX_ROOMS,
-  ROOM_MAX_PLAYERS,
+  ROOM_DEFAULT_PLAYERS,
   ROOM_PLAYING_ABANDONED_AFTER_MS,
   ROOM_WAITING_ABANDONED_AFTER_MS,
 } from '../../consts';
@@ -67,13 +67,13 @@ export class RoomService {
     return withPresence
       .filter(
         ({ room, online }) =>
-          online > 0 && room.players.length < ROOM_MAX_PLAYERS,
+          online > 0 && room.players.length < room.maxPlayers,
       )
       .map(({ room, online }) => ({
         id: room.id,
         name: room.name,
         playerCount: online,
-        capacity: ROOM_MAX_PLAYERS,
+        capacity: room.maxPlayers,
         roundCount: room.roundCount,
         trackSource: room.trackSource,
         // A special set's name is for the people it was made for, not the lobby.
@@ -97,6 +97,7 @@ export class RoomService {
       roundCount: dto.roundCount,
       name: generateName(),
       findable: dto.findable ?? true,
+      maxPlayers: dto.maxPlayers ?? ROOM_DEFAULT_PLAYERS,
     });
     this.roomsGateway.lobbyChanged();
 
@@ -164,11 +165,11 @@ export class RoomService {
     const seat = await this.roomRepository.claimSeat(
       room.id,
       userId,
-      ROOM_MAX_PLAYERS,
+      room.maxPlayers,
     );
     if (!seat) {
       throw new BadRequestException(
-        `This room is full (${ROOM_MAX_PLAYERS} players)`,
+        `This room is full (${room.maxPlayers} players)`,
       );
     }
 

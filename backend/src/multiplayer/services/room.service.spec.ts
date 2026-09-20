@@ -12,7 +12,7 @@ import { AuthService } from '../../auth/services/auth.service';
 import { TrackPoolService } from './track-pool.service';
 import { RoomsGateway } from '../gateways/rooms.gateway';
 import { RoomPresenceService } from './room-presence.service';
-import { ROOM_MAX_PLAYERS } from '../../consts';
+import { ROOM_DEFAULT_PLAYERS } from '../../consts';
 
 describe('RoomService', () => {
   let service: RoomService;
@@ -36,6 +36,7 @@ describe('RoomService', () => {
     inviteCode: INVITE_CODE,
     hostId: HOST_USER_ID,
     roundCount: 5,
+    maxPlayers: ROOM_DEFAULT_PLAYERS,
     name: 'Velvet Chorus',
     findable: true,
     status: RoomStatus.WAITING,
@@ -176,7 +177,7 @@ describe('RoomService', () => {
         id: ROOM_ID,
         name: 'Velvet Chorus',
         playerCount: 1,
-        capacity: ROOM_MAX_PLAYERS,
+        capacity: ROOM_DEFAULT_PLAYERS,
         roundCount: 5,
         trackSource: TrackSource.POOL,
       });
@@ -235,7 +236,7 @@ describe('RoomService', () => {
     it('drops a room whose seats are all taken', async () => {
       mockRoomRepository.findFindableWaiting.mockResolvedValue([
         makeRoom({
-          players: Array.from({ length: ROOM_MAX_PLAYERS }, (_, i) => ({
+          players: Array.from({ length: ROOM_DEFAULT_PLAYERS }, (_, i) => ({
             userId: `user-${i}`,
           })),
         }),
@@ -294,7 +295,7 @@ describe('RoomService', () => {
       expect(mockRoomRepository.claimSeat).toHaveBeenCalledWith(
         ROOM_ID,
         PLAYER_USER_ID,
-        ROOM_MAX_PLAYERS,
+        ROOM_DEFAULT_PLAYERS,
       );
     });
 
@@ -314,6 +315,29 @@ describe('RoomService', () => {
     });
 
     // The repository decides, because only it can count behind the lock.
+    it('seats against the size this room was opened for', async () => {
+      mockAuthService.getUserBySessionId.mockResolvedValue({
+        id: PLAYER_USER_ID,
+      });
+      mockRoomRepository.findByInviteCode.mockResolvedValue(
+        makeRoom({ maxPlayers: 50 }),
+      );
+      mockRoomRepository.findPlayerInRoom.mockResolvedValue(null);
+      mockRoomRepository.claimSeat.mockResolvedValue({ id: 'seat' });
+      mockRoomRepository.findById.mockResolvedValue(
+        makeRoom({ maxPlayers: 50 }),
+      );
+
+      const room = await service.joinRoom(PLAYER_SESSION, INVITE_CODE);
+
+      expect(mockRoomRepository.claimSeat).toHaveBeenCalledWith(
+        ROOM_ID,
+        PLAYER_USER_ID,
+        50,
+      );
+      expect(room.capacity).toBe(50);
+    });
+
     it('refuses a full room, and says so', async () => {
       mockAuthService.getUserBySessionId.mockResolvedValue({
         id: PLAYER_USER_ID,
@@ -324,7 +348,7 @@ describe('RoomService', () => {
 
       await expect(
         service.joinRoom(PLAYER_SESSION, INVITE_CODE),
-      ).rejects.toThrow(`This room is full (${ROOM_MAX_PLAYERS} players)`);
+      ).rejects.toThrow(`This room is full (${ROOM_DEFAULT_PLAYERS} players)`);
     });
 
     it('should throw NotFoundException for invalid invite code', async () => {
@@ -408,7 +432,7 @@ describe('RoomService', () => {
 
       await expect(
         service.joinFindableRoom(PLAYER_SESSION, ROOM_ID),
-      ).rejects.toThrow(`This room is full (${ROOM_MAX_PLAYERS} players)`);
+      ).rejects.toThrow(`This room is full (${ROOM_DEFAULT_PLAYERS} players)`);
     });
   });
 
