@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown, Globe, Lock, Music } from 'lucide-react';
+import { ChevronDown, Globe, Lock, Music, Users } from 'lucide-react';
 import type { RoomDto } from '@/sdk';
 import { trackSourceSummary } from '@/lib/track-source';
 import { TrackSourcePicker } from './TrackSourcePicker';
 import { RoomRoundsPicker } from './RoomRoundsPicker';
+import { RoomSizePicker } from './RoomSizePicker';
 import { RoomVisibilityPicker } from './RoomVisibilityPicker';
 
 interface RoomSettingsProps {
@@ -52,6 +53,13 @@ export function RoomSettings({
         <FindableIcon className="h-3.5 w-3.5" />
         {room.findable ? 'Anyone' : 'Invite only'}
       </span>
+      <span aria-hidden="true" className="text-fg/15">
+        &middot;
+      </span>
+      <span className="flex items-center gap-1.5">
+        <Users className="h-3.5 w-3.5" />
+        {room.capacity} seats
+      </span>
     </>
   );
 
@@ -86,6 +94,7 @@ export function RoomSettings({
             hasLinkedAccount={hasLinkedAccount}
           />
           <RoomRoundsPicker room={room} isHost={isHost} />
+          <RoomSizePicker room={room} isHost={isHost} />
           <RoomVisibilityPicker room={room} isHost={isHost} />
         </div>
       )}
