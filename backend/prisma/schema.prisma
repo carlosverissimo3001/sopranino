@@ -302,6 +302,7 @@ model MultiplayerRoom {
   name        String
   findable    Boolean     @default(true)
   roundCount  Int         @map("round_count")
+  maxPlayers  Int         @default(20) @map("max_players")
   status      RoomStatus  @default(WAITING)
   trackSource TrackSource @default(POOL) @map("track_source")
 

@@ -112,8 +112,15 @@ describe('MultiplayerGameService', () => {
     findActiveSession: jest.fn(),
     updateSessionProgress: jest.fn(),
     findAllRoomSessions: jest.fn(),
-    countCompletedSessions: jest.fn(),
+    countCompletedByPlayer: jest.fn(),
   };
+
+  /** What each player has played out, as one query gives it. */
+  const completedBy = (host: number, player: number) =>
+    new Map([
+      [HOST_USER_ID, host],
+      [PLAYER_USER_ID, player],
+    ]);
 
   const mockRoomsGateway = {
     standingsChanged: jest.fn(),
@@ -447,7 +454,9 @@ describe('MultiplayerGameService', () => {
       mockGameSessionRepository.updateSessionProgress.mockResolvedValue(
         undefined,
       );
-      mockGameSessionRepository.countCompletedSessions.mockResolvedValue(0);
+      mockGameSessionRepository.countCompletedByPlayer.mockResolvedValue(
+        completedBy(0, 0),
+      );
 
       const result = await service.submitGuess(HOST_SESSION, ROOM_ID, guessDto);
 
@@ -504,7 +513,9 @@ describe('MultiplayerGameService', () => {
       mockGameSessionRepository.findActiveSession.mockResolvedValue(
         makeSession(),
       );
-      mockGameSessionRepository.countCompletedSessions.mockResolvedValue(0);
+      mockGameSessionRepository.countCompletedByPlayer.mockResolvedValue(
+        completedBy(0, 0),
+      );
 
       const result = await service.submitGuess(HOST_SESSION, ROOM_ID, guessDto);
 
@@ -559,9 +570,10 @@ describe('MultiplayerGameService', () => {
         makeSession(),
       );
       // After this guess, all players have completed all rounds
-      mockGameSessionRepository.countCompletedSessions
-        .mockResolvedValueOnce(2) // host completed 2 rounds
-        .mockResolvedValueOnce(2); // player completed 2 rounds
+      // Both played it out.
+      mockGameSessionRepository.countCompletedByPlayer.mockResolvedValue(
+        completedBy(2, 2),
+      );
 
       await service.submitGuess(HOST_SESSION, ROOM_ID, guessDto);
 
@@ -586,8 +598,8 @@ describe('MultiplayerGameService', () => {
         HOST_USER_ID,
         PLAYER_USER_ID,
       ]);
-      mockGameSessionRepository.countCompletedSessions.mockImplementation(
-        (userId: string) => Promise.resolve(userId === HOST_USER_ID ? 2 : 1),
+      mockGameSessionRepository.countCompletedByPlayer.mockResolvedValue(
+        completedBy(2, 1),
       );
 
       await service.submitGuess(HOST_SESSION, ROOM_ID, guessDto);
@@ -618,8 +630,8 @@ describe('MultiplayerGameService', () => {
         PLAYER_USER_ID,
       ]);
       // The other player raced to the end; the host is still on a song.
-      mockGameSessionRepository.countCompletedSessions.mockImplementation(
-        (userId: string) => Promise.resolve(userId === PLAYER_USER_ID ? 2 : 1),
+      mockGameSessionRepository.countCompletedByPlayer.mockResolvedValue(
+        completedBy(1, 2),
       );
 
       await service.submitGuess(PLAYER_SESSION, ROOM_ID, guessDto);
@@ -644,8 +656,8 @@ describe('MultiplayerGameService', () => {
         HOST_USER_ID,
         PLAYER_USER_ID,
       ]);
-      mockGameSessionRepository.countCompletedSessions.mockImplementation(
-        (userId: string) => Promise.resolve(userId === HOST_USER_ID ? 20 : 1),
+      mockGameSessionRepository.countCompletedByPlayer.mockResolvedValue(
+        completedBy(20, 1),
       );
 
       await service.submitGuess(HOST_SESSION, ROOM_ID, guessDto);
@@ -672,8 +684,8 @@ describe('MultiplayerGameService', () => {
         HOST_USER_ID,
         PLAYER_USER_ID,
       ]);
-      mockGameSessionRepository.countCompletedSessions.mockImplementation(
-        (userId: string) => Promise.resolve(userId === HOST_USER_ID ? 2 : 1),
+      mockGameSessionRepository.countCompletedByPlayer.mockResolvedValue(
+        completedBy(2, 1),
       );
 
       await service.submitGuess(HOST_SESSION, ROOM_ID, guessDto);
@@ -698,8 +710,8 @@ describe('MultiplayerGameService', () => {
         HOST_USER_ID,
         PLAYER_USER_ID,
       ]);
-      mockGameSessionRepository.countCompletedSessions.mockImplementation(
-        (userId: string) => Promise.resolve(userId === HOST_USER_ID ? 2 : 1),
+      mockGameSessionRepository.countCompletedByPlayer.mockResolvedValue(
+        completedBy(2, 1),
       );
 
       await service.submitGuess(HOST_SESSION, ROOM_ID, guessDto);
@@ -723,7 +735,9 @@ describe('MultiplayerGameService', () => {
       // The other player closed their tab, so their heartbeat has lapsed.
       mockPresence.onlineUserIds.mockResolvedValue([HOST_USER_ID]);
       // Only the host is ever counted; the absent player has finished nothing.
-      mockGameSessionRepository.countCompletedSessions.mockResolvedValue(2);
+      mockGameSessionRepository.countCompletedByPlayer.mockResolvedValue(
+        completedBy(2, 2),
+      );
 
       await service.submitGuess(HOST_SESSION, ROOM_ID, guessDto);
 
@@ -742,9 +756,9 @@ describe('MultiplayerGameService', () => {
       mockGameSessionRepository.findActiveSession.mockResolvedValue(
         makeSession(),
       );
-      mockGameSessionRepository.countCompletedSessions
-        .mockResolvedValueOnce(2) // host is done
-        .mockResolvedValueOnce(1); // the other player is not
+      mockGameSessionRepository.countCompletedByPlayer.mockResolvedValue(
+        completedBy(2, 1),
+      );
 
       await service.submitGuess(HOST_SESSION, ROOM_ID, guessDto);
 
@@ -769,7 +783,9 @@ describe('MultiplayerGameService', () => {
         makeSession(),
       );
       mockPresence.onlineUserIds.mockResolvedValue([]);
-      mockGameSessionRepository.countCompletedSessions.mockResolvedValue(2);
+      mockGameSessionRepository.countCompletedByPlayer.mockResolvedValue(
+        completedBy(2, 2),
+      );
 
       await service.submitGuess(HOST_SESSION, ROOM_ID, guessDto);
 
@@ -790,7 +806,9 @@ describe('MultiplayerGameService', () => {
       );
       mockPresence.onlineUserIds.mockResolvedValue([]);
       // Everyone walked away mid-game: there is no result to announce.
-      mockGameSessionRepository.countCompletedSessions.mockResolvedValue(1);
+      mockGameSessionRepository.countCompletedByPlayer.mockResolvedValue(
+        completedBy(1, 1),
+      );
 
       await service.submitGuess(HOST_SESSION, ROOM_ID, guessDto);
 
@@ -812,7 +830,9 @@ describe('MultiplayerGameService', () => {
       mockRoomRepository.findById.mockResolvedValue(makeRoom());
       mockRoomRepository.updateStatus.mockResolvedValue(makeRoom());
       mockGameSessionRepository.findAllRoomSessions.mockResolvedValue([]);
-      mockGameSessionRepository.countCompletedSessions.mockResolvedValue(2);
+      mockGameSessionRepository.countCompletedByPlayer.mockResolvedValue(
+        completedBy(2, 2),
+      );
       mockPresence.onlineUserIds.mockResolvedValue([]);
 
       await service.getScoreboard(HOST_SESSION, ROOM_ID);
@@ -830,7 +850,9 @@ describe('MultiplayerGameService', () => {
       });
       mockRoomRepository.findById.mockResolvedValue(makeRoom());
       mockGameSessionRepository.findAllRoomSessions.mockResolvedValue([]);
-      mockGameSessionRepository.countCompletedSessions.mockResolvedValue(1);
+      mockGameSessionRepository.countCompletedByPlayer.mockResolvedValue(
+        completedBy(1, 1),
+      );
       mockPresence.onlineUserIds.mockResolvedValue([
         HOST_USER_ID,
         PLAYER_USER_ID,

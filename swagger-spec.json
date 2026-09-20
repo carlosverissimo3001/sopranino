@@ -4766,6 +4766,17 @@
               10
             ]
           },
+          "maxPlayers": {
+            "type": "number",
+            "description": "Seats in the room",
+            "enum": [
+              5,
+              10,
+              20,
+              50
+            ],
+            "default": 20
+          },
           "findable": {
             "type": "boolean",
             "description": "Whether the room is listed for anyone to find. Off makes it reachable only by its invite code.",
@@ -4941,6 +4952,16 @@
               3,
               5,
               10
+            ]
+          },
+          "maxPlayers": {
+            "type": "number",
+            "description": "Seats in the room",
+            "enum": [
+              5,
+              10,
+              20,
+              50
             ]
           }
         }

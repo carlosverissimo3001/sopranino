@@ -467,13 +467,11 @@ export class MultiplayerGameService {
     let anyoneFinished = false;
     let hostFinished = false;
     const stillPlaying: string[] = [];
+    const completed =
+      await this.gameSessionRepository.countCompletedByPlayer(roomId);
 
     for (const player of room.players) {
-      const completedCount =
-        await this.gameSessionRepository.countCompletedSessions(
-          player.userId,
-          roomId,
-        );
+      const completedCount = completed.get(player.userId) ?? 0;
 
       if (completedCount >= roundCount) {
         anyoneFinished = true;

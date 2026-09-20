@@ -37,6 +37,12 @@ export interface UpdateRoomSettingsControllerDto {
      * @memberof UpdateRoomSettingsControllerDto
      */
     roundCount?: UpdateRoomSettingsControllerDtoRoundCountEnum;
+    /**
+     * Seats in the room
+     * @type {number}
+     * @memberof UpdateRoomSettingsControllerDto
+     */
+    maxPlayers?: UpdateRoomSettingsControllerDtoMaxPlayersEnum;
 }
 
 
@@ -49,6 +55,17 @@ export const UpdateRoomSettingsControllerDtoRoundCountEnum = {
     NUMBER_10: 10
 } as const;
 export type UpdateRoomSettingsControllerDtoRoundCountEnum = typeof UpdateRoomSettingsControllerDtoRoundCountEnum[keyof typeof UpdateRoomSettingsControllerDtoRoundCountEnum];
+
+/**
+ * @export
+ */
+export const UpdateRoomSettingsControllerDtoMaxPlayersEnum = {
+    NUMBER_5: 5,
+    NUMBER_10: 10,
+    NUMBER_20: 20,
+    NUMBER_50: 50
+} as const;
+export type UpdateRoomSettingsControllerDtoMaxPlayersEnum = typeof UpdateRoomSettingsControllerDtoMaxPlayersEnum[keyof typeof UpdateRoomSettingsControllerDtoMaxPlayersEnum];
 
 
 /**
@@ -71,6 +88,7 @@ export function UpdateRoomSettingsControllerDtoFromJSONTyped(json: any, ignoreDi
         'name': json['name'] == null ? undefined : json['name'],
         'findable': json['findable'] == null ? undefined : json['findable'],
         'roundCount': json['roundCount'] == null ? undefined : json['roundCount'],
+        'maxPlayers': json['maxPlayers'] == null ? undefined : json['maxPlayers'],
     };
 }
 
@@ -88,6 +106,7 @@ export function UpdateRoomSettingsControllerDtoToJSONTyped(value?: UpdateRoomSet
         'name': value['name'],
         'findable': value['findable'],
         'roundCount': value['roundCount'],
+        'maxPlayers': value['maxPlayers'],
     };
 }
 

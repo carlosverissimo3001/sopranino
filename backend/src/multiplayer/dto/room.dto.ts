@@ -8,7 +8,6 @@ import {
   User,
 } from '@prisma/client';
 import { RoomPlayerDto } from './room-player.dto';
-import { ROOM_MAX_PLAYERS } from '../../consts';
 
 type RoomWithPlayers = MultiplayerRoom & {
   trackGroup?: Pick<TrackGroup, 'name' | 'type'> | null;
@@ -82,7 +81,7 @@ export class RoomDto {
       hostId: room.hostId,
       name: room.name,
       findable: room.findable,
-      capacity: ROOM_MAX_PLAYERS,
+      capacity: room.maxPlayers,
       roundCount: room.roundCount,
       status: room.status,
       trackSource: room.trackSource,

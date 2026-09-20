@@ -26,6 +26,12 @@ export interface CreateRoomControllerDto {
      */
     roundCount: CreateRoomControllerDtoRoundCountEnum;
     /**
+     * Seats in the room
+     * @type {number}
+     * @memberof CreateRoomControllerDto
+     */
+    maxPlayers?: CreateRoomControllerDtoMaxPlayersEnum;
+    /**
      * Whether the room is listed for anyone to find. Off makes it reachable only by its invite code.
      * @type {boolean}
      * @memberof CreateRoomControllerDto
@@ -43,6 +49,17 @@ export const CreateRoomControllerDtoRoundCountEnum = {
     NUMBER_10: 10
 } as const;
 export type CreateRoomControllerDtoRoundCountEnum = typeof CreateRoomControllerDtoRoundCountEnum[keyof typeof CreateRoomControllerDtoRoundCountEnum];
+
+/**
+ * @export
+ */
+export const CreateRoomControllerDtoMaxPlayersEnum = {
+    NUMBER_5: 5,
+    NUMBER_10: 10,
+    NUMBER_20: 20,
+    NUMBER_50: 50
+} as const;
+export type CreateRoomControllerDtoMaxPlayersEnum = typeof CreateRoomControllerDtoMaxPlayersEnum[keyof typeof CreateRoomControllerDtoMaxPlayersEnum];
 
 
 /**
@@ -64,6 +81,7 @@ export function CreateRoomControllerDtoFromJSONTyped(json: any, ignoreDiscrimina
     return {
         
         'roundCount': json['roundCount'],
+        'maxPlayers': json['maxPlayers'] == null ? undefined : json['maxPlayers'],
         'findable': json['findable'] == null ? undefined : json['findable'],
     };
 }
@@ -80,6 +98,7 @@ export function CreateRoomControllerDtoToJSONTyped(value?: CreateRoomControllerD
     return {
         
         'roundCount': value['roundCount'],
+        'maxPlayers': value['maxPlayers'],
         'findable': value['findable'],
     };
 }

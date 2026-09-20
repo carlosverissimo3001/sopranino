@@ -81,6 +81,19 @@ export class MultiplayerGameSessionRepository {
     });
   }
 
+  async countCompletedByPlayer(roomId: string): Promise<Map<string, number>> {
+    const rows = await this.prisma.gameSession.groupBy({
+      by: ['userId'],
+      where: {
+        multiplayerRoomId: roomId,
+        mode: GameMode.MULTIPLAYER,
+        status: { not: GameStatus.PLAYING },
+      },
+      _count: { _all: true },
+    });
+    return new Map(rows.map((row) => [row.userId, row._count._all]));
+  }
+
   async findAllRoomSessions(
     roomId: string,
   ): Promise<SessionWithTrackAndUser[]> {
@@ -91,20 +104,6 @@ export class MultiplayerGameSessionRepository {
         user: { select: { displayName: true, avatarUrl: true } },
       },
       orderBy: { createdAt: 'asc' },
-    });
-  }
-
-  async countCompletedSessions(
-    userId: string,
-    roomId: string,
-  ): Promise<number> {
-    return this.prisma.gameSession.count({
-      where: {
-        userId,
-        multiplayerRoomId: roomId,
-        mode: GameMode.MULTIPLAYER,
-        status: { not: GameStatus.PLAYING },
-      },
     });
   }
 }
