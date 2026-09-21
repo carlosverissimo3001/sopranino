@@ -12,10 +12,7 @@ import {
 import type { RoomDto } from '@/sdk';
 import { trackSourceSummary } from '@/lib/track-source';
 import { TrackSourcePicker } from './TrackSourcePicker';
-import { RoomRoundsPicker } from './RoomRoundsPicker';
-import { RoomSizePicker } from './RoomSizePicker';
-import { RoomChatPicker } from './RoomChatPicker';
-import { RoomVisibilityPicker } from './RoomVisibilityPicker';
+import { SettingPicker } from './SettingPicker';
 
 interface RoomSettingsProps {
   room: RoomDto;
@@ -86,7 +83,7 @@ export function RoomSettings({
   // Nothing to open for a player who cannot change any of it.
   if (!isHost) {
     return (
-      <div className="flex flex-wrap items-center justify-center gap-x-1 gap-y-1 rounded-xl border border-fg/10 bg-fg/[0.03] px-4 py-3 text-xs text-fg/50">
+      <div className="flex flex-wrap items-center justify-center gap-x-1 gap-y-1 rounded-xl tabular-nums border border-fg/10 bg-fg/[0.03] px-4 py-3 text-xs text-fg/50">
         {summary}
       </div>
     );
@@ -101,7 +98,7 @@ export function RoomSettings({
         className="flex w-full items-center gap-2 px-4 py-3 text-xs text-fg/50 hover:text-fg/75 transition-colors"
       >
         {/* Its own wrapping area, so the chevron never lands on a line alone. */}
-        <span className="flex min-w-0 flex-1 flex-wrap items-center justify-center gap-x-1 gap-y-1">
+        <span className="flex min-w-0 flex-1 flex-wrap items-center justify-center gap-x-1 gap-y-1 tabular-nums">
           {summary}
         </span>
         <ChevronDown
@@ -116,10 +113,64 @@ export function RoomSettings({
             isHost={isHost}
             hasLinkedAccount={hasLinkedAccount}
           />
-          <RoomRoundsPicker room={room} isHost={isHost} />
-          <RoomSizePicker room={room} isHost={isHost} />
-          <RoomVisibilityPicker room={room} isHost={isHost} />
-          <RoomChatPicker room={room} isHost={isHost} />
+          <SettingPicker
+            room={room}
+            label="Rounds"
+            setting="roundCount"
+            current={room.roundCount as 3 | 5 | 10}
+            options={[
+              { value: 3, label: '3', hint: 'Quick' },
+              { value: 5, label: '5', hint: 'Classic' },
+              { value: 10, label: '10', hint: 'Marathon' },
+            ]}
+          />
+          <SettingPicker
+            room={room}
+            label="Seats"
+            setting="maxPlayers"
+            current={room.capacity as 5 | 10 | 20 | 50}
+            options={([5, 10, 20, 50] as const).map((value) => ({
+              value,
+              label: String(value),
+              // Never smaller than the people already in it.
+              unavailable:
+                value < room.players.length
+                  ? 'More players than that are here'
+                  : undefined,
+            }))}
+          />
+          <SettingPicker
+            room={room}
+            label="Who can join"
+            setting="findable"
+            current={room.findable}
+            options={[
+              {
+                value: true,
+                label: 'Anyone',
+                hint: 'Listed for people looking for a game',
+              },
+              {
+                value: false,
+                label: 'Invite only',
+                hint: 'Only people you send the code to',
+              },
+            ]}
+          />
+          <SettingPicker
+            room={room}
+            label="Chat"
+            setting="chatEnabled"
+            current={room.chatEnabled ?? true}
+            options={[
+              {
+                value: true,
+                label: 'On',
+                hint: 'Everyone in the room can talk',
+              },
+              { value: false, label: 'Off', hint: 'No chat, for anyone' },
+            ]}
+          />
         </div>
       )}
     </div>
