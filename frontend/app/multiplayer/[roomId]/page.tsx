@@ -498,6 +498,7 @@ export default function RoomLobbyPage() {
       {CHAT_ENABLED && (
         <ChatDock
           messages={messages}
+          players={room?.players}
           currentUserId={user?.userId}
           onSend={sendMessage}
           refused={chatRefused}

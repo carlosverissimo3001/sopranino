@@ -22,6 +22,8 @@ import { PatchUserDto } from '../dto/patch-user.dto';
 import { AvatarSource } from '@prisma/client';
 import { EmailChangeService } from './email-change.service';
 import { UserPreferencesRepository } from '../../user-preferences/repositories/user-preferences.repository';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { USER_RENAMED, UserRenamedEvent } from '../events/user-renamed.event';
 
 @Injectable()
 export class AuthService {
@@ -34,6 +36,7 @@ export class AuthService {
     private emailVerification: EmailVerificationService,
     private emailChange: EmailChangeService,
     private preferences: UserPreferencesRepository,
+    private events: EventEmitter2,
   ) {}
 
   /**
@@ -347,6 +350,12 @@ export class AuthService {
 
     await this.userRepository.updateDisplayName(session.userId, displayName);
     await this.sessionService.updateSessionDisplayName(sessionId, displayName);
+    // Rooms, scoreboards and chats show this name to other people, and they
+    // are not ours to know about.
+    this.events.emit(
+      USER_RENAMED,
+      new UserRenamedEvent(session.userId, displayName),
+    );
 
     return this.getCurrentUser(sessionId);
   }

@@ -388,6 +388,7 @@ export function MultiplayerGamePage({ roomId }: MultiplayerGamePageProps) {
       {CHAT_ENABLED && (
         <ChatDock
           messages={messages}
+          players={room?.players}
           currentUserId={currentUserId}
           onSend={sendMessage}
           refused={chatRefused}

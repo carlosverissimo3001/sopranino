@@ -46,6 +46,30 @@ export class RoomRepository {
     });
   }
 
+  /**
+   * The rooms somebody is in that anyone is still looking at: filling up,
+   * playing, or finished recently enough that its results are on a screen.
+   */
+  async findLiveRoomIdsForPlayer(
+    userId: string,
+    completedSince: Date,
+  ): Promise<string[]> {
+    const rooms = await this.prisma.multiplayerRoom.findMany({
+      where: {
+        players: { some: { userId } },
+        OR: [
+          { status: { in: [RoomStatus.WAITING, RoomStatus.PLAYING] } },
+          {
+            status: RoomStatus.COMPLETED,
+            completedAt: { gte: completedSince },
+          },
+        ],
+      },
+      select: { id: true },
+    });
+    return rooms.map((room) => room.id);
+  }
+
   async findFindableWaiting(limit: number): Promise<RoomWithPlayers[]> {
     return this.prisma.multiplayerRoom.findMany({
       where: { findable: true, status: RoomStatus.WAITING },

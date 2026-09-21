@@ -11,6 +11,8 @@ import { AccountMergeService } from './account-merge.service';
 import { EmailVerificationService } from './email-verification.service';
 import { EmailChangeService } from './email-change.service';
 import { UserPreferencesRepository } from '../../user-preferences/repositories/user-preferences.repository';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { USER_RENAMED } from '../events/user-renamed.event';
 import { UserSessionDto } from '../dto/user-session.dto';
 import { UserEntity } from '../entities/user.entity';
 
@@ -61,6 +63,8 @@ const mockSpotifyService = {
 };
 
 const mockAccountMergeService = { merge: jest.fn() };
+
+const mockEvents = { emit: jest.fn() };
 
 const mockEmailVerificationService = {
   send: jest.fn().mockResolvedValue(undefined),
@@ -119,6 +123,7 @@ describe('AuthService', () => {
           provide: UserPreferencesRepository,
           useValue: { findByUserId: jest.fn().mockResolvedValue({}) },
         },
+        { provide: EventEmitter2, useValue: mockEvents },
       ],
     }).compile();
 
@@ -326,6 +331,30 @@ describe('AuthService', () => {
   });
 
   // ── getUserBySessionId ───────────────────────────────────────────
+
+  describe('updateProfile', () => {
+    // Other people's screens show this name; they only learn of it this way.
+    it('announces the new name, trimmed, for whoever shows it', async () => {
+      mockSessionService.getSession.mockResolvedValue({ userId: 'user-1' });
+      jest.spyOn(service, 'getCurrentUser').mockResolvedValue({} as never);
+
+      await service.updateProfile('session-1', {
+        displayName: '  Other Charly ',
+      });
+
+      expect(mockUserRepository.updateDisplayName).toHaveBeenCalledWith(
+        'user-1',
+        'Other Charly',
+      );
+      expect(mockEvents.emit).toHaveBeenCalledWith(
+        USER_RENAMED,
+        expect.objectContaining({
+          userId: 'user-1',
+          displayName: 'Other Charly',
+        }),
+      );
+    });
+  });
 
   describe('signup', () => {
     const GUEST_ID = 'guest-user-id';
