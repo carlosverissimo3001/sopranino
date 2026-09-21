@@ -1,12 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown, Globe, Lock, Music, Users } from 'lucide-react';
+import {
+  ChevronDown,
+  Globe,
+  Lock,
+  MessageCircleOff,
+  Music,
+  Users,
+} from 'lucide-react';
 import type { RoomDto } from '@/sdk';
 import { trackSourceSummary } from '@/lib/track-source';
 import { TrackSourcePicker } from './TrackSourcePicker';
 import { RoomRoundsPicker } from './RoomRoundsPicker';
 import { RoomSizePicker } from './RoomSizePicker';
+import { RoomChatPicker } from './RoomChatPicker';
 import { RoomVisibilityPicker } from './RoomVisibilityPicker';
 
 interface RoomSettingsProps {
@@ -60,13 +68,25 @@ export function RoomSettings({
         <Users className="h-3.5 w-3.5" />
         {room.capacity} seats
       </span>
+      {/* Said only when off: a chat is what a room has by default. */}
+      {room.chatEnabled === false && (
+        <>
+          <span aria-hidden="true" className="text-fg/15">
+            &middot;
+          </span>
+          <span className="flex items-center gap-1.5">
+            <MessageCircleOff className="h-3.5 w-3.5" />
+            Chat off
+          </span>
+        </>
+      )}
     </>
   );
 
   // Nothing to open for a player who cannot change any of it.
   if (!isHost) {
     return (
-      <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-xl border border-fg/10 bg-fg/[0.03] px-4 py-3 text-xs text-fg/50">
+      <div className="flex flex-wrap items-center justify-center gap-x-1 gap-y-1 rounded-xl border border-fg/10 bg-fg/[0.03] px-4 py-3 text-xs text-fg/50">
         {summary}
       </div>
     );
@@ -78,11 +98,14 @@ export function RoomSettings({
         type="button"
         onClick={() => setIsOpen((open) => !open)}
         aria-expanded={isOpen}
-        className="flex w-full flex-wrap items-center justify-center gap-x-2 gap-y-1 px-4 py-3 text-xs text-fg/50 hover:text-fg/75 transition-colors"
+        className="flex w-full items-center gap-2 px-4 py-3 text-xs text-fg/50 hover:text-fg/75 transition-colors"
       >
-        {summary}
+        {/* Its own wrapping area, so the chevron never lands on a line alone. */}
+        <span className="flex min-w-0 flex-1 flex-wrap items-center justify-center gap-x-1 gap-y-1">
+          {summary}
+        </span>
         <ChevronDown
-          className={`h-3.5 w-3.5 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          className={`h-3.5 w-3.5 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
 
@@ -96,6 +119,7 @@ export function RoomSettings({
           <RoomRoundsPicker room={room} isHost={isHost} />
           <RoomSizePicker room={room} isHost={isHost} />
           <RoomVisibilityPicker room={room} isHost={isHost} />
+          <RoomChatPicker room={room} isHost={isHost} />
         </div>
       )}
     </div>

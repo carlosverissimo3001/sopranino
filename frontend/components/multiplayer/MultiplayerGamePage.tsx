@@ -385,18 +385,22 @@ export function MultiplayerGamePage({ roomId }: MultiplayerGamePageProps) {
           )
         }
       />
-      {CHAT_ENABLED && (
-        <ChatDock
-          messages={messages}
-          players={room?.players}
-          currentUserId={currentUserId}
-          onSend={sendMessage}
-          refused={chatRefused}
-          muted={chatMuted}
-          scope="round"
-          channel={roomId}
-        />
-      )}
+      {/* With chat off, only the host keeps a dock, to turn it back on. */}
+      {CHAT_ENABLED &&
+        (room?.chatEnabled !== false || currentUserId === room?.hostId) && (
+          <ChatDock
+            messages={messages}
+            players={room?.players}
+            chatEnabled={room?.chatEnabled ?? true}
+            isHost={currentUserId === room?.hostId}
+            currentUserId={currentUserId}
+            onSend={sendMessage}
+            refused={chatRefused}
+            muted={chatMuted}
+            scope="round"
+            channel={roomId}
+          />
+        )}
     </>
   );
 }

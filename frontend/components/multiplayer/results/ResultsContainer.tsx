@@ -149,19 +149,24 @@ export function ResultsContainer({ roomId }: ResultsContainerProps) {
     );
   }
 
-  const chat = CHAT_ENABLED ? (
-    <ChatDock
-      messages={messages}
-      players={room?.players}
-      currentUserId={currentUserId}
-      onSend={sendMessage}
-      refused={chatRefused}
-      muted={chatMuted}
-      scope="results"
-      channel={roomId}
-      defaultOpen
-    />
-  ) : null;
+  // With chat off, only the host keeps a dock, to turn it back on.
+  const chat =
+    CHAT_ENABLED &&
+    (room?.chatEnabled !== false || currentUserId === room?.hostId) ? (
+      <ChatDock
+        messages={messages}
+        players={room?.players}
+        chatEnabled={room?.chatEnabled ?? true}
+        isHost={currentUserId === room?.hostId}
+        currentUserId={currentUserId}
+        onSend={sendMessage}
+        refused={chatRefused}
+        muted={chatMuted}
+        scope="results"
+        channel={roomId}
+        defaultOpen
+      />
+    ) : null;
 
   if (!isComplete) {
     return (

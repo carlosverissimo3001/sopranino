@@ -30,6 +30,7 @@ const REFUSALS: Record<string, string> = {
   block: 'That message was blocked.',
   unavailable: 'Could not check that. Try again.',
   muted: 'You cannot send messages in this room.',
+  closed: 'The host has turned chat off.',
 };
 
 /**

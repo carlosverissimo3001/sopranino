@@ -495,10 +495,13 @@ export default function RoomLobbyPage() {
         )}
       </AnimatePresence>
 
-      {CHAT_ENABLED && (
+      {/* With chat off, only the host keeps a dock, to turn it back on. */}
+      {CHAT_ENABLED && (room?.chatEnabled !== false || isHost) && (
         <ChatDock
           messages={messages}
           players={room?.players}
+          chatEnabled={room?.chatEnabled ?? true}
+          isHost={isHost}
           currentUserId={user?.userId}
           onSend={sendMessage}
           refused={chatRefused}
