@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { MessageCircle, X } from 'lucide-react';
 import { ChatPanel } from './ChatPanel';
 import { useUpdateRoomSettings } from '@/hooks/multiplayer/useUpdateRoomSettings';
@@ -91,8 +91,9 @@ export function ChatDock(props: ChatDockProps) {
   const lastReadRef = useRef<string | undefined>(undefined);
 
   // After mount rather than in the initial state: the server renders this too,
-  // and reading storage there would hydrate against a different value.
-  useEffect(() => {
+  // and reading storage there would hydrate against a different value. Before
+  // paint, or a dock closed last time flashes open for a frame on every visit.
+  useLayoutEffect(() => {
     const stored = storedOpen(scope);
     if (stored !== undefined) setOpen(stored);
     lastReadRef.current = read(readKey(channel));
