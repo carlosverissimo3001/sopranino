@@ -1,4 +1,4 @@
-import { FameTier, GameStatus } from '@prisma/client';
+import { GameStatus } from '@prisma/client';
 import { MAX_ROUNDS, ROUND_DURATIONS } from '../consts';
 import { GameStateDto } from '../dto/game-state.dto';
 import { GameSessionEntity } from '../entities/game-session.entity';
@@ -48,23 +48,5 @@ export function mapToGameStateDto(
       game.status === GameStatus.PLAYING
         ? buildHintsForRound(track, game.currentRound, set)
         : undefined,
-  };
-}
-
-export function mapInitialGameState(
-  sessionId: string,
-  previewUrl: string,
-  fameTier?: FameTier,
-): GameStateDto {
-  return {
-    sessionId,
-    currentRound: 0,
-    snippetDuration: ROUND_DURATIONS[0],
-    maxRounds: MAX_ROUNDS,
-    snippetSteps: [...ROUND_DURATIONS],
-    status: GameStatus.PLAYING,
-    fameTier,
-    guesses: [],
-    previewUrl,
   };
 }

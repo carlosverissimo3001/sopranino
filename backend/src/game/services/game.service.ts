@@ -44,10 +44,7 @@ import { GuessDto } from '../dto/guess/guess.dto';
 import { GameStatsDto } from '../dto/stats/game-stats.dto';
 import { GetStatsDto } from '../dto/stats/get-stats.dto';
 import { GameSessionRepository } from '../repositories/game-session.repository';
-import {
-  mapInitialGameState,
-  mapToGameStateDto,
-} from '../utils/game-state-mapper';
+import { mapToGameStateDto } from '../utils/game-state-mapper';
 import {
   addGuessToHistory,
   calculateNextState,
@@ -179,7 +176,7 @@ export class GameService {
       selectedTrack.primaryArtist,
     );
 
-    await this.trackRepository.upsertTrack(selectedTrack.id, {
+    const track = await this.trackRepository.upsertTrack(selectedTrack.id, {
       name: selectedTrack.name,
       artistName: selectedTrack.primaryArtist,
       albumImageUrl: selectedTrack.imageUrl,
@@ -202,7 +199,8 @@ export class GameService {
       status: GameStatus.PLAYING,
     });
 
-    return mapInitialGameState(game.id, previewUrl);
+    // The whole state, cover and hints included: the round needs nothing else.
+    return mapToGameStateDto(game, { ...track, previewUrl });
   }
 
   /**
@@ -231,7 +229,7 @@ export class GameService {
 
     this.trackService.enrichInBackground(track);
 
-    return mapInitialGameState(game.id, previewUrl);
+    return mapToGameStateDto(game, { ...track, previewUrl });
   }
 
   /** No Spotify library to draw from, so the round comes out of the pool. */
@@ -265,7 +263,11 @@ export class GameService {
 
     this.trackService.enrichInBackground(track);
 
-    return mapInitialGameState(game.id, previewUrl, tier);
+    return mapToGameStateDto(
+      game,
+      { ...track, previewUrl },
+      await this.hintSet(trackGroupId),
+    );
   }
 
   /**

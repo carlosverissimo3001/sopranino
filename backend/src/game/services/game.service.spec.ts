@@ -783,6 +783,33 @@ describe('GameService', () => {
       );
     });
 
+    // The page shows the round from this answer alone. A trimmed one left
+    // the cover box empty and the first round without hints.
+    it('answers with the whole round: cover, preview and hints', async () => {
+      mockPoolService.pickTrack.mockResolvedValue(
+        new TrackEntity({
+          id: 'pool-1',
+          name: 'Track',
+          artistName: 'Artist',
+          allArtists: ['Artist'],
+          albumImageUrl: 'https://cover/pool-1.jpg',
+          releaseYear: 1987,
+          lastScrapedAt: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }),
+      );
+
+      const state = await service.startGame(OWNER_SESSION_ID, {
+        trackGroupId: GROUP_A,
+        mode: GameMode.ALL,
+      });
+
+      expect(state.albumImageUrl).toBe('https://cover/pool-1.jpg');
+      expect(state.previewUrl).toBe('https://preview/pool-1.mp3');
+      expect(state.hints).toBeDefined();
+    });
+
     // The hint is not needed until a guess is spent, so a start hands the
     // lookup off rather than waiting on it.
     it('hands a group round its fame lookup', async () => {
