@@ -6,29 +6,20 @@ type PlayerTileProps = {
   player: RoomPlayerDto;
   isHost: boolean;
   isCurrentUser: boolean;
-  isReady?: boolean;
   isOnline?: boolean;
   /** Present only when the viewer is the host and the room has not started. */
   onKick?: () => void;
 };
 
-/**
- * Readiness is the ring rather than a badge. Twenty badges is noise; a ring
- * reads across a whole grid without being read.
- */
 function PlayerTile(props: PlayerTileProps) {
-  const { player, isHost, isCurrentUser, isReady, isOnline, onKick } = props;
+  const { player, isHost, isCurrentUser, isOnline, onKick } = props;
 
   const firstName = player.displayName.split(' ')[0];
 
   return (
     <div className="group relative flex w-[4.5rem] flex-col items-center gap-1 py-1.5">
       <div className="relative">
-        <div
-          className={`rounded-full p-0.5 ring-2 transition-colors ${
-            isReady ? 'ring-green-500' : 'ring-fg/10'
-          }`}
-        >
+        <div className="rounded-full p-0.5 ring-2 ring-fg/10">
           {player.avatarUrl ? (
             <Image
               src={player.avatarUrl}

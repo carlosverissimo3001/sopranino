@@ -11,7 +11,6 @@ import { EditableName } from '@/components/profile/EditableName';
 import { CHAT_ENABLED } from '@/lib/chat-socket';
 import { useRoom } from '@/hooks/multiplayer/useRoom';
 import { useStartRoom } from '@/hooks/multiplayer/useStartRoom';
-import { useToggleReady } from '@/hooks/multiplayer/useToggleReady';
 import { useKickPlayer } from '@/hooks/multiplayer/useKickPlayer';
 import { RoomSettings } from '@/components/multiplayer/RoomSettings';
 import { RoomNameEditor } from '@/components/multiplayer/RoomNameEditor';
@@ -49,7 +48,6 @@ export default function RoomLobbyPage() {
   const { data: room, isLoading, isError, error } = useRoom(roomId, connected);
   const startRoom = useStartRoom();
   const leaveRoom = useLeaveRoom();
-  const toggleReady = useToggleReady();
   const kickPlayer = useKickPlayer();
   const [copied, setCopied] = useState(false);
   const knownPlayerIdsRef = useRef<Set<string> | null>(null);
@@ -95,18 +93,10 @@ export default function RoomLobbyPage() {
   }, [room, user]);
 
   const isHost = currentPlayer ? currentPlayer.userId === room?.hostId : false;
-  const allReady = room?.players.every((p) => p.isReady) ?? false;
-  const canStart = isHost && (room?.players.length ?? 0) >= 2 && allReady;
-  const readyCount = room?.players.filter((p) => p.isReady).length ?? 0;
+  const canStart = isHost && (room?.players.length ?? 0) >= 2;
 
   // Everyone joins in the same transaction when a room is seeded, so join
   // order cannot be relied on to put the host at the front.
-  // The toggle's result counts before the server confirms it, or the button
-  // says the opposite of what was just clicked until the response lands.
-  const showAsReady = toggleReady.isPending
-    ? !currentPlayer?.isReady
-    : !!currentPlayer?.isReady;
-
   const orderedPlayers = useMemo(() => {
     if (!room) return [];
     return [...room.players].sort((a, b) =>
@@ -140,11 +130,6 @@ export default function RoomLobbyPage() {
     } catch {
       toast.error('Failed to copy');
     }
-  }
-
-  function handleToggleReady() {
-    if (!roomId || toggleReady.isPending) return;
-    toggleReady.mutate(roomId);
   }
 
   function handleStartGame() {
@@ -332,15 +317,8 @@ export default function RoomLobbyPage() {
                 <Users className="w-4 h-4" />
                 Players
               </h3>
-              {/* What twenty ready badges used to say, in one line. */}
               <span className="font-mono text-xs text-fg/30">
                 {room.players.length}/{room.capacity}
-                {readyCount > 0 && (
-                  <span className="text-green-500/70">
-                    {' '}
-                    · {readyCount} ready
-                  </span>
-                )}
               </span>
             </div>
 
@@ -354,7 +332,6 @@ export default function RoomLobbyPage() {
                   player={player}
                   isHost={player.userId === room.hostId}
                   isCurrentUser={player.userId === user?.userId}
-                  isReady={player.isReady}
                   isOnline={onlineUserIds.includes(player.userId)}
                   onKick={
                     isHost && player.userId !== room.hostId
@@ -381,30 +358,12 @@ export default function RoomLobbyPage() {
             transition={{ delay: 0.3 }}
             className="flex flex-col gap-3"
           >
-            {/* Side by side: two full-width buttons stacked pushed the room
-                itself below the fold on a phone. */}
-            <div className="flex items-stretch gap-3">
-              <button
-                onClick={handleToggleReady}
-                disabled={toggleReady.isPending}
-                className={`relative flex flex-1 items-center justify-center rounded-xl px-4 py-3 text-sm font-bold transition-colors ${
-                  showAsReady
-                    ? 'bg-green-500/10 border border-green-500/20 text-green-400 hover:bg-green-500/20'
-                    : 'bg-fg/5 border border-fg/10 text-fg/70 hover:bg-fg/10'
-                }`}
-              >
-                {/* Out of the flow, so the label stays centred either way. */}
-                <span className="absolute left-4 flex h-4 w-4 items-center justify-center">
-                  {showAsReady && <Check className="w-4 h-4" />}
-                </span>
-                {showAsReady ? 'Ready' : 'Mark as Ready'}
-              </button>
-
-              {isHost && (
+            {isHost && (
+              <>
                 <button
                   onClick={handleStartGame}
                   disabled={!canStart || startRoom.isPending || isStarting}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-spotify-green px-4 py-3 text-sm font-bold text-black hover:bg-spotify-green/90 active:scale-[0.98] disabled:opacity-40 transition-all shadow-[0_0_30px_rgba(30,215,96,0.15)]"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-spotify-green px-4 py-3 text-sm font-bold text-black hover:bg-spotify-green/90 active:scale-[0.98] disabled:opacity-40 transition-all shadow-[0_0_30px_rgba(30,215,96,0.15)]"
                 >
                   {startRoom.isPending || isStarting ? (
                     <>
@@ -418,22 +377,9 @@ export default function RoomLobbyPage() {
                     </>
                   )}
                 </button>
-              )}
-            </div>
-
-            {isHost && (
-              <>
                 <p className="min-h-4 text-center text-xs text-fg/30">
-                  {!canStart &&
-                    ((room?.players.length ?? 0) < 2
-                      ? 'Need at least 2 players to start'
-                      : 'All players must be ready')}
+                  {!canStart && 'Need at least 2 players to start'}
                 </p>
-                {toggleReady.isError && (
-                  <p className="text-sm text-red-400 text-center">
-                    {toggleReady.error.message}
-                  </p>
-                )}
                 {startRoom.isError && (
                   <p className="text-sm text-red-400 text-center">
                     {startRoom.error.message}
