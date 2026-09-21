@@ -47,8 +47,12 @@ export function useStartGame() {
       if (!queryClient.getQueryData(queryKeys.auth.me)) {
         void queryClient.invalidateQueries({ queryKey: queryKeys.auth.me });
       }
-      // Nothing is invalidated under game.session: the state set above lives
-      // there, and invalidating it would fetch what the start just returned.
+      // The start answers with a trimmed state, no cover and no hints, so the
+      // full one is fetched once. The trimmed one above is what shows until
+      // it lands.
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.game.state(data.sessionId),
+      });
     },
   });
 }
