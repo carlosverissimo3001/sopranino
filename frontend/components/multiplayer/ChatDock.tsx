@@ -1,7 +1,19 @@
 'use client';
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { MessageCircle, X } from 'lucide-react';
+import Image from 'next/image';
+import {
+  MessageCircle,
+  MessageCircleOff,
+  MoreHorizontal,
+  X,
+} from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { ChatPanel } from './ChatPanel';
 import { useUpdateRoomSettings } from '@/hooks/multiplayer/useUpdateRoomSettings';
 import type { ChatMessage, Refusal } from '@/lib/chat-socket';
@@ -158,28 +170,39 @@ export function ChatDock(props: ChatDockProps) {
       )}
       {open && (
         // A sheet across the bottom on a phone, a card in the corner from sm.
-        <div className="fixed inset-x-0 bottom-0 flex h-[min(28rem,70dvh)] flex-col overflow-hidden rounded-t-2xl border border-b-0 border-fg/10 bg-surface pb-[env(safe-area-inset-bottom)] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:static sm:h-[22rem] sm:w-[min(20rem,calc(100vw-2rem))] sm:rounded-2xl sm:border-b sm:pb-0 sm:shadow-[0_12px_40px_rgba(0,0,0,0.5)]">
+        <div className="fixed inset-x-0 bottom-0 flex h-[min(28rem,70dvh)] flex-col overflow-hidden rounded-t-2xl border border-b-0 border-fg/10 bg-surface/85 pb-[env(safe-area-inset-bottom)] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl sm:static sm:h-[22rem] sm:w-[min(20rem,calc(100vw-2rem))] sm:rounded-2xl sm:border-b sm:pb-0 sm:shadow-[0_12px_40px_rgba(0,0,0,0.5)]">
           {/* The whole bar collapses, as it did when it was one button; the ×
               is the labelled control for keyboards and readers. */}
           <div
             onClick={() => toggle(false)}
-            className="flex cursor-pointer items-center gap-2 border-b border-fg/10 px-3 py-1.5 transition-colors hover:bg-fg/5"
+            className="flex cursor-pointer items-center gap-1 border-b border-fg/[0.08] py-2 pl-3 pr-2 transition-colors hover:bg-fg/[0.03]"
           >
-            <span className="flex-1 text-xs font-bold uppercase tracking-widest text-fg/40">
-              {label}
-            </span>
+            <Roster players={players} label={label} />
             {isHost && chatEnabled && (
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setChat(false);
-                }}
-                disabled={updateSettings.isPending}
-                className="cursor-pointer rounded-md px-2 py-1 text-[11px] font-semibold text-fg/50 transition-colors hover:bg-fg/5 hover:text-fg disabled:opacity-50"
-              >
-                Turn off for everyone
-              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  onClick={(event) => event.stopPropagation()}
+                  aria-label="Chat settings"
+                  className="cursor-pointer rounded-md p-1 text-fg/50 transition-colors hover:bg-fg/5 hover:text-fg"
+                >
+                  <MoreHorizontal className="h-4 w-4" aria-hidden />
+                </DropdownMenuTrigger>
+                {/* React bubbles through the portal, and the bar collapses on a click. */}
+                <DropdownMenuContent
+                  align="end"
+                  onClick={(event) => event.stopPropagation()}
+                  className="rounded-xl border-fg/10 bg-surface p-1 shadow-[0_12px_32px_rgba(0,0,0,0.45)]"
+                >
+                  <DropdownMenuItem
+                    disabled={updateSettings.isPending}
+                    onSelect={() => setChat(false)}
+                    className="cursor-pointer rounded-lg px-2.5 py-2 text-[13px] font-medium text-fg/80 focus:bg-fg/[0.06] focus:text-fg"
+                  >
+                    <MessageCircleOff className="mr-2 h-4 w-4" aria-hidden />
+                    Turn off chat for everyone
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
             <button
               type="button"
@@ -243,5 +266,52 @@ export function ChatDock(props: ChatDockProps) {
         </button>
       )}
     </div>
+  );
+}
+
+/** A few faces and a count, which says more than the word "chat". */
+function Roster({
+  players,
+  label,
+}: {
+  players?: RoomPlayerDto[];
+  label: string;
+}) {
+  if (!players?.length) {
+    return (
+      <span className="flex-1 text-[13px] font-semibold text-fg/70">
+        {label}
+      </span>
+    );
+  }
+
+  const faces = players.slice(0, 4);
+  return (
+    <span className="flex min-w-0 flex-1 items-center gap-2">
+      <span className="flex -space-x-1.5" aria-hidden>
+        {faces.map((player) =>
+          player.avatarUrl ? (
+            <Image
+              key={player.userId}
+              src={player.avatarUrl}
+              alt=""
+              width={20}
+              height={20}
+              className="h-5 w-5 rounded-full object-cover ring-2 ring-surface"
+            />
+          ) : (
+            <span
+              key={player.userId}
+              className="flex h-5 w-5 items-center justify-center rounded-full bg-fg/15 text-[9px] font-bold text-fg/70 ring-2 ring-surface"
+            >
+              {player.displayName.charAt(0).toUpperCase()}
+            </span>
+          ),
+        )}
+      </span>
+      <span className="truncate text-[13px] font-semibold text-fg/75">
+        {players.length} in the room
+      </span>
+    </span>
   );
 }
