@@ -345,7 +345,6 @@ model RoomPlayer {
   userId String          @map("user_id")
   user   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  isReady    Boolean  @default(false) @map("is_ready")
   totalScore Int      @default(0) @map("total_score")
   joinedAt   DateTime @default(now()) @map("joined_at")
 

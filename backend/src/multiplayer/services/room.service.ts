@@ -12,6 +12,7 @@ import { SetTrackSourceDto } from '../dto/set-track-source.dto';
 import {
   LOBBY_MAX_ROOMS,
   ROOM_DEFAULT_PLAYERS,
+  ROOM_MIN_PLAYERS,
   ROOM_PLAYING_ABANDONED_AFTER_MS,
   ROOM_WAITING_ABANDONED_AFTER_MS,
 } from '../../consts';
@@ -253,25 +254,6 @@ export class RoomService {
     return dto;
   }
 
-  async toggleReady(sessionId: string, roomId: string): Promise<RoomDto> {
-    const { id: userId } = await this.authService.getUserBySessionId(sessionId);
-    const room = await this.findRoomOrThrow(roomId);
-
-    if (room.status !== RoomStatus.WAITING) {
-      throw new BadRequestException('Room is no longer in waiting state');
-    }
-
-    const isPlayer = room.players.some((p) => p.userId === userId);
-    if (!isPlayer) {
-      throw new BadRequestException('You are not in this room');
-    }
-
-    const updated = await this.roomRepository.toggleReady(roomId, userId);
-    const dto = RoomDto.fromEntity(updated);
-    this.roomsGateway.emitRoomUpdate(roomId, dto);
-    return dto;
-  }
-
   async startGame(sessionId: string, roomId: string): Promise<RoomDto> {
     const { id: userId } = await this.authService.getUserBySessionId(sessionId);
     const room = await this.findRoomOrThrow(roomId);
@@ -284,9 +266,9 @@ export class RoomService {
       throw new BadRequestException('Game has already started or completed');
     }
 
-    if (!room.players.every((p) => p.isReady)) {
+    if (room.players.length < ROOM_MIN_PLAYERS) {
       throw new BadRequestException(
-        'All players must be ready before starting',
+        `Need at least ${ROOM_MIN_PLAYERS} players to start`,
       );
     }
 

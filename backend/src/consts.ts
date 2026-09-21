@@ -145,6 +145,7 @@ export const LOBBY_ROOM = 'lobby';
  */
 export const LOBBY_BROADCAST_DEBOUNCE_MS = 300;
 
+export const ROOM_MIN_PLAYERS = 2;
 export const ROOM_DEFAULT_PLAYERS = 20;
 export const ROOM_SIZE_OPTIONS = [5, 10, 20, 50] as const;
 

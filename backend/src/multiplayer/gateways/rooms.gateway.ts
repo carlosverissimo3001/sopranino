@@ -377,9 +377,9 @@ export class RoomsGateway
 
   /**
    * Something a browser would notice has changed. The list is rebuilt and sent
-   * once per tick rather than per change: a room filling fires join, ready,
-   * ready and start within a second, and each would otherwise be a broadcast
-   * and a re-render for everyone watching.
+   * once per tick rather than per change: a room filling fires join after
+   * join and then a start within a second, and each would otherwise be a
+   * broadcast and a re-render for everyone watching.
    */
   lobbyChanged(): void {
     if (this.lobbyTimer) {

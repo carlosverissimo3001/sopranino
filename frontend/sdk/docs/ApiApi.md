@@ -60,7 +60,6 @@ All URIs are relative to *http://localhost*
 | [**multiplayerControllerSetTrackSource**](ApiApi.md#multiplayercontrollersettracksource) | **POST** /multiplayer/rooms/{id}/track-source | Choose where the room draws its songs from |
 | [**multiplayerControllerStartGame**](ApiApi.md#multiplayercontrollerstartgame) | **POST** /multiplayer/rooms/{id}/start | Start the game (host only) |
 | [**multiplayerControllerSubmitGuess**](ApiApi.md#multiplayercontrollersubmitguess) | **POST** /multiplayer/rooms/{id}/guess | Submit a guess for the current round |
-| [**multiplayerControllerToggleReady**](ApiApi.md#multiplayercontrollertoggleready) | **POST** /multiplayer/rooms/{id}/ready | Toggle ready status for current player |
 | [**multiplayerControllerUpdateRoomSettings**](ApiApi.md#multiplayercontrollerupdateroomsettings) | **PATCH** /multiplayer/rooms/{id}/settings | Rename a room or change whether it is listed |
 | [**myPlaylistsControllerList**](ApiApi.md#myplaylistscontrollerlist) | **GET** /me/playlists | A player\&#39;s Spotify and imported playlists, in one list |
 | [**playlistControllerGetPlaylistById**](ApiApi.md#playlistcontrollergetplaylistbyid) | **GET** /playlists/{id} | Get playlist by ID |
@@ -3905,75 +3904,6 @@ example().catch(console.error);
 |-------------|-------------|------------------|
 | **200** |  |  -  |
 | **429** | Rate limit exceeded |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
-
-## multiplayerControllerToggleReady
-
-> RoomDto multiplayerControllerToggleReady(id)
-
-Toggle ready status for current player
-
-### Example
-
-```ts
-import {
-  Configuration,
-  ApiApi,
-} from '';
-import type { MultiplayerControllerToggleReadyRequest } from '';
-
-async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: cookie
-    apiKey: "YOUR API KEY",
-  });
-  const api = new ApiApi(config);
-
-  const body = {
-    // string
-    id: id_example,
-  } satisfies MultiplayerControllerToggleReadyRequest;
-
-  try {
-    const data = await api.multiplayerControllerToggleReady(body);
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
-}
-
-// Run the test
-example().catch(console.error);
-```
-
-### Parameters
-
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **id** | `string` |  | [Defaults to `undefined`] |
-
-### Return type
-
-[**RoomDto**](RoomDto.md)
-
-### Authorization
-
-[cookie](../README.md#cookie)
-
-### HTTP request headers
-
-- **Content-Type**: Not defined
-- **Accept**: `application/json`
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** |  |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 

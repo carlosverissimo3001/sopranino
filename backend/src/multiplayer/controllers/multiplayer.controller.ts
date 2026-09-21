@@ -146,19 +146,6 @@ export class MultiplayerController {
     return this.roomService.kickPlayer(sessionId, id, dto.userId);
   }
 
-  @Post('rooms/:id/ready')
-  @UseGuards(SessionGuard)
-  @HttpCode(HttpStatus.OK)
-  @ApiCookieAuth()
-  @ApiOperation({ summary: 'Toggle ready status for current player' })
-  @ApiResponse({ status: 200, type: RoomDto })
-  async toggleReady(
-    @SessionId() sessionId: string,
-    @Param('id') id: string,
-  ): Promise<RoomDto> {
-    return this.roomService.toggleReady(sessionId, id);
-  }
-
   @Post('rooms/:id/start')
   @UseGuards(SessionGuard)
   @ApiCookieAuth()

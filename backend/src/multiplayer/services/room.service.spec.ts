@@ -54,7 +54,6 @@ describe('RoomService', () => {
         roomId: ROOM_ID,
         userId: HOST_USER_ID,
         totalScore: 0,
-        isReady: true,
         joinedAt: new Date(),
         user: { displayName: 'Host', avatarUrl: null },
       },
@@ -78,7 +77,6 @@ describe('RoomService', () => {
     removePlayer: jest.fn(),
     updateStatus: jest.fn(),
     setTrackSource: jest.fn(),
-    toggleReady: jest.fn(),
     inviteCodeExists: jest.fn(),
     findFindableWaiting: jest.fn(),
   };
@@ -622,7 +620,6 @@ describe('RoomService', () => {
             roomId: ROOM_ID,
             userId: OTHER_USER_ID,
             totalScore: 0,
-            isReady: false,
             joinedAt: new Date(),
             user: { displayName: 'Guest', avatarUrl: null },
           },
@@ -707,7 +704,6 @@ describe('RoomService', () => {
             roomId: ROOM_ID,
             userId: OTHER_USER_ID,
             totalScore: 0,
-            isReady: false,
             joinedAt: new Date(),
             user: { displayName: 'Guest', avatarUrl: null },
           },
@@ -893,11 +889,26 @@ describe('RoomService', () => {
   });
 
   describe('startGame', () => {
+    const roomOfTwo = () => ({
+      ...makeRoom(),
+      players: [
+        ...makeRoom().players,
+        {
+          id: 'player-2',
+          roomId: ROOM_ID,
+          userId: PLAYER_USER_ID,
+          totalScore: 0,
+          joinedAt: new Date(),
+          user: { displayName: 'Guest', avatarUrl: null },
+        },
+      ],
+    });
+
     it('should let host start a WAITING room with track pooling', async () => {
       mockAuthService.getUserBySessionId.mockResolvedValue({
         id: HOST_USER_ID,
       });
-      mockRoomRepository.findById.mockResolvedValue(makeRoom());
+      mockRoomRepository.findById.mockResolvedValue(roomOfTwo());
       mockTrackPoolService.selectTracksForRoom.mockResolvedValue([
         'track-1',
         'track-2',
@@ -913,7 +924,7 @@ describe('RoomService', () => {
 
       expect(result.status).toBe(RoomStatus.PLAYING);
       expect(mockTrackPoolService.selectTracksForRoom).toHaveBeenCalledWith({
-        playerUserIds: [HOST_USER_ID],
+        playerUserIds: [HOST_USER_ID, PLAYER_USER_ID],
         roundCount: 5,
         trackSource: TrackSource.POOL,
         trackGroupId: undefined,
@@ -926,6 +937,18 @@ describe('RoomService', () => {
           trackIds: ['track-1', 'track-2', 'track-3', 'track-4', 'track-5'],
         },
       );
+    });
+
+    it('refuses a host playing alone', async () => {
+      mockAuthService.getUserBySessionId.mockResolvedValue({
+        id: HOST_USER_ID,
+      });
+      mockRoomRepository.findById.mockResolvedValue(makeRoom());
+
+      await expect(service.startGame(HOST_SESSION, ROOM_ID)).rejects.toThrow(
+        'Need at least 2 players to start',
+      );
+      expect(mockRoomRepository.updateStatus).not.toHaveBeenCalled();
     });
 
     it('should throw ForbiddenException when non-host tries to start', async () => {
