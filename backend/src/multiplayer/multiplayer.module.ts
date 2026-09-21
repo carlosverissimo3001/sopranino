@@ -8,6 +8,7 @@ import { PoolModule } from '../pool/pool.module';
 import { TrackGroupModule } from '../track-group/track-group.module';
 import { MultiplayerController } from './controllers/multiplayer.controller';
 import { RoomService } from './services/room.service';
+import { PlayerRenamedListener } from './listeners/player-renamed.listener';
 import { MultiplayerGameService } from './services/multiplayer-game.service';
 import { TrackPoolService } from './services/track-pool.service';
 import { RoomRepository } from './repositories/room.repository';
@@ -33,6 +34,7 @@ import { RoomConsumer } from './consumers/room.consumer';
   ],
   controllers: [MultiplayerController],
   providers: [
+    PlayerRenamedListener,
     RoomService,
     MultiplayerGameService,
     TrackPoolService,
