@@ -191,10 +191,12 @@ export function ChatDock(props: ChatDockProps) {
                 <DropdownMenuContent
                   align="end"
                   onClick={(event) => event.stopPropagation()}
+                  className="rounded-xl border-fg/10 bg-surface p-1 shadow-[0_12px_32px_rgba(0,0,0,0.45)]"
                 >
                   <DropdownMenuItem
                     disabled={updateSettings.isPending}
                     onSelect={() => setChat(false)}
+                    className="cursor-pointer rounded-lg px-2.5 py-2 text-[13px] font-medium text-fg/80 focus:bg-fg/[0.06] focus:text-fg"
                   >
                     <MessageCircleOff className="mr-2 h-4 w-4" aria-hidden />
                     Turn off chat for everyone
