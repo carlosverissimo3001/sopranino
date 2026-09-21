@@ -6,6 +6,7 @@
 
 Name | Type
 ------------ | -------------
+`chatEnabled` | boolean
 `name` | string
 `findable` | boolean
 `roundCount` | number
@@ -18,6 +19,7 @@ import type { UpdateRoomSettingsControllerDto } from ''
 
 // TODO: Update the object below with actual values
 const example = {
+  "chatEnabled": null,
   "name": null,
   "findable": null,
   "roundCount": null,

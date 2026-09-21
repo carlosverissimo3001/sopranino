@@ -238,7 +238,12 @@ export class RoomService {
       throw new ForbiddenException('Only the host can change room settings');
     }
 
-    if (room.status !== RoomStatus.WAITING) {
+    // Chat is the host's to close at any point, a stream above all; the rest
+    // is fixed once the game starts.
+    const onlyChat = Object.keys(settings).every(
+      (key) => key === 'chatEnabled',
+    );
+    if (room.status !== RoomStatus.WAITING && !onlyChat) {
       throw new BadRequestException('The game has already started');
     }
 

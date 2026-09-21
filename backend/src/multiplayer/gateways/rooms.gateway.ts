@@ -440,6 +440,13 @@ export class RoomsGateway
       return;
     }
 
+    // Refused here, not merely hidden: a client that missed the update must
+    // not be able to talk into a room its host closed.
+    if (!(await this.roomRepository.isChatEnabled(channel))) {
+      client.emit('messageRefused', { reason: 'closed' });
+      return;
+    }
+
     const text = this.chat.clean(payload.text ?? '');
     if (!text) {
       return;

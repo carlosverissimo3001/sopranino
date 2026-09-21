@@ -456,6 +456,44 @@ describe('RoomService', () => {
       });
     });
 
+    // A stream's host may need to close the chat mid-game; nothing else about
+    // the room moves once it has started.
+    it('lets the host close the chat while the game is on', async () => {
+      mockAuthService.getUserBySessionId.mockResolvedValue({
+        id: HOST_USER_ID,
+      });
+      mockRoomRepository.findById.mockResolvedValue(
+        makeRoom({ status: RoomStatus.PLAYING }),
+      );
+      mockRoomRepository.updateSettings.mockResolvedValue(
+        makeRoom({ status: RoomStatus.PLAYING, chatEnabled: false }),
+      );
+
+      const room = await service.updateSettings(HOST_SESSION, ROOM_ID, {
+        chatEnabled: false,
+      });
+
+      expect(room.chatEnabled).toBe(false);
+      expect(mockRoomsGateway.emitRoomUpdate).toHaveBeenCalled();
+    });
+
+    it('refuses anything else once the game is on', async () => {
+      mockAuthService.getUserBySessionId.mockResolvedValue({
+        id: HOST_USER_ID,
+      });
+      mockRoomRepository.findById.mockResolvedValue(
+        makeRoom({ status: RoomStatus.PLAYING }),
+      );
+
+      await expect(
+        service.updateSettings(HOST_SESSION, ROOM_ID, {
+          chatEnabled: false,
+          roundCount: 10,
+        }),
+      ).rejects.toThrow('The game has already started');
+      expect(mockRoomRepository.updateSettings).not.toHaveBeenCalled();
+    });
+
     // The lobby is a pushed list, so a room going private has to announce it
     // rather than wait for the next person to open the page.
     it('tells the lobby when findability changes', async () => {
