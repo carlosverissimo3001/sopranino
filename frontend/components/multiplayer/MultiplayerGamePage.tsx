@@ -317,7 +317,8 @@ export function MultiplayerGamePage({ roomId }: MultiplayerGamePageProps) {
           gameMode: GameMode.Multiplayer,
         }}
         header={
-          <>
+          // Clear of the chat icon, which takes the top-right corner on a phone.
+          <div className="mr-10 sm:mr-0">
             <AnimatePresence>
               {hostDisconnected && currentUserId !== room?.hostId && (
                 <HostDisconnectedBanner />
@@ -331,7 +332,7 @@ export function MultiplayerGamePage({ roomId }: MultiplayerGamePageProps) {
             <FinishCountdownBanner
               deadline={isGameOver ? undefined : room?.finishDeadline}
             />
-          </>
+          </div>
         }
         title={
           <>

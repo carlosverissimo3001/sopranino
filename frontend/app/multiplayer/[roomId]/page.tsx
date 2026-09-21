@@ -235,7 +235,7 @@ export default function RoomLobbyPage() {
 
       {/* Header bar */}
       <div className="sticky top-0 z-20 border-b border-fg/5 bg-bg/80 backdrop-blur-xl">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="max-w-2xl mx-auto py-3 pl-4 pr-12 sm:px-4 flex items-center justify-between">
           <button
             onClick={handleLeaveRoom}
             disabled={leaveRoom.isPending}
