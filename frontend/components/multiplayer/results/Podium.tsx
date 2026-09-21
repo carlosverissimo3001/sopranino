@@ -42,8 +42,10 @@ export function Podium({ players, ranks, currentUserId }: PodiumProps) {
   return (
     <div className="mb-6 flex items-end justify-center gap-2 sm:gap-3">
       {players.map((player, index) => {
-        const place = PLACES[index];
-        const isFirst = index === 0;
+        // By rank, not position: two players tied for first both stand on it.
+        const rank = ranks[index] ?? index + 1;
+        const place = PLACES[Math.min(rank, PLACES.length) - 1];
+        const isFirst = rank === 1;
 
         return (
           <div
@@ -90,7 +92,7 @@ export function Podium({ players, ranks, currentUserId }: PodiumProps) {
               className={`mt-2 flex w-full flex-col items-center justify-center rounded-t-xl border border-b-0 border-fg/[0.08] ${place.block} ${place.height}`}
             >
               <span className={`text-2xl font-black ${place.accent}`}>
-                {ranks[index]}
+                {rank}
               </span>
               <span
                 className={`text-sm font-black tabular-nums ${place.accent}`}

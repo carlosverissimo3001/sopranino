@@ -23,6 +23,7 @@ Name | Type
 `completedAt` | Date
 `chatEnabled` | boolean
 `finishDeadline` | Date
+`endedByHost` | boolean
 
 ## Example
 
@@ -48,6 +49,7 @@ const example = {
   "completedAt": null,
   "chatEnabled": null,
   "finishDeadline": null,
+  "endedByHost": null,
 } satisfies RoomDto
 
 console.log(example)

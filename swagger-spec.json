@@ -2084,6 +2084,45 @@
         ]
       }
     },
+    "/multiplayer/rooms/{id}/end": {
+      "post": {
+        "operationId": "MultiplayerController_endGame",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Only the host can end the game"
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "End a game under way now (host only)",
+        "tags": [
+          "Api"
+        ]
+      }
+    },
     "/multiplayer/rooms/{id}/leave": {
       "post": {
         "operationId": "MultiplayerController_leaveRoom",
@@ -2238,7 +2277,7 @@
             "cookie": []
           }
         ],
-        "summary": "Get scoreboard (only completed rounds visible)",
+        "summary": "Get scoreboard (a round shows once played, or once the room is over)",
         "tags": [
           "Api"
         ]
@@ -4860,6 +4899,10 @@
             "format": "date-time",
             "type": "string",
             "description": "Somebody has played the room out: when the rest stop being waited on"
+          },
+          "endedByHost": {
+            "type": "boolean",
+            "description": "The host ended the game before everyone had played it out"
           }
         },
         "required": [
@@ -4874,7 +4917,8 @@
           "trackSource",
           "players",
           "createdAt",
-          "chatEnabled"
+          "chatEnabled",
+          "endedByHost"
         ]
       },
       "SetTrackSourceDto": {

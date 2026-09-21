@@ -383,6 +383,10 @@ export interface MultiplayerControllerCreateRoomRequest {
     createRoomControllerDto: CreateRoomControllerDto;
 }
 
+export interface MultiplayerControllerEndGameRequest {
+    id: string;
+}
+
 export interface MultiplayerControllerGetRoomStateRequest {
     id: string;
 }
@@ -2223,6 +2227,43 @@ export class ApiApi extends runtime.BaseAPI {
     }
 
     /**
+     * End a game under way now (host only)
+     */
+    async multiplayerControllerEndGameRaw(requestParameters: MultiplayerControllerEndGameRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RoomDto>> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling multiplayerControllerEndGame().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/multiplayer/rooms/{id}/end`;
+        urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => RoomDtoFromJSON(jsonValue));
+    }
+
+    /**
+     * End a game under way now (host only)
+     */
+    async multiplayerControllerEndGame(requestParameters: MultiplayerControllerEndGameRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RoomDto> {
+        const response = await this.multiplayerControllerEndGameRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Get room state with players
      */
     async multiplayerControllerGetRoomStateRaw(requestParameters: MultiplayerControllerGetRoomStateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RoomDto>> {
@@ -2301,7 +2342,7 @@ export class ApiApi extends runtime.BaseAPI {
     }
 
     /**
-     * Get scoreboard (only completed rounds visible)
+     * Get scoreboard (a round shows once played, or once the room is over)
      */
     async multiplayerControllerGetScoreboardRaw(requestParameters: MultiplayerControllerGetScoreboardRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ScoreboardDto>> {
         if (requestParameters['id'] == null) {
@@ -2330,7 +2371,7 @@ export class ApiApi extends runtime.BaseAPI {
     }
 
     /**
-     * Get scoreboard (only completed rounds visible)
+     * Get scoreboard (a round shows once played, or once the room is over)
      */
     async multiplayerControllerGetScoreboard(requestParameters: MultiplayerControllerGetScoreboardRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ScoreboardDto> {
         const response = await this.multiplayerControllerGetScoreboardRaw(requestParameters, initOverrides);

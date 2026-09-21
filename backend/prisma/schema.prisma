@@ -317,6 +317,7 @@ model MultiplayerRoom {
   startedAt      DateTime? @map("started_at")
   completedAt    DateTime? @map("completed_at")
   finishDeadline DateTime? @map("finish_deadline")
+  endedByHost    Boolean   @default(false) @map("ended_by_host")
 
   players      RoomPlayer[]
   gameSessions GameSession[]

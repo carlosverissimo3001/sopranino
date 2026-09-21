@@ -158,6 +158,20 @@ export class MultiplayerController {
     return this.roomService.startGame(sessionId, id);
   }
 
+  @Post('rooms/:id/end')
+  @UseGuards(SessionGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiCookieAuth()
+  @ApiOperation({ summary: 'End a game under way now (host only)' })
+  @ApiResponse({ status: 200, type: RoomDto })
+  @ApiResponse({ status: 403, description: 'Only the host can end the game' })
+  async endGame(
+    @SessionId() sessionId: string,
+    @Param('id') id: string,
+  ): Promise<RoomDto> {
+    return this.gameService.endGame(sessionId, id);
+  }
+
   @Post('rooms/:id/leave')
   @UseGuards(SessionGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -205,7 +219,10 @@ export class MultiplayerController {
   @Get('rooms/:id/scoreboard')
   @UseGuards(SessionGuard)
   @ApiCookieAuth()
-  @ApiOperation({ summary: 'Get scoreboard (only completed rounds visible)' })
+  @ApiOperation({
+    summary:
+      'Get scoreboard (a round shows once played, or once the room is over)',
+  })
   @ApiResponse({ status: 200, type: ScoreboardDto })
   async getScoreboard(
     @SessionId() sessionId: string,

@@ -820,6 +820,75 @@ describe('MultiplayerGameService', () => {
     });
   });
 
+  describe('endGame', () => {
+    it('ends the wait once the host has played the room out', async () => {
+      mockAuthService.getUserBySessionId.mockResolvedValue({
+        id: HOST_USER_ID,
+      });
+      mockRoomRepository.findById.mockResolvedValue(makeRoom());
+      mockGameSessionRepository.countCompletedByPlayer.mockResolvedValue(
+        completedBy(2, 1),
+      );
+      mockRoomRepository.updateStatus.mockResolvedValue(
+        makeRoom({ status: RoomStatus.COMPLETED, endedByHost: true }),
+      );
+
+      const result = await service.endGame(HOST_SESSION, ROOM_ID);
+
+      expect(mockRoomRepository.updateStatus).toHaveBeenCalledWith(
+        ROOM_ID,
+        RoomStatus.COMPLETED,
+        {
+          completedAt: expect.any(Date),
+          finishDeadline: null,
+          endedByHost: true,
+        },
+      );
+      expect(result.endedByHost).toBe(true);
+      expect(mockRoomsGateway.emitRoomUpdate).toHaveBeenCalled();
+    });
+
+    // Otherwise it cuts everyone else's game off, not a wait.
+    it('refuses a host who still has rounds to play', async () => {
+      mockAuthService.getUserBySessionId.mockResolvedValue({
+        id: HOST_USER_ID,
+      });
+      mockRoomRepository.findById.mockResolvedValue(makeRoom());
+      mockGameSessionRepository.countCompletedByPlayer.mockResolvedValue(
+        completedBy(1, 2),
+      );
+
+      await expect(service.endGame(HOST_SESSION, ROOM_ID)).rejects.toThrow(
+        'Finish your own rounds first',
+      );
+      expect(mockRoomRepository.updateStatus).not.toHaveBeenCalled();
+    });
+
+    it('refuses anyone but the host', async () => {
+      mockAuthService.getUserBySessionId.mockResolvedValue({
+        id: PLAYER_USER_ID,
+      });
+      mockRoomRepository.findById.mockResolvedValue(makeRoom());
+
+      await expect(service.endGame(PLAYER_SESSION, ROOM_ID)).rejects.toThrow(
+        'Only the host can end the game',
+      );
+    });
+
+    it('refuses a room that is not under way', async () => {
+      mockAuthService.getUserBySessionId.mockResolvedValue({
+        id: HOST_USER_ID,
+      });
+      mockRoomRepository.findById.mockResolvedValue(
+        makeRoom({ status: RoomStatus.COMPLETED }),
+      );
+
+      await expect(service.endGame(HOST_SESSION, ROOM_ID)).rejects.toThrow(
+        'The game is not under way',
+      );
+    });
+  });
+
   describe('getScoreboard', () => {
     // The waiting screen stops polling while the socket is connected, so a room
     // stuck in PLAYING has no other way back. Opening the scoreboard is it.
@@ -901,6 +970,36 @@ describe('MultiplayerGameService', () => {
       expect(result.rounds).toHaveLength(1);
       expect(result.rounds[0].roundIndex).toBe(0);
       expect(result.rounds[0].players).toHaveLength(2);
+    });
+
+    // A room ended on somebody still has their results page to read.
+    it('shows every played round once the room is over', async () => {
+      mockAuthService.getUserBySessionId.mockResolvedValue({
+        id: PLAYER_USER_ID,
+      });
+      mockRoomRepository.findById.mockResolvedValue(
+        makeRoom({ status: RoomStatus.COMPLETED }),
+      );
+      mockGameSessionRepository.findAllRoomSessions.mockResolvedValue([
+        makeSession({
+          userId: HOST_USER_ID,
+          trackId: TRACK_1,
+          status: GameStatus.WON,
+          currentRound: 1,
+          user: { displayName: 'Host', avatarUrl: null },
+        }),
+        makeSession({
+          userId: HOST_USER_ID,
+          trackId: TRACK_2,
+          status: GameStatus.WON,
+          currentRound: 2,
+          user: { displayName: 'Host', avatarUrl: null },
+        }),
+      ]);
+
+      const result = await service.getScoreboard(PLAYER_SESSION, ROOM_ID);
+
+      expect(result.rounds.map((r) => r.roundIndex)).toEqual([0, 1]);
     });
 
     it('should sort standings by total score descending', async () => {

@@ -77,6 +77,11 @@ export class RoomDto {
   })
   finishDeadline?: Date;
 
+  @ApiProperty({
+    description: 'The host ended the game before everyone had played it out',
+  })
+  endedByHost: boolean;
+
   static fromEntity(room: RoomWithPlayers): RoomDto {
     return {
       id: room.id,
@@ -96,6 +101,7 @@ export class RoomDto {
       completedAt: room.completedAt ?? undefined,
       chatEnabled: room.chatEnabled,
       finishDeadline: room.finishDeadline ?? undefined,
+      endedByHost: room.endedByHost,
     };
   }
 }

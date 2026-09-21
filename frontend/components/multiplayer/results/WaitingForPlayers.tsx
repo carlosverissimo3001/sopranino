@@ -7,6 +7,7 @@ import { Check, Loader2 } from 'lucide-react';
 import type { RoomPlayerDto } from '@/sdk';
 import { HostDisconnectedBanner } from '../HostDisconnectedBanner';
 import { useFinishCountdown } from '@/hooks/multiplayer/useFinishCountdown';
+import { EndGameButton } from '../EndGameButton';
 
 interface WaitingForPlayersProps {
   players: RoomPlayerDto[];
@@ -15,6 +16,9 @@ interface WaitingForPlayersProps {
   hostDisconnected: boolean;
   /** Set once somebody has played the room out: when the rest stop counting. */
   finishDeadline?: Date;
+  roomId: string;
+  /** The host's own id, when the viewer is the host: done, and able to stop waiting. */
+  hostUserId?: string;
 }
 
 export function WaitingForPlayers({
@@ -23,8 +27,15 @@ export function WaitingForPlayers({
   playerProgress,
   hostDisconnected,
   finishDeadline,
+  roomId,
+  hostUserId,
 }: WaitingForPlayersProps) {
   const secondsLeft = useFinishCountdown(finishDeadline);
+  const stillPlaying = players.filter(
+    (p) =>
+      p.userId !== hostUserId &&
+      (playerProgress.get(p.userId) ?? -1) + 1 < totalRounds,
+  ).length;
   return (
     <div
       className="flex min-h-screen min-h-[100dvh] justify-center py-10"
@@ -62,6 +73,11 @@ export function WaitingForPlayers({
                 {secondsLeft}s
               </span>
             </p>
+          )}
+          {hostUserId && stillPlaying > 0 && (
+            <div className="mt-4 flex justify-center">
+              <EndGameButton roomId={roomId} stillPlaying={stillPlaying} />
+            </div>
           )}
         </div>
 
