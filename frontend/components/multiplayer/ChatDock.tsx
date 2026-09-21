@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { MessageCircle, X } from 'lucide-react';
 import { ChatPanel } from './ChatPanel';
+import { useUpdateRoomSettings } from '@/hooks/multiplayer/useUpdateRoomSettings';
 import type { ChatMessage, Refusal } from '@/lib/chat-socket';
 import type { RoomPlayerDto } from '@/sdk';
 
@@ -20,6 +21,10 @@ type ChatDockProps = {
   defaultOpen?: boolean;
   /** The room's roster, so a message shows its sender's name as it is now. */
   players?: RoomPlayerDto[];
+  /** False once the host has closed the room's chat. */
+  chatEnabled?: boolean;
+  /** Only the host gets the switch, and only the host sees a closed dock. */
+  isHost?: boolean;
 };
 
 const storageKey = (scope: string) => `unpaused:chat-open:${scope}`;
@@ -58,7 +63,15 @@ export function ChatDock(props: ChatDockProps) {
     channel,
     defaultOpen = false,
     players,
+    chatEnabled = true,
+    isHost = false,
   } = props;
+  const updateSettings = useUpdateRoomSettings();
+  const setChat = (enabled: boolean) =>
+    updateSettings.mutate({
+      roomId: channel,
+      settings: { chatEnabled: enabled },
+    });
   // A message carries the name it was sent under; somebody who has renamed
   // since shows by their current one.
   const named = useMemo(() => {
@@ -130,25 +143,66 @@ export function ChatDock(props: ChatDockProps) {
     <div className="fixed bottom-4 right-4 z-40 flex flex-col items-end gap-2 pb-[env(safe-area-inset-bottom)]">
       {open && (
         <div className="flex h-[22rem] w-[min(20rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-fg/10 bg-surface shadow-[0_12px_40px_rgba(0,0,0,0.5)]">
-          <button
+          {/* The whole bar collapses, as it did when it was one button; the ×
+              is the labelled control for keyboards and readers. */}
+          <div
             onClick={() => toggle(false)}
-            aria-expanded
-            aria-label={`Collapse ${label.toLowerCase()} chat`}
-            className="flex items-center justify-between border-b border-fg/10 px-3 py-2.5 text-left transition-colors hover:bg-fg/5"
+            className="flex cursor-pointer items-center gap-2 border-b border-fg/10 px-3 py-1.5 transition-colors hover:bg-fg/5"
           >
-            <span className="text-xs font-bold uppercase tracking-widest text-fg/40">
+            <span className="flex-1 text-xs font-bold uppercase tracking-widest text-fg/40">
               {label}
             </span>
-            <X className="h-4 w-4 text-fg/50" aria-hidden />
-          </button>
-          <ChatPanel
-            messages={named}
-            currentUserId={currentUserId}
-            onSend={onSend}
-            refused={refused}
-            muted={muted}
-            className="flex-1 p-3"
-          />
+            {isHost && chatEnabled && (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setChat(false);
+                }}
+                disabled={updateSettings.isPending}
+                className="cursor-pointer rounded-md px-2 py-1 text-[11px] font-semibold text-fg/50 transition-colors hover:bg-fg/5 hover:text-fg disabled:opacity-50"
+              >
+                Turn off for everyone
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                toggle(false);
+              }}
+              aria-expanded
+              aria-label={`Collapse ${label.toLowerCase()} chat`}
+              className="cursor-pointer rounded-md p-1 transition-colors hover:bg-fg/5"
+            >
+              <X className="h-4 w-4 text-fg/50" aria-hidden />
+            </button>
+          </div>
+          {!chatEnabled ? (
+            // Only the host reaches this: everyone else has no dock at all.
+            <div className="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center">
+              <p className="text-sm text-fg/60">
+                Chat is off for everyone in this room.
+              </p>
+              <button
+                type="button"
+                onClick={() => setChat(true)}
+                disabled={updateSettings.isPending}
+                className="cursor-pointer rounded-full bg-spotify-green px-4 py-2 text-xs font-black text-black transition-opacity disabled:opacity-50"
+              >
+                Turn it back on
+              </button>
+            </div>
+          ) : (
+            <ChatPanel
+              messages={named}
+              currentUserId={currentUserId}
+              onSend={onSend}
+              refused={refused}
+              muted={muted}
+              className="flex-1 p-3"
+            />
+          )}
         </div>
       )}
 
