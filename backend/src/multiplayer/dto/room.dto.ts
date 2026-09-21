@@ -67,6 +67,9 @@ export class RoomDto {
   @ApiPropertyOptional({ type: Date })
   completedAt?: Date;
 
+  @ApiProperty({ description: 'Whether the room has a chat' })
+  chatEnabled: boolean;
+
   @ApiPropertyOptional({
     type: Date,
     description:
@@ -91,6 +94,7 @@ export class RoomDto {
       createdAt: room.createdAt,
       startedAt: room.startedAt ?? undefined,
       completedAt: room.completedAt ?? undefined,
+      chatEnabled: room.chatEnabled,
       finishDeadline: room.finishDeadline ?? undefined,
     };
   }

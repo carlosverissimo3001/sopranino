@@ -20,6 +20,12 @@ import { mapValues } from '../runtime';
  */
 export interface UpdateRoomSettingsControllerDto {
     /**
+     * Whether the room has a chat. The one setting that can change once the game has started.
+     * @type {boolean}
+     * @memberof UpdateRoomSettingsControllerDto
+     */
+    chatEnabled?: boolean;
+    /**
      * What the room is called, in the lobby and to its players
      * @type {string}
      * @memberof UpdateRoomSettingsControllerDto
@@ -85,6 +91,7 @@ export function UpdateRoomSettingsControllerDtoFromJSONTyped(json: any, ignoreDi
     }
     return {
         
+        'chatEnabled': json['chatEnabled'] == null ? undefined : json['chatEnabled'],
         'name': json['name'] == null ? undefined : json['name'],
         'findable': json['findable'] == null ? undefined : json['findable'],
         'roundCount': json['roundCount'] == null ? undefined : json['roundCount'],
@@ -103,6 +110,7 @@ export function UpdateRoomSettingsControllerDtoToJSONTyped(value?: UpdateRoomSet
 
     return {
         
+        'chatEnabled': value['chatEnabled'],
         'name': value['name'],
         'findable': value['findable'],
         'roundCount': value['roundCount'],

@@ -7,6 +7,15 @@ import { ROOM_NAME_MAX_LENGTH, ROOM_SIZE_OPTIONS } from '../../consts';
 
 export class UpdateRoomSettingsControllerDto {
   @ApiPropertyOptional({
+    description:
+      'Whether the room has a chat. The one setting that can change once the game has started.',
+  })
+  @IsNotNullableOptional()
+  @Transform(({ value }) => toBoolean(value))
+  @IsBoolean()
+  chatEnabled?: boolean;
+
+  @ApiPropertyOptional({
     description: 'What the room is called, in the lobby and to its players',
     maxLength: ROOM_NAME_MAX_LENGTH,
   })

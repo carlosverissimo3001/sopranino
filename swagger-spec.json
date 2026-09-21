@@ -4892,6 +4892,10 @@
             "format": "date-time",
             "type": "string"
           },
+          "chatEnabled": {
+            "type": "boolean",
+            "description": "Whether the room has a chat"
+          },
           "finishDeadline": {
             "format": "date-time",
             "type": "string",
@@ -4909,7 +4913,8 @@
           "status",
           "trackSource",
           "players",
-          "createdAt"
+          "createdAt",
+          "chatEnabled"
         ]
       },
       "SetTrackSourceDto": {
@@ -4936,6 +4941,10 @@
       "UpdateRoomSettingsControllerDto": {
         "type": "object",
         "properties": {
+          "chatEnabled": {
+            "type": "boolean",
+            "description": "Whether the room has a chat. The one setting that can change once the game has started."
+          },
           "name": {
             "type": "string",
             "description": "What the room is called, in the lobby and to its players",

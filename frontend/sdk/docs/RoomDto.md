@@ -21,6 +21,7 @@ Name | Type
 `createdAt` | Date
 `startedAt` | Date
 `completedAt` | Date
+`chatEnabled` | boolean
 `finishDeadline` | Date
 
 ## Example
@@ -45,6 +46,7 @@ const example = {
   "createdAt": null,
   "startedAt": null,
   "completedAt": null,
+  "chatEnabled": null,
   "finishDeadline": null,
 } satisfies RoomDto
 

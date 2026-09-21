@@ -118,6 +118,12 @@ export interface RoomDto {
      */
     completedAt?: Date;
     /**
+     * Whether the room has a chat
+     * @type {boolean}
+     * @memberof RoomDto
+     */
+    chatEnabled: boolean;
+    /**
      * Somebody has played the room out: when the rest stop being waited on
      * @type {Date}
      * @memberof RoomDto
@@ -163,6 +169,7 @@ export function instanceOfRoomDto(value: object): value is RoomDto {
     if (!('trackSource' in value) || value['trackSource'] === undefined) return false;
     if (!('players' in value) || value['players'] === undefined) return false;
     if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
+    if (!('chatEnabled' in value) || value['chatEnabled'] === undefined) return false;
     return true;
 }
 
@@ -191,6 +198,7 @@ export function RoomDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean): R
         'createdAt': (new Date(json['createdAt'])),
         'startedAt': json['startedAt'] == null ? undefined : (new Date(json['startedAt'])),
         'completedAt': json['completedAt'] == null ? undefined : (new Date(json['completedAt'])),
+        'chatEnabled': json['chatEnabled'],
         'finishDeadline': json['finishDeadline'] == null ? undefined : (new Date(json['finishDeadline'])),
     };
 }
@@ -221,6 +229,7 @@ export function RoomDtoToJSONTyped(value?: RoomDto | null, ignoreDiscriminator: 
         'createdAt': value['createdAt'].toISOString(),
         'startedAt': value['startedAt'] == null ? value['startedAt'] : value['startedAt'].toISOString(),
         'completedAt': value['completedAt'] == null ? value['completedAt'] : value['completedAt'].toISOString(),
+        'chatEnabled': value['chatEnabled'],
         'finishDeadline': value['finishDeadline'] == null ? value['finishDeadline'] : value['finishDeadline'].toISOString(),
     };
 }

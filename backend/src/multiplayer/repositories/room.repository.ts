@@ -192,13 +192,28 @@ export class RoomRepository {
 
   async updateSettings(
     roomId: string,
-    settings: { name?: string; findable?: boolean; roundCount?: number },
+    settings: {
+      name?: string;
+      findable?: boolean;
+      roundCount?: number;
+      maxPlayers?: number;
+      chatEnabled?: boolean;
+    },
   ): Promise<RoomWithPlayers> {
     return this.prisma.multiplayerRoom.update({
       where: { id: roomId },
       data: settings,
       include: PLAYERS_INCLUDE,
     });
+  }
+
+  /** False for a room whose host closed the chat, or one that is gone. */
+  async isChatEnabled(roomId: string): Promise<boolean> {
+    const room = await this.prisma.multiplayerRoom.findUnique({
+      where: { id: roomId },
+      select: { chatEnabled: true },
+    });
+    return room?.chatEnabled ?? false;
   }
 
   async toggleReady(roomId: string, userId: string): Promise<RoomWithPlayers> {
