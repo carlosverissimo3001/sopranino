@@ -45,12 +45,6 @@ export interface RoomPlayerDto {
     avatarUrl?: string;
     /**
      * 
-     * @type {boolean}
-     * @memberof RoomPlayerDto
-     */
-    isReady: boolean;
-    /**
-     * 
      * @type {number}
      * @memberof RoomPlayerDto
      */
@@ -70,7 +64,6 @@ export function instanceOfRoomPlayerDto(value: object): value is RoomPlayerDto {
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('userId' in value) || value['userId'] === undefined) return false;
     if (!('displayName' in value) || value['displayName'] === undefined) return false;
-    if (!('isReady' in value) || value['isReady'] === undefined) return false;
     if (!('totalScore' in value) || value['totalScore'] === undefined) return false;
     if (!('joinedAt' in value) || value['joinedAt'] === undefined) return false;
     return true;
@@ -90,7 +83,6 @@ export function RoomPlayerDtoFromJSONTyped(json: any, ignoreDiscriminator: boole
         'userId': json['userId'],
         'displayName': json['displayName'],
         'avatarUrl': json['avatarUrl'] == null ? undefined : json['avatarUrl'],
-        'isReady': json['isReady'],
         'totalScore': json['totalScore'],
         'joinedAt': (new Date(json['joinedAt'])),
     };
@@ -111,7 +103,6 @@ export function RoomPlayerDtoToJSONTyped(value?: RoomPlayerDto | null, ignoreDis
         'userId': value['userId'],
         'displayName': value['displayName'],
         'avatarUrl': value['avatarUrl'],
-        'isReady': value['isReady'],
         'totalScore': value['totalScore'],
         'joinedAt': value['joinedAt'].toISOString(),
     };

@@ -427,10 +427,6 @@ export interface MultiplayerControllerSubmitGuessRequest {
     guessDto: GuessDto;
 }
 
-export interface MultiplayerControllerToggleReadyRequest {
-    id: string;
-}
-
 export interface MultiplayerControllerUpdateRoomSettingsRequest {
     id: string;
     updateRoomSettingsControllerDto: UpdateRoomSettingsControllerDto;
@@ -2655,43 +2651,6 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async multiplayerControllerSubmitGuess(requestParameters: MultiplayerControllerSubmitGuessRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GuessResultDto> {
         const response = await this.multiplayerControllerSubmitGuessRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Toggle ready status for current player
-     */
-    async multiplayerControllerToggleReadyRaw(requestParameters: MultiplayerControllerToggleReadyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RoomDto>> {
-        if (requestParameters['id'] == null) {
-            throw new runtime.RequiredError(
-                'id',
-                'Required parameter "id" was null or undefined when calling multiplayerControllerToggleReady().'
-            );
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-
-        let urlPath = `/multiplayer/rooms/{id}/ready`;
-        urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
-
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => RoomDtoFromJSON(jsonValue));
-    }
-
-    /**
-     * Toggle ready status for current player
-     */
-    async multiplayerControllerToggleReady(requestParameters: MultiplayerControllerToggleReadyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RoomDto> {
-        const response = await this.multiplayerControllerToggleReadyRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
