@@ -29,7 +29,6 @@ export function useStartGame() {
       }
     },
     onSuccess: (data, variables) => {
-      // Set the game state in cache immediately
       queryClient.setQueryData<GameStateDto>(
         queryKeys.game.state(data.sessionId),
         data,
@@ -47,12 +46,6 @@ export function useStartGame() {
       if (!queryClient.getQueryData(queryKeys.auth.me)) {
         void queryClient.invalidateQueries({ queryKey: queryKeys.auth.me });
       }
-      // The start answers with a trimmed state, no cover and no hints, so the
-      // full one is fetched once. The trimmed one above is what shows until
-      // it lands.
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.game.state(data.sessionId),
-      });
     },
   });
 }
