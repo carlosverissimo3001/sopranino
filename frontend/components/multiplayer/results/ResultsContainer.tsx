@@ -177,6 +177,12 @@ export function ResultsContainer({ roomId }: ResultsContainerProps) {
           playerProgress={playerProgress}
           hostDisconnected={hostDisconnected}
           finishDeadline={room?.finishDeadline}
+          roomId={roomId}
+          hostUserId={
+            currentUserId && currentUserId === room?.hostId
+              ? currentUserId
+              : undefined
+          }
         />
         {chat}
       </>
@@ -219,6 +225,11 @@ export function ResultsContainer({ roomId }: ResultsContainerProps) {
               tiedPlayerNames={tiedPlayerNames}
               personalScore={personalScore}
             />
+            {room?.endedByHost && (
+              <p className="-mt-3 mb-6 text-center text-xs text-fg/40">
+                The host ended the game before everyone had finished
+              </p>
+            )}
           </div>
 
           {/* Each section spans the width and splits internally. Side by side

@@ -129,6 +129,12 @@ export interface RoomDto {
      * @memberof RoomDto
      */
     finishDeadline?: Date;
+    /**
+     * The host ended the game before everyone had played it out
+     * @type {boolean}
+     * @memberof RoomDto
+     */
+    endedByHost: boolean;
 }
 
 
@@ -170,6 +176,7 @@ export function instanceOfRoomDto(value: object): value is RoomDto {
     if (!('players' in value) || value['players'] === undefined) return false;
     if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
     if (!('chatEnabled' in value) || value['chatEnabled'] === undefined) return false;
+    if (!('endedByHost' in value) || value['endedByHost'] === undefined) return false;
     return true;
 }
 
@@ -200,6 +207,7 @@ export function RoomDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean): R
         'completedAt': json['completedAt'] == null ? undefined : (new Date(json['completedAt'])),
         'chatEnabled': json['chatEnabled'],
         'finishDeadline': json['finishDeadline'] == null ? undefined : (new Date(json['finishDeadline'])),
+        'endedByHost': json['endedByHost'],
     };
 }
 
@@ -231,6 +239,7 @@ export function RoomDtoToJSONTyped(value?: RoomDto | null, ignoreDiscriminator: 
         'completedAt': value['completedAt'] == null ? value['completedAt'] : value['completedAt'].toISOString(),
         'chatEnabled': value['chatEnabled'],
         'finishDeadline': value['finishDeadline'] == null ? value['finishDeadline'] : value['finishDeadline'].toISOString(),
+        'endedByHost': value['endedByHost'],
     };
 }
 

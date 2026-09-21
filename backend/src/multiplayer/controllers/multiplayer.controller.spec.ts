@@ -27,6 +27,7 @@ describe('MultiplayerController guards', () => {
     'updateRoomSettings',
     'kickPlayer',
     'startGame',
+    'endGame',
     'leaveRoom',
     'getRoundState',
     'submitGuess',

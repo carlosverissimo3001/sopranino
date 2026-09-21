@@ -354,16 +354,22 @@ export class MultiplayerGameService {
       }
     }
 
-    // Build per-round scoreboard (only for rounds caller has completed)
+    // A round the caller has not played is a spoiler until the room is over;
+    // after that nobody can guess, and the unfinished see every answer too.
+    const isComplete = room.status === RoomStatus.COMPLETED;
     const rounds: ScoreboardRoundDto[] = [];
     for (const [trackId, roundIndex] of trackToRoundIndex) {
-      if (!callerCompletedRounds.has(roundIndex)) {
+      if (!isComplete && !callerCompletedRounds.has(roundIndex)) {
         continue;
       }
 
       const roundSessions = allSessions.filter(
         (s) => s.trackId === trackId && s.status !== GameStatus.PLAYING,
       );
+      // Nobody played it out, so there is nothing to show for it.
+      if (roundSessions.length === 0) {
+        continue;
+      }
       const track = roundSessions[0]?.track;
 
       const players: ScoreboardPlayerRoundDto[] = roundSessions.map((s) => {
@@ -394,7 +400,7 @@ export class MultiplayerGameService {
       rounds,
       standings: toStandings(room),
       roomStatus: room.status,
-      isComplete: room.status === RoomStatus.COMPLETED,
+      isComplete,
     };
   }
 
@@ -407,6 +413,42 @@ export class MultiplayerGameService {
     if (room) {
       await this.checkRoomCompletion(roomId, room.roundCount);
     }
+  }
+
+  /**
+   * The host cutting the finish window short. Only once they have played the
+   * room out themselves, so it ends a wait rather than everyone else's game;
+   * the unfinished keep the score they have, as when the window runs out.
+   */
+  async endGame(sessionId: string, roomId: string): Promise<RoomDto> {
+    const { id: userId } = await this.authService.getUserBySessionId(sessionId);
+    const room = await this.roomRepository.findById(roomId);
+    if (!room) {
+      throw new NotFoundException('Room not found');
+    }
+
+    if (room.hostId !== userId) {
+      throw new ForbiddenException('Only the host can end the game');
+    }
+
+    if (room.status !== RoomStatus.PLAYING) {
+      throw new BadRequestException('The game is not under way');
+    }
+
+    const completed =
+      await this.gameSessionRepository.countCompletedByPlayer(roomId);
+    if ((completed.get(userId) ?? 0) < room.roundCount) {
+      throw new BadRequestException('Finish your own rounds first');
+    }
+
+    const updated = await this.roomRepository.updateStatus(
+      roomId,
+      RoomStatus.COMPLETED,
+      { completedAt: new Date(), finishDeadline: null, endedByHost: true },
+    );
+    const dto = RoomDto.fromEntity(updated);
+    this.roomsGateway.emitRoomUpdate(roomId, dto);
+    return dto;
   }
 
   /** Called by the job when a room's window runs out. */

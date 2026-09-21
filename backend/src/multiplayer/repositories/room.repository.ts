@@ -159,6 +159,7 @@ export class RoomRepository {
       startedAt?: Date;
       completedAt?: Date;
       finishDeadline?: Date | null;
+      endedByHost?: boolean;
       trackIds?: string[];
     },
   ): Promise<RoomWithPlayers> {

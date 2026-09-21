@@ -49,9 +49,10 @@ All URIs are relative to *http://localhost*
 | [**gauntletControllerSubmitGuess**](ApiApi.md#gauntletcontrollersubmitguess) | **POST** /gauntlet/{id}/guess | Submit a guess for the current gauntlet track |
 | [**meStatusControllerGet**](ApiApi.md#mestatuscontrollerget) | **GET** /me/status | Streak, daily and speed run state, at once |
 | [**multiplayerControllerCreateRoom**](ApiApi.md#multiplayercontrollercreateroom) | **POST** /multiplayer/rooms | Create a new multiplayer room |
+| [**multiplayerControllerEndGame**](ApiApi.md#multiplayercontrollerendgame) | **POST** /multiplayer/rooms/{id}/end | End a game under way now (host only) |
 | [**multiplayerControllerGetRoomState**](ApiApi.md#multiplayercontrollergetroomstate) | **GET** /multiplayer/rooms/{id} | Get room state with players |
 | [**multiplayerControllerGetRoundState**](ApiApi.md#multiplayercontrollergetroundstate) | **GET** /multiplayer/rooms/{id}/round | Get current round state for the player |
-| [**multiplayerControllerGetScoreboard**](ApiApi.md#multiplayercontrollergetscoreboard) | **GET** /multiplayer/rooms/{id}/scoreboard | Get scoreboard (only completed rounds visible) |
+| [**multiplayerControllerGetScoreboard**](ApiApi.md#multiplayercontrollergetscoreboard) | **GET** /multiplayer/rooms/{id}/scoreboard | Get scoreboard (a round shows once played, or once the room is over) |
 | [**multiplayerControllerJoinOpenRoom**](ApiApi.md#multiplayercontrollerjoinopenroom) | **POST** /multiplayer/rooms/{id}/open-join | Join a findable room from the lobby |
 | [**multiplayerControllerJoinRoom**](ApiApi.md#multiplayercontrollerjoinroom) | **POST** /multiplayer/rooms/{code}/join | Join a room by invite code |
 | [**multiplayerControllerKickPlayer**](ApiApi.md#multiplayercontrollerkickplayer) | **POST** /multiplayer/rooms/{id}/kick | Remove a player from the room (host only) |
@@ -3146,6 +3147,76 @@ example().catch(console.error);
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 
+## multiplayerControllerEndGame
+
+> RoomDto multiplayerControllerEndGame(id)
+
+End a game under way now (host only)
+
+### Example
+
+```ts
+import {
+  Configuration,
+  ApiApi,
+} from '';
+import type { MultiplayerControllerEndGameRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: cookie
+    apiKey: "YOUR API KEY",
+  });
+  const api = new ApiApi(config);
+
+  const body = {
+    // string
+    id: id_example,
+  } satisfies MultiplayerControllerEndGameRequest;
+
+  try {
+    const data = await api.multiplayerControllerEndGame(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **id** | `string` |  | [Defaults to `undefined`] |
+
+### Return type
+
+[**RoomDto**](RoomDto.md)
+
+### Authorization
+
+[cookie](../README.md#cookie)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** |  |  -  |
+| **403** | Only the host can end the game |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
 ## multiplayerControllerGetRoomState
 
 > RoomDto multiplayerControllerGetRoomState(id)
@@ -3292,7 +3363,7 @@ example().catch(console.error);
 
 > ScoreboardDto multiplayerControllerGetScoreboard(id)
 
-Get scoreboard (only completed rounds visible)
+Get scoreboard (a round shows once played, or once the room is over)
 
 ### Example
 
