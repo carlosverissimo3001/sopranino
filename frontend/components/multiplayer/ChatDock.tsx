@@ -14,6 +14,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
+import { useIsBelowSm } from '@/hooks/useIsBelowSm';
 import { ChatPanel } from './ChatPanel';
 import { useUpdateRoomSettings } from '@/hooks/multiplayer/useUpdateRoomSettings';
 import type { ChatMessage, Refusal } from '@/lib/chat-socket';
@@ -87,8 +89,7 @@ export function ChatDock(props: ChatDockProps) {
       roomId: channel,
       settings: { chatEnabled: enabled },
     });
-  // A message carries the name it was sent under; somebody who has renamed
-  // since shows by their current one.
+  // A message carries the name it was sent under, not the current one.
   const named = useMemo(() => {
     if (!players?.length) return messages;
     const nameOf = new Map(players.map((p) => [p.userId, p.displayName]));
@@ -100,14 +101,13 @@ export function ChatDock(props: ChatDockProps) {
     });
   }, [messages, players]);
   const [open, setOpen] = useState(false);
+  const isPhone = useIsBelowSm();
   const [unread, setUnread] = useState(0);
   const seenRef = useRef(0);
   /** Cleared once the arriving history has been measured against it. */
   const lastReadRef = useRef<string | undefined>(undefined);
 
-  // After mount rather than in the initial state: the server renders this too,
-  // and reading storage there would hydrate against a different value. Before
-  // paint, or a dock closed last time flashes open for a frame on every visit.
+  // Not initial state, which would break hydration; before paint, or it flashes.
   useLayoutEffect(() => {
     setOpen(
       storedOpen(scope) ?? (defaultOpen && matchMedia(WIDE_SCREEN).matches),
@@ -156,101 +156,109 @@ export function ChatDock(props: ChatDockProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messages, open, currentUserId]);
 
-  return (
-    // In the header strip on a phone: the bottom corner is where a round's
-    // guess box, the lobby's Start and the results' last row all end up.
-    <div className="fixed right-2 top-1.5 z-40 flex flex-col items-end gap-2 sm:bottom-4 sm:right-4 sm:top-auto sm:pb-[env(safe-area-inset-bottom)]">
-      {open && (
-        // A backdrop to tap away, on a phone, where the sheet covers the page.
-        <div
-          aria-hidden
-          onClick={() => toggle(false)}
-          className="fixed inset-0 bg-black/40 sm:hidden"
+  const body = (
+    <>
+      {/* The whole bar collapses, as it did when it was one button; the ×
+          is the labelled control for keyboards and readers. */}
+      <div
+        onClick={() => toggle(false)}
+        className="flex cursor-pointer items-center gap-1 border-b border-fg/[0.08] py-2 pl-3 pr-2 transition-colors hover:bg-fg/[0.03]"
+      >
+        <Roster players={players} label={label} />
+        {isHost && chatEnabled && (
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              onClick={(event) => event.stopPropagation()}
+              aria-label="Chat settings"
+              className="cursor-pointer rounded-md p-1 text-fg/50 transition-colors hover:bg-fg/5 hover:text-fg"
+            >
+              <MoreHorizontal className="h-4 w-4" aria-hidden />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              onClick={(event) => event.stopPropagation()}
+              className="rounded-xl border-fg/10 bg-surface p-1 shadow-[0_12px_32px_rgba(0,0,0,0.45)]"
+            >
+              <DropdownMenuItem
+                disabled={updateSettings.isPending}
+                onSelect={() => setChat(false)}
+                className="cursor-pointer rounded-lg px-2.5 py-2 text-[13px] font-medium text-fg/80 focus:bg-fg/[0.06] focus:text-fg"
+              >
+                <MessageCircleOff className="mr-2 h-4 w-4" aria-hidden />
+                Turn off chat for everyone
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            toggle(false);
+          }}
+          aria-expanded
+          aria-label={`Collapse ${label.toLowerCase()} chat`}
+          className="cursor-pointer rounded-md p-1 transition-colors hover:bg-fg/5"
+        >
+          <X className="h-4 w-4 text-fg/50" aria-hidden />
+        </button>
+      </div>
+      {!chatEnabled ? (
+        // Only the host reaches this: everyone else has no dock at all.
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center">
+          <p className="text-sm text-fg/60">
+            Chat is off for everyone in this room.
+          </p>
+          <button
+            type="button"
+            onClick={() => setChat(true)}
+            disabled={updateSettings.isPending}
+            className="cursor-pointer rounded-full bg-spotify-green px-4 py-2 text-xs font-black text-black transition-opacity disabled:opacity-50"
+          >
+            Turn it back on
+          </button>
+        </div>
+      ) : (
+        <ChatPanel
+          messages={named}
+          currentUserId={currentUserId}
+          onSend={onSend}
+          refused={refused}
+          muted={muted}
+          className="flex-1 p-3"
         />
       )}
-      {open && (
-        // A sheet across the bottom on a phone, a card in the corner from sm.
-        <div className="fixed inset-x-0 bottom-0 flex h-[min(28rem,70dvh)] flex-col overflow-hidden rounded-t-2xl border border-b-0 border-fg/10 bg-surface/85 pb-[env(safe-area-inset-bottom)] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl sm:static sm:h-[22rem] sm:w-[min(20rem,calc(100vw-2rem))] sm:rounded-2xl sm:border-b sm:pb-0 sm:shadow-[0_12px_40px_rgba(0,0,0,0.5)]">
-          {/* The whole bar collapses, as it did when it was one button; the ×
-              is the labelled control for keyboards and readers. */}
-          <div
-            onClick={() => toggle(false)}
-            className="flex cursor-pointer items-center gap-1 border-b border-fg/[0.08] py-2 pl-3 pr-2 transition-colors hover:bg-fg/[0.03]"
+    </>
+  );
+
+  return (
+    // Top on a phone, where the guess box and Start hold the bottom corner.
+    <div className="fixed right-2 top-1.5 z-40 flex flex-col items-end gap-2 sm:bottom-4 sm:right-4 sm:top-auto sm:pb-[env(safe-area-inset-bottom)]">
+      {isPhone ? (
+        <Drawer open={open} onOpenChange={toggle}>
+          <DrawerContent
+            // Else the host's menu opens with a focus ring.
+            onOpenAutoFocus={(event) => event.preventDefault()}
+            className="h-[70svh] border-fg/15 bg-surface shadow-[0_-12px_40px_rgba(0,0,0,0.55)]"
           >
-            <Roster players={players} label={label} />
-            {isHost && chatEnabled && (
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  onClick={(event) => event.stopPropagation()}
-                  aria-label="Chat settings"
-                  className="cursor-pointer rounded-md p-1 text-fg/50 transition-colors hover:bg-fg/5 hover:text-fg"
-                >
-                  <MoreHorizontal className="h-4 w-4" aria-hidden />
-                </DropdownMenuTrigger>
-                {/* React bubbles through the portal, and the bar collapses on a click. */}
-                <DropdownMenuContent
-                  align="end"
-                  onClick={(event) => event.stopPropagation()}
-                  className="rounded-xl border-fg/10 bg-surface p-1 shadow-[0_12px_32px_rgba(0,0,0,0.45)]"
-                >
-                  <DropdownMenuItem
-                    disabled={updateSettings.isPending}
-                    onSelect={() => setChat(false)}
-                    className="cursor-pointer rounded-lg px-2.5 py-2 text-[13px] font-medium text-fg/80 focus:bg-fg/[0.06] focus:text-fg"
-                  >
-                    <MessageCircleOff className="mr-2 h-4 w-4" aria-hidden />
-                    Turn off chat for everyone
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-            <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                toggle(false);
-              }}
-              aria-expanded
-              aria-label={`Collapse ${label.toLowerCase()} chat`}
-              className="cursor-pointer rounded-md p-1 transition-colors hover:bg-fg/5"
-            >
-              <X className="h-4 w-4 text-fg/50" aria-hidden />
-            </button>
-          </div>
-          {!chatEnabled ? (
-            // Only the host reaches this: everyone else has no dock at all.
-            <div className="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center">
-              <p className="text-sm text-fg/60">
-                Chat is off for everyone in this room.
-              </p>
-              <button
-                type="button"
-                onClick={() => setChat(true)}
-                disabled={updateSettings.isPending}
-                className="cursor-pointer rounded-full bg-spotify-green px-4 py-2 text-xs font-black text-black transition-opacity disabled:opacity-50"
-              >
-                Turn it back on
-              </button>
+            <DrawerTitle className="sr-only">{label}</DrawerTitle>
+            <div className="flex min-h-0 flex-1 flex-col pb-[calc(env(safe-area-inset-bottom)+0.5rem)]">
+              {body}
             </div>
-          ) : (
-            <ChatPanel
-              messages={named}
-              currentUserId={currentUserId}
-              onSend={onSend}
-              refused={refused}
-              muted={muted}
-              className="flex-1 p-3"
-            />
-          )}
-        </div>
+          </DrawerContent>
+        </Drawer>
+      ) : (
+        open && (
+          <div className="flex h-[22rem] w-[min(20rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-fg/10 bg-surface/85 shadow-[0_12px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+            {body}
+          </div>
+        )
       )}
 
       {!open && (
         <button
           onClick={() => toggle(true)}
           aria-label={unread > 0 ? `${label}, ${unread} unread` : label}
-          // A plain header icon on a phone, where it sits in the header strip;
-          // the floating bubble from sm.
           className={`relative flex h-9 w-9 items-center justify-center rounded-full transition-colors sm:h-12 sm:w-12 sm:border sm:shadow-lg ${
             unread > 0
               ? 'text-spotify-green sm:border-spotify-green/40 sm:bg-spotify-green sm:text-spotify-black'

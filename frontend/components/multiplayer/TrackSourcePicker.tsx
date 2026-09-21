@@ -19,18 +19,21 @@ const OPTIONS = [
   {
     value: RoomDtoTrackSourceEnum.Pool,
     label: 'Anything',
+    short: 'Anything',
     detail: 'Songs everyone has a fair shot at',
     Icon: Disc3,
   },
   {
     value: RoomDtoTrackSourceEnum.Set,
     label: 'A set',
+    short: 'A set',
     detail: 'One artist, decade or genre',
     Icon: ListMusic,
   },
   {
     value: RoomDtoTrackSourceEnum.Libraries,
     label: 'Our libraries',
+    short: 'Libraries',
     detail: 'Pooled from the players with Spotify linked',
     Icon: Library,
   },
@@ -86,7 +89,7 @@ export function TrackSourcePicker({
       </p>
 
       <div className="grid grid-cols-3 gap-2">
-        {OPTIONS.map(({ value, label, detail, Icon }) => {
+        {OPTIONS.map(({ value, label, short, detail, Icon }) => {
           const active = selected === value;
           // Nobody in the room would have a library to pool from.
           const unavailable =
@@ -105,22 +108,23 @@ export function TrackSourcePicker({
                 setChoosingSet(false);
                 setTrackSource.mutate({ roomId: room.id, trackSource: value });
               }}
-              className={`flex flex-col gap-1 rounded-xl border px-3 py-3 text-left transition-all disabled:cursor-not-allowed disabled:opacity-40 ${
+              className={`flex flex-col items-center gap-1 rounded-xl border px-2 py-3 text-center transition-all sm:items-stretch sm:px-3 sm:text-left disabled:cursor-not-allowed disabled:opacity-40 ${
                 active
                   ? 'border-green-500/30 bg-green-500/10'
                   : 'border-fg/10 bg-fg/[0.03] hover:bg-fg/[0.06]'
               }`}
             >
-              <span className="flex items-center gap-2">
+              <span className="flex flex-col items-center gap-1.5 sm:flex-row sm:gap-2">
                 <Icon
-                  className={`h-4 w-4 ${active ? 'text-green-400' : 'text-fg/40'}`}
+                  className={`h-5 w-5 shrink-0 sm:h-4 sm:w-4 ${active ? 'text-green-400' : 'text-fg/40'}`}
                 />
                 <span
-                  className={`text-sm font-semibold ${
+                  className={`whitespace-nowrap text-sm font-semibold ${
                     active ? 'text-green-400' : 'text-fg/70'
                   }`}
                 >
-                  {label}
+                  <span className="sm:hidden">{short}</span>
+                  <span className="hidden sm:inline">{label}</span>
                 </span>
               </span>
               <span className="hidden text-[11px] leading-snug text-fg/40 sm:block">
