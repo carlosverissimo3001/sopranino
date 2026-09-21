@@ -18,6 +18,7 @@ type ChatDockProps = {
   scope: 'room' | 'round' | 'results';
   /** The room id. What has been read is remembered against it. */
   channel: string;
+  /** Open on arrival, on a wide screen only: on a phone it would cover the page. */
   defaultOpen?: boolean;
   /** The room's roster, so a message shows its sender's name as it is now. */
   players?: RoomPlayerDto[];
@@ -26,6 +27,8 @@ type ChatDockProps = {
   /** Only the host gets the switch, and only the host sees a closed dock. */
   isHost?: boolean;
 };
+
+const WIDE_SCREEN = '(min-width: 640px)';
 
 const storageKey = (scope: string) => `unpaused:chat-open:${scope}`;
 const readKey = (channel: string) => `unpaused:chat-read:${channel}`;
@@ -84,7 +87,7 @@ export function ChatDock(props: ChatDockProps) {
         : message;
     });
   }, [messages, players]);
-  const [open, setOpen] = useState(defaultOpen);
+  const [open, setOpen] = useState(false);
   const [unread, setUnread] = useState(0);
   const seenRef = useRef(0);
   /** Cleared once the arriving history has been measured against it. */
@@ -94,10 +97,11 @@ export function ChatDock(props: ChatDockProps) {
   // and reading storage there would hydrate against a different value. Before
   // paint, or a dock closed last time flashes open for a frame on every visit.
   useLayoutEffect(() => {
-    const stored = storedOpen(scope);
-    if (stored !== undefined) setOpen(stored);
+    setOpen(
+      storedOpen(scope) ?? (defaultOpen && matchMedia(WIDE_SCREEN).matches),
+    );
     lastReadRef.current = read(readKey(channel));
-  }, [scope, channel]);
+  }, [scope, channel, defaultOpen]);
 
   const markRead = (upTo: ChatMessage[]) => {
     const last = upTo[upTo.length - 1];
@@ -141,9 +145,20 @@ export function ChatDock(props: ChatDockProps) {
   }, [messages, open, currentUserId]);
 
   return (
-    <div className="fixed bottom-4 right-4 z-40 flex flex-col items-end gap-2 pb-[env(safe-area-inset-bottom)]">
+    // In the header strip on a phone: the bottom corner is where a round's
+    // guess box, the lobby's Start and the results' last row all end up.
+    <div className="fixed right-2 top-1.5 z-40 flex flex-col items-end gap-2 sm:bottom-4 sm:right-4 sm:top-auto sm:pb-[env(safe-area-inset-bottom)]">
       {open && (
-        <div className="flex h-[22rem] w-[min(20rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-fg/10 bg-surface shadow-[0_12px_40px_rgba(0,0,0,0.5)]">
+        // A backdrop to tap away, on a phone, where the sheet covers the page.
+        <div
+          aria-hidden
+          onClick={() => toggle(false)}
+          className="fixed inset-0 bg-black/40 sm:hidden"
+        />
+      )}
+      {open && (
+        // A sheet across the bottom on a phone, a card in the corner from sm.
+        <div className="fixed inset-x-0 bottom-0 flex h-[min(28rem,70dvh)] flex-col overflow-hidden rounded-t-2xl border border-b-0 border-fg/10 bg-surface pb-[env(safe-area-inset-bottom)] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:static sm:h-[22rem] sm:w-[min(20rem,calc(100vw-2rem))] sm:rounded-2xl sm:border-b sm:pb-0 sm:shadow-[0_12px_40px_rgba(0,0,0,0.5)]">
           {/* The whole bar collapses, as it did when it was one button; the ×
               is the labelled control for keyboards and readers. */}
           <div
@@ -211,15 +226,17 @@ export function ChatDock(props: ChatDockProps) {
         <button
           onClick={() => toggle(true)}
           aria-label={unread > 0 ? `${label}, ${unread} unread` : label}
-          className={`relative flex h-12 w-12 items-center justify-center rounded-full border shadow-lg transition-colors ${
+          // A plain header icon on a phone, where it sits in the header strip;
+          // the floating bubble from sm.
+          className={`relative flex h-9 w-9 items-center justify-center rounded-full transition-colors sm:h-12 sm:w-12 sm:border sm:shadow-lg ${
             unread > 0
-              ? 'border-spotify-green/40 bg-spotify-green text-spotify-black'
-              : 'border-fg/10 bg-surface text-fg/70 hover:text-fg'
+              ? 'text-spotify-green sm:border-spotify-green/40 sm:bg-spotify-green sm:text-spotify-black'
+              : 'text-fg/60 hover:text-fg sm:border-fg/10 sm:bg-surface'
           }`}
         >
           <MessageCircle className="h-5 w-5" aria-hidden />
           {unread > 0 && (
-            <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-fg px-1 text-[11px] font-bold tabular-nums text-bg">
+            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-spotify-green px-1 text-[10px] font-bold tabular-nums text-spotify-black sm:-right-1 sm:-top-1 sm:h-5 sm:min-w-5 sm:bg-fg sm:text-[11px] sm:text-bg">
               {unread > 9 ? '9+' : unread}
             </span>
           )}
