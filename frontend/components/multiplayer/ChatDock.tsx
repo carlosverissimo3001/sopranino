@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { MessageCircle, X } from 'lucide-react';
 import { ChatPanel } from './ChatPanel';
 import type { ChatMessage, Refusal } from '@/lib/chat-socket';
+import type { RoomPlayerDto } from '@/sdk';
 
 type ChatDockProps = {
   messages: ChatMessage[];
@@ -17,6 +18,8 @@ type ChatDockProps = {
   /** The room id. What has been read is remembered against it. */
   channel: string;
   defaultOpen?: boolean;
+  /** The room's roster, so a message shows its sender's name as it is now. */
+  players?: RoomPlayerDto[];
 };
 
 const storageKey = (scope: string) => `unpaused:chat-open:${scope}`;
@@ -54,7 +57,20 @@ export function ChatDock(props: ChatDockProps) {
     scope,
     channel,
     defaultOpen = false,
+    players,
   } = props;
+  // A message carries the name it was sent under; somebody who has renamed
+  // since shows by their current one.
+  const named = useMemo(() => {
+    if (!players?.length) return messages;
+    const nameOf = new Map(players.map((p) => [p.userId, p.displayName]));
+    return messages.map((message) => {
+      const current = nameOf.get(message.userId);
+      return current && current !== message.displayName
+        ? { ...message, displayName: current }
+        : message;
+    });
+  }, [messages, players]);
   const [open, setOpen] = useState(defaultOpen);
   const [unread, setUnread] = useState(0);
   const seenRef = useRef(0);
@@ -126,7 +142,7 @@ export function ChatDock(props: ChatDockProps) {
             <X className="h-4 w-4 text-fg/50" aria-hidden />
           </button>
           <ChatPanel
-            messages={messages}
+            messages={named}
             currentUserId={currentUserId}
             onSend={onSend}
             refused={refused}

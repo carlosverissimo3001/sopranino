@@ -152,6 +152,7 @@ export function ResultsContainer({ roomId }: ResultsContainerProps) {
   const chat = CHAT_ENABLED ? (
     <ChatDock
       messages={messages}
+      players={room?.players}
       currentUserId={currentUserId}
       onSend={sendMessage}
       refused={chatRefused}
