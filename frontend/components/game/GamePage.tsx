@@ -154,8 +154,10 @@ export function GamePage({
   }, [syncUrl, playingPlaylistId, playingSet?.slug]);
 
   const starting = !idle && isLoading;
+  // A playlist opened by its link has no name yet: say less rather than
+  // "undefined".
   const startingLine =
-    playlistId || trackGroupId
+    (playlistId || trackGroupId) && queuedName
       ? `Picking a song from ${queuedName}…`
       : 'Picking a song…';
   if (error) return <GameScreenError error={error} />;
