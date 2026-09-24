@@ -1,13 +1,12 @@
 'use client';
 
 import { TrackGroupDtoTypeEnum } from '@/sdk';
-import { memo, useState } from 'react';
-import { motion } from 'framer-motion';
+import { memo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { CARD_SHADOW } from '@/lib/styles';
 import { Play, ListMusic, Loader2 } from 'lucide-react';
 import type { TrackGroupDto } from '@/sdk';
-import { useImageColor } from '@/hooks/misc/useImageColor';
 import { SourceMark } from '@/components/features/imports/SourceMark';
 import type { PlaylistSource } from '@/lib/playlist-links';
 
@@ -17,7 +16,6 @@ interface TrackGroupCardProps {
   /** Takes the count's place while its songs are being read. */
   busyLabel?: string;
   group: TrackGroupDto;
-  onHover?: (color: string | null) => void;
 }
 
 /**
@@ -27,37 +25,15 @@ interface TrackGroupCardProps {
  */
 function TrackGroupCardComponent({
   group,
-  onHover,
   source,
   busyLabel,
 }: TrackGroupCardProps) {
-  const [isHovered, setIsHovered] = useState(false);
   const imported = group.type === TrackGroupDtoTypeEnum.Imported;
-  const ambientColor = useImageColor(group.imageUrl, {
-    fallback: 'rgba(30, 215, 96, 0.15)',
-    alpha: 0.15,
-  });
-
-  const glowColor = ambientColor.replace('0.15', '0.1').replace('0.1', '0.08');
 
   return (
     <Link href={`/group/${group.slug}`}>
-      <motion.div
-        onMouseEnter={() => {
-          setIsHovered(true);
-          onHover?.(ambientColor);
-        }}
-        onMouseLeave={() => {
-          setIsHovered(false);
-          onHover?.(null);
-        }}
-        className={`group relative bg-surface rounded-xl sm:rounded-2xl p-3 sm:p-5 border hover:bg-fg/[0.08] max-w-[400px] mx-auto w-full h-full md:h-auto transform-gpu ${imported ? 'border-[#A238FF]/35' : 'border-fg/5'}`}
-        style={{
-          boxShadow: isHovered
-            ? `0 30px 60px -12px rgba(0,0,0,0.6), 0 0 20px ${glowColor}`
-            : '0 10px 30px -15px rgba(0,0,0,0.3)',
-          backfaceVisibility: 'hidden',
-        }}
+      <div
+        className={`group relative bg-surface rounded-xl sm:rounded-2xl p-3 sm:p-5 border hover:bg-fg/[0.08] max-w-[400px] mx-auto w-full h-full md:h-auto transform-gpu [backface-visibility:hidden] ${CARD_SHADOW} ${imported ? 'border-[#A238FF]/35' : 'border-fg/5'}`}
       >
         <div className="flex flex-col relative z-10 h-full">
           <div className="relative aspect-square w-full rounded-lg sm:rounded-xl overflow-hidden mb-3 sm:mb-5 shadow-2xl">
@@ -100,7 +76,7 @@ function TrackGroupCardComponent({
             </div>
           </div>
         </div>
-      </motion.div>
+      </div>
     </Link>
   );
 }

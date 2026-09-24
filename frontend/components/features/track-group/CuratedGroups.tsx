@@ -1,7 +1,6 @@
 'use client';
 
 import { memo, useState } from 'react';
-import { motion } from 'framer-motion';
 import { AskForASet } from '@/components/features/track-group/AskForASet';
 import { TrackGroupCard } from '@/components/track-group/TrackGroupCard';
 import { PlaylistSkeleton } from '@/components/playlist/PlaylistSkeleton';
@@ -99,17 +98,15 @@ function CuratedGroupsComponent({ defaultOpen }: CuratedGroupsProps) {
           <AskForASet />
         </div>
       )}
-      <motion.div
+      <div
         key={kind.label}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
         className={GRID}
         style={{ maxWidth: '1200px', margin: '0 auto' }}
       >
         {kind.query.data?.map((group) => (
           <TrackGroupCard key={group.id} group={group} />
         ))}
-      </motion.div>
+      </div>
     </CollapsibleSection>
   );
 }
