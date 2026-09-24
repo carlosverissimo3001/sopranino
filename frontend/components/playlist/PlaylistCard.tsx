@@ -1,13 +1,12 @@
 'use client';
 
-import { memo, useState } from 'react';
-import { motion } from 'framer-motion';
+import { memo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { CARD_SHADOW } from '@/lib/styles';
 import { spotifySetPath } from '@/lib/set-routes';
 import { Play, ListMusic, Pin } from 'lucide-react';
 import type { PlaylistDto } from '@/sdk';
-import { useImageColor } from '@/hooks/misc/useImageColor';
 import { SourceMark } from '@/components/features/imports/SourceMark';
 import type { PlaylistSource } from '@/lib/playlist-links';
 
@@ -16,42 +15,16 @@ interface PlaylistCardProps {
   source?: PlaylistSource;
   playlist: Pick<PlaylistDto, 'id' | 'name' | 'imageUrl' | 'totalTracks'>;
   index: number;
-  onHover?: (color: string | null) => void;
 }
 
-function PlaylistCardComponent({
-  playlist,
-  onHover,
-  source,
-}: PlaylistCardProps) {
+function PlaylistCardComponent({ playlist, source }: PlaylistCardProps) {
   const imageUrl = playlist.imageUrl;
-  const [isHovered, setIsHovered] = useState(false);
-  const ambientColor = useImageColor(imageUrl, {
-    fallback: 'rgba(30, 215, 96, 0.15)',
-    alpha: 0.15,
-  });
   const isLikedSongs = playlist.id.endsWith('liked-songs');
-
-  const glowColor = ambientColor.replace('0.15', '0.1').replace('0.1', '0.08');
 
   return (
     <Link href={spotifySetPath(playlist.id)}>
-      <motion.div
-        onMouseEnter={() => {
-          setIsHovered(true);
-          onHover?.(ambientColor);
-        }}
-        onMouseLeave={() => {
-          setIsHovered(false);
-          onHover?.(null);
-        }}
-        className="group relative bg-surface rounded-xl sm:rounded-2xl p-3 sm:p-5 border border-fg/5 hover:bg-fg/[0.08] max-w-[400px] mx-auto w-full h-full md:h-auto transform-gpu"
-        style={{
-          boxShadow: isHovered
-            ? `0 30px 60px -12px rgba(0,0,0,0.6), 0 0 20px ${glowColor}`
-            : '0 10px 30px -15px rgba(0,0,0,0.3)',
-          backfaceVisibility: 'hidden',
-        }}
+      <div
+        className={`group relative bg-surface rounded-xl sm:rounded-2xl p-3 sm:p-5 border border-fg/5 hover:bg-fg/[0.08] max-w-[400px] mx-auto w-full h-full md:h-auto transform-gpu [backface-visibility:hidden] ${CARD_SHADOW}`}
       >
         <div className="flex flex-col relative z-10 h-full">
           <div className="relative aspect-square w-full rounded-lg sm:rounded-xl overflow-hidden mb-3 sm:mb-5 shadow-2xl">
@@ -98,7 +71,7 @@ function PlaylistCardComponent({
             </div>
           </div>
         </div>
-      </motion.div>
+      </div>
     </Link>
   );
 }

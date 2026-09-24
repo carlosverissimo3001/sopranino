@@ -15,3 +15,7 @@ export const SOLID_SURFACE_STYLE = {
   background: GLASS_STYLE.background,
   border: GLASS_STYLE.border,
 } as const;
+
+/** One hover glow for every card, whatever its cover looks like. */
+export const CARD_SHADOW =
+  'shadow-[0_10px_30px_-15px_rgba(0,0,0,0.3)] transition-shadow hover:shadow-[0_30px_60px_-12px_rgba(0,0,0,0.6),0_0_20px_rgba(30,215,96,0.12)]';

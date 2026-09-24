@@ -156,6 +156,9 @@ export function JoinRoomModal({ open, onClose }: JoinRoomModalProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            // Darker before the card lands: the spring below settles in about
+            // 100ms, and a slower backdrop shows the page through it.
+            transition={{ duration: 0.12, ease: 'easeOut' }}
           />
 
           <motion.div
