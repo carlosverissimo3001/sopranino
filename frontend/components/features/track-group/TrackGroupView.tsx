@@ -1,7 +1,6 @@
 'use client';
 
 import { memo } from 'react';
-import { motion } from 'framer-motion';
 import { TrackGroupCard } from '@/components/track-group/TrackGroupCard';
 import { PlaylistSkeleton } from '@/components/playlist/PlaylistSkeleton';
 import {
@@ -63,16 +62,14 @@ function TrackGroupViewComponent({
       titleLabel={title}
       defaultOpen={defaultOpen}
     >
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
+      <div
         className="grid grid-cols-2 md:grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-3 sm:gap-6 justify-center"
         style={{ maxWidth: '1200px', margin: '0 auto' }}
       >
         {groups.map((group) => (
           <TrackGroupCard key={group.id} group={group} />
         ))}
-      </motion.div>
+      </div>
     </CollapsibleSection>
   );
 }
