@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Quicksand } from 'next/font/google';
 import { Toaster } from 'sonner';
 import { Analytics } from '@vercel/analytics/react';
+import Script from 'next/script';
 import './globals.css';
 import { QueryProvider } from '@/components/providers/QueryProvider';
 import { CommandPalette } from '@/components/command-palette/CommandPalette';
@@ -96,6 +97,14 @@ export default function RootLayout({
           <Toaster theme="dark" position="bottom-right" />
         </ThemeProvider>
         <Analytics />
+        {process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID && (
+          <Script
+            src="https://analytics.alumni-feup.com/script.js"
+            data-website-id={process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID}
+            data-performance="true"
+            strategy="afterInteractive"
+          />
+        )}
       </body>
     </html>
   );
