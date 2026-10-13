@@ -99,7 +99,7 @@ export default function RootLayout({
         <Analytics />
         {process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID && (
           <Script
-            src="https://analytics.alumni-feup.com/script.js"
+            src="https://analytics.carlosverissimo.com/script.js"
             data-website-id={process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID}
             data-performance="true"
             strategy="afterInteractive"
