@@ -12,7 +12,6 @@ import {
   type GameHistoryEntryDto,
 } from '@/sdk/models/GameHistoryEntryDto';
 import { formatDate } from '@/utils/date-utils';
-import { cardVariants } from './card-motion';
 
 const GUESS_LABEL: Record<string, string> = {
   [GuessHistoryDtoResultEnum.Correct]: 'Correct',
@@ -43,7 +42,6 @@ interface HistoryCardProps {
   onShare: (id: string) => void;
   copied: boolean;
   showWinnerGlow?: boolean;
-  staggerIndex?: number;
 }
 
 /**
@@ -82,7 +80,6 @@ export function HistoryCard({
   onShare,
   copied,
   showWinnerGlow = false,
-  staggerIndex = 0,
 }: HistoryCardProps) {
   const [expanded, setExpanded] = useState(false);
   const isWon = entry.status === GameHistoryEntryDtoStatusEnum.Won;
@@ -94,11 +91,7 @@ export function HistoryCard({
       : (entry.score ?? 0);
 
   return (
-    <motion.article
-      variants={cardVariants}
-      initial="hidden"
-      animate="visible"
-      custom={staggerIndex}
+    <article
       onClick={() => entry.guesses.length > 0 && setExpanded(!expanded)}
       className={`group rounded-2xl bg-fg/[0.03] border overflow-hidden transition-colors duration-200 ${
         entry.guesses.length > 0 ? 'cursor-pointer' : ''
@@ -248,6 +241,6 @@ export function HistoryCard({
           </AnimatePresence>
         </div>
       </div>
-    </motion.article>
+    </article>
   );
 }

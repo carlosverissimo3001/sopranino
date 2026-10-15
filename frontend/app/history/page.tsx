@@ -24,14 +24,12 @@ import { usePlayedToday } from '@/hooks/game/usePlayedToday';
 import { buildTimeline } from '@/utils/history-timeline';
 import { GameHistoryEntryDtoStatusEnum } from '@/sdk/models/GameHistoryEntryDto';
 import { GameControllerGetHistoryStatusEnum as GameStatusFilter } from '@/sdk/apis/ApiApi';
-import { AnimatePresence, motion } from 'framer-motion';
 import { Play } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { useGameStats } from '../../hooks/game/useGameStats';
 import { GameStatsDtoModeEnum } from '../../sdk';
 
@@ -147,15 +145,6 @@ function HistoryPageContent() {
     [queryClient],
   );
 
-  // Show spinner while auth is resolving to prevent flash of empty state
-  if (isAuthLoading || history.isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner size="md" />
-      </div>
-    );
-  }
-
   if (history.error) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6">
@@ -173,6 +162,7 @@ function HistoryPageContent() {
     );
   }
 
+  const isLoading = isAuthLoading || history.isLoading;
   const hasNoResults = timeline.length === 0;
 
   return (
@@ -240,7 +230,9 @@ function HistoryPageContent() {
             />
           )}
 
-          {hasNoResults && !history.isPlaceholderData ? (
+          {isLoading || history.isPlaceholderData ? (
+            <HistorySkeleton count={pageSize} />
+          ) : hasNoResults ? (
             isFiltered ? (
               <div className="text-center py-16">
                 <p className="text-fg/40 text-sm">
@@ -266,73 +258,56 @@ function HistoryPageContent() {
                 </Link>
               </div>
             )
-          ) : history.isPlaceholderData ? (
-            <HistorySkeleton count={pageSize} />
           ) : (
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={`${mode.tab}-${page}-${search}-${statusFilter}-${difficulty}`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2, ease: 'easeOut' }}
-              >
-                <div className="space-y-3 sm:space-y-4">
-                  {timeline.map((entry, index) => {
-                    if (entry.type === 'freeze') {
-                      return (
-                        <FreezeHistoryCard
-                          key={`freeze-${entry.data.id}`}
-                          usage={entry.data}
-                          staggerIndex={index}
-                        />
-                      );
+            <div className="space-y-3 sm:space-y-4">
+              {timeline.map((entry) => {
+                if (entry.type === 'freeze') {
+                  return (
+                    <FreezeHistoryCard
+                      key={`freeze-${entry.data.id}`}
+                      usage={entry.data}
+                    />
+                  );
+                }
+                if (entry.type === 'streak-lost') {
+                  return (
+                    <StreakLostCard
+                      key={`lost-${entry.data.from}`}
+                      from={entry.data.from}
+                      to={entry.data.to}
+                      gapDays={entry.data.gapDays}
+                    />
+                  );
+                }
+                if (entry.type === 'run') {
+                  return (
+                    <GauntletHistoryCard
+                      key={entry.data.id}
+                      entry={entry.data}
+                      highlightBest={
+                        history.runSummary != null &&
+                        history.runSummary.bestScore > 0 &&
+                        entry.data.score === history.runSummary.bestScore
+                      }
+                    />
+                  );
+                }
+                return (
+                  <HistoryCard
+                    key={entry.data.id}
+                    entry={entry.data}
+                    onShare={handleShare}
+                    copied={copiedId === entry.data.id}
+                    // Six points is a win on the first guess. Anything
+                    // looser lit most of the list and singled out nothing.
+                    showWinnerGlow={
+                      entry.data.status === GameHistoryEntryDtoStatusEnum.Won &&
+                      entry.data.score === 6
                     }
-                    if (entry.type === 'streak-lost') {
-                      return (
-                        <StreakLostCard
-                          key={`lost-${entry.data.from}`}
-                          from={entry.data.from}
-                          to={entry.data.to}
-                          gapDays={entry.data.gapDays}
-                          staggerIndex={index}
-                        />
-                      );
-                    }
-                    if (entry.type === 'run') {
-                      return (
-                        <GauntletHistoryCard
-                          key={entry.data.id}
-                          entry={entry.data}
-                          highlightBest={
-                            history.runSummary != null &&
-                            history.runSummary.bestScore > 0 &&
-                            entry.data.score === history.runSummary.bestScore
-                          }
-                          staggerIndex={index}
-                        />
-                      );
-                    }
-                    return (
-                      <HistoryCard
-                        key={entry.data.id}
-                        entry={entry.data}
-                        onShare={handleShare}
-                        copied={copiedId === entry.data.id}
-                        // Six points is a win on the first guess. Anything
-                        // looser lit most of the list and singled out nothing.
-                        showWinnerGlow={
-                          entry.data.status ===
-                            GameHistoryEntryDtoStatusEnum.Won &&
-                          entry.data.score === 6
-                        }
-                        staggerIndex={index}
-                      />
-                    );
-                  })}
-                </div>
-              </motion.div>
-            </AnimatePresence>
+                  />
+                );
+              })}
+            </div>
           )}
         </main>
       </div>
@@ -388,8 +363,8 @@ export default function HistoryPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center">
-          <LoadingSpinner size="md" />
+        <div className="min-h-screen p-4 sm:p-8 lg:p-12 max-w-5xl mx-auto pb-24">
+          <HistorySkeleton count={DEFAULT_PAGE_SIZE} />
         </div>
       }
     >

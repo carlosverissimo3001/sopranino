@@ -1,28 +1,16 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { Snowflake } from 'lucide-react';
 import type { StreakFreezeUsageDto } from '@/sdk/models/StreakFreezeUsageDto';
 import { formatDateRange } from '@/utils/date-utils';
-import { cardVariants } from './card-motion';
 
 interface FreezeHistoryCardProps {
   usage: StreakFreezeUsageDto;
-  staggerIndex?: number;
 }
 
-export function FreezeHistoryCard({
-  usage,
-  staggerIndex = 0,
-}: FreezeHistoryCardProps) {
+export function FreezeHistoryCard({ usage }: FreezeHistoryCardProps) {
   return (
-    <motion.article
-      variants={cardVariants}
-      initial="hidden"
-      animate="visible"
-      custom={staggerIndex}
-      className="group relative rounded-xl overflow-hidden border border-cyan-400/[0.12]"
-    >
+    <article className="group relative rounded-xl overflow-hidden border border-cyan-400/[0.12]">
       <div className="absolute inset-0 bg-surface dark:bg-gradient-to-r dark:from-[#091520] dark:via-[#0b1a28] dark:to-[#060d14]" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_20%_-10%,rgba(34,211,238,0.06),transparent)]" />
 
@@ -57,6 +45,6 @@ export function FreezeHistoryCard({
           </span>
         </div>
       </div>
-    </motion.article>
+    </article>
   );
 }

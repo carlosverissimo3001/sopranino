@@ -1,31 +1,17 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { Flame } from 'lucide-react';
 import { formatDateRange } from '@/utils/date-utils';
-import { cardVariants } from './card-motion';
 
 interface StreakLostCardProps {
   from: string;
   to: string;
   gapDays: number;
-  staggerIndex?: number;
 }
 
-export function StreakLostCard({
-  from,
-  to,
-  gapDays,
-  staggerIndex = 0,
-}: StreakLostCardProps) {
+export function StreakLostCard({ from, to, gapDays }: StreakLostCardProps) {
   return (
-    <motion.article
-      variants={cardVariants}
-      initial="hidden"
-      animate="visible"
-      custom={staggerIndex}
-      className="group relative rounded-xl overflow-hidden border border-fg/[0.06]"
-    >
+    <article className="group relative rounded-xl overflow-hidden border border-fg/[0.06]">
       <div className="absolute inset-0 bg-surface dark:bg-gradient-to-r dark:from-[#1a1115] dark:via-[#161014] dark:to-[#110d10]" />
 
       <div className="relative flex">
@@ -49,6 +35,6 @@ export function StreakLostCard({
           </div>
         </div>
       </div>
-    </motion.article>
+    </article>
   );
 }

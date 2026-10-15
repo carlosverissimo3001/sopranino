@@ -4,7 +4,6 @@ import { EditableName } from '@/components/profile/EditableName';
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
 import {
   ArrowLeft,
   Crown,
@@ -22,7 +21,6 @@ import {
 } from '@/sdk/apis/ApiApi';
 import { DIFFICULTIES } from '@/lib/difficulty';
 import type { GauntletLeaderboardEntryDto } from '@/sdk/models/GauntletLeaderboardEntryDto';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useRouter } from 'next/navigation';
 
 const PERIODS: { value: Period; label: string }[] = [
@@ -77,20 +75,15 @@ function RankBadge({ rank }: { rank: number }) {
 function LeaderboardRow({
   entry,
   isCurrentUser,
-  staggerIndex,
 }: {
   entry: GauntletLeaderboardEntryDto;
   isCurrentUser: boolean;
-  staggerIndex: number;
 }) {
   const isPodium = entry.rank <= 3;
   const podiumStyle = isPodium ? PODIUM_STYLES[entry.rank] : null;
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.25, delay: staggerIndex * 0.03 }}
+    <div
       className={`flex items-center gap-3 px-4 py-3 rounded-2xl border transition-all ${
         isCurrentUser
           ? 'bg-spotify-green/[0.12] border-spotify-green/40 dark:bg-spotify-green/[0.06] dark:border-spotify-green/20 shadow-[0_0_20px_rgba(30,215,96,0.06)]'
@@ -137,7 +130,7 @@ function LeaderboardRow({
           {isCurrentUser ? (
             <>
               <EditableName className="max-w-full text-sm" />
-              <span className="ml-1.5 text-[9px] font-black uppercase tracking-wider text-spotify-green/60">
+              <span className="ml-1.5 text-[9px] font-black uppercase tracking-wider text-spotify-green">
                 You
               </span>
             </>
@@ -171,7 +164,26 @@ function LeaderboardRow({
           {entry.score}
         </span>
       </div>
-    </motion.div>
+    </div>
+  );
+}
+
+/** Placeholders while the board loads, shaped like the rows they replace. */
+function LeaderboardSkeleton() {
+  return (
+    <div className="space-y-2">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <div
+          key={i}
+          className="animate-pulse flex items-center gap-3 px-4 py-3 rounded-2xl border bg-fg/[0.02] border-fg/6"
+        >
+          <div className="w-8 h-8 rounded-full bg-fg/[0.06] shrink-0" />
+          <div className="w-9 h-9 rounded-full bg-fg/[0.06] shrink-0" />
+          <div className="h-3 flex-1 max-w-[8rem] rounded-full bg-fg/[0.06]" />
+          <div className="h-4 w-8 rounded-full bg-fg/[0.06] shrink-0" />
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -275,9 +287,7 @@ export function SpeedRunLeaderboard() {
 
       {/* Content */}
       {isLoading ? (
-        <div className="flex justify-center py-16">
-          <LoadingSpinner size="md" />
-        </div>
+        <LeaderboardSkeleton />
       ) : error ? (
         <div className="text-center py-16">
           <p className="text-red-600 dark:text-red-400 text-sm">
@@ -298,19 +308,12 @@ export function SpeedRunLeaderboard() {
           </p>
         </div>
       ) : (
-        <motion.div
-          key={`${period}-${difficulty}`}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.2 }}
-          className="space-y-2"
-        >
-          {entries.map((entry, i) => (
+        <div className="space-y-2">
+          {entries.map((entry) => (
             <LeaderboardRow
               key={`${entry.userId}-${entry.rank}`}
               entry={entry}
               isCurrentUser={entry.userId === user?.userId}
-              staggerIndex={i}
             />
           ))}
 
@@ -346,7 +349,7 @@ export function SpeedRunLeaderboard() {
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-bold text-spotify-green truncate">
                     {user?.displayName}
-                    <span className="ml-1.5 text-[9px] font-black uppercase tracking-wider text-spotify-green/60">
+                    <span className="ml-1.5 text-[9px] font-black uppercase tracking-wider text-spotify-green">
                       You
                     </span>
                   </p>
@@ -369,7 +372,7 @@ export function SpeedRunLeaderboard() {
               </div>
             </>
           )}
-        </motion.div>
+        </div>
       )}
     </div>
   );

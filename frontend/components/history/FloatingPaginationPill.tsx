@@ -41,7 +41,7 @@ export function FloatingPaginationPill({
 
         <span className="text-[11px] font-semibold text-white/70 tabular-nums select-none min-w-[3rem] sm:min-w-[3.5rem] text-center">
           <span className="text-[#1DB954] font-bold">{currentPage}</span>
-          <span className="text-white/20 mx-0.5">/</span>
+          <span className="text-white/35 mx-0.5">/</span>
           {Math.max(totalPages, 1)}
         </span>
 
@@ -67,7 +67,7 @@ export function FloatingPaginationPill({
                 className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold tabular-nums transition-all duration-150 touch-manipulation ${
                   pageSize === size
                     ? 'bg-white/15 text-white'
-                    : 'text-white/40 hover:text-white/70'
+                    : 'text-white/60 hover:text-white'
                 }`}
               >
                 {size}

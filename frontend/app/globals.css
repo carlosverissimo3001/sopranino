@@ -27,6 +27,28 @@ html:not(.dark) .text-fg\/30 { color: rgb(0 0 0 / 0.50) !important; }
 html:not(.dark) .text-fg\/25 { color: rgb(0 0 0 / 0.42) !important; }
 html:not(.dark) .text-fg\/20 { color: rgb(0 0 0 / 0.35) !important; }
 
+/* The same floor for dark mode, where most players are. White at /30 over
+   #121212 is 2.7:1, so every track count and caption failed AA; the ladder
+   stays monotone so the hierarchy survives the lift. */
+html.dark .text-fg\/25 { color: rgb(255 255 255 / 0.50); }
+html.dark .text-fg\/30 { color: rgb(255 255 255 / 0.54); }
+html.dark .text-fg\/35 { color: rgb(255 255 255 / 0.57); }
+html.dark .text-fg\/40 { color: rgb(255 255 255 / 0.60); }
+html.dark .text-fg\/45 { color: rgb(255 255 255 / 0.63); }
+html.dark .text-fg\/50 { color: rgb(255 255 255 / 0.66); }
+html.dark .text-fg\/60 { color: rgb(255 255 255 / 0.72); }
+
+/* Browser surfaces are part of the design: a selection and a caret in the
+   app's own green rather than the platform blue. */
+::selection {
+  background: rgb(29 185 84 / 0.3);
+  color: rgb(var(--fg));
+}
+
+body {
+  caret-color: #1DB954;
+}
+
 /* #1DB954 as text on a light surface is 2.4:1, under AA even for large text.
    Backgrounds keep the brand green; only text is darkened. */
 html:not(.dark) .text-spotify-green { color: #0e7a37; }

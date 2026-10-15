@@ -10,7 +10,6 @@ import {
   GauntletHistoryEntryDtoSourceEnum as Source,
 } from '@/sdk/models/GauntletHistoryEntryDto';
 import { formatDate } from '@/utils/date-utils';
-import { cardVariants } from './card-motion';
 
 const DIFFICULTY_BADGE: Record<string, { label: string; classes: string }> = {
   [Difficulty.Easy]: {
@@ -35,7 +34,6 @@ const MAX_TRACK_AVATARS = 5;
 
 interface GauntletHistoryCardProps {
   entry: GauntletHistoryEntryDto;
-  staggerIndex?: number;
   highlightBest?: boolean;
 }
 
@@ -48,7 +46,6 @@ function formatDuration(seconds: number) {
 
 export function GauntletHistoryCard({
   entry,
-  staggerIndex = 0,
   highlightBest = false,
 }: GauntletHistoryCardProps) {
   const [expanded, setExpanded] = useState(false);
@@ -57,11 +54,7 @@ export function GauntletHistoryCard({
   const endingTrackIndex = Math.max(entry.tracks.length - 1, 0);
 
   return (
-    <motion.article
-      variants={cardVariants}
-      initial="hidden"
-      animate="visible"
-      custom={staggerIndex}
+    <article
       className={`group overflow-hidden rounded-[22px] border transition-colors duration-200 ${
         highlightBest
           ? 'border-amber-400/20 bg-[linear-gradient(135deg,rgba(245,158,11,0.08),rgba(255,255,255,0.02)_35%,rgba(34,197,94,0.05)_100%)] shadow-[0_0_32px_rgba(245,158,11,0.08)]'
@@ -254,6 +247,6 @@ export function GauntletHistoryCard({
           </AnimatePresence>
         </div>
       </div>
-    </motion.article>
+    </article>
   );
 }
