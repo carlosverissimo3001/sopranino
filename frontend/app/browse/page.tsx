@@ -1,6 +1,9 @@
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
-import { BrowsePage } from '@/components/features/browse/BrowsePage';
+import {
+  BrowsePage,
+  BrowseSkeleton,
+} from '@/components/features/browse/BrowsePage';
 
 export const metadata: Metadata = {
   title: 'Browse',
@@ -10,7 +13,7 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <Suspense>
+    <Suspense fallback={<BrowseSkeleton />}>
       <BrowsePage />
     </Suspense>
   );

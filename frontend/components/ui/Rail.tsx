@@ -32,7 +32,7 @@ export function Rail({
     const width = card.current?.getBoundingClientRect().width ?? 220;
     return width + 16;
   });
-  const { overflows, progress, visible, dragging, moving } = rail.state;
+  const { overflows, atStart, atEnd, dragging, moving } = rail.state;
   /** The eye aligns the arrows to the artwork, not to the whole card. */
   const [coverCentre, setCoverCentre] = useState<number | null>(null);
 
@@ -51,8 +51,6 @@ export function Rail({
     if (card.current) observer.observe(card.current);
     return () => observer.disconnect();
   }, [children]);
-
-  const thumb = Math.max(8, visible * 100);
 
   return (
     <section className="group/rail relative">
@@ -102,10 +100,10 @@ export function Rail({
           ))}
         </div>
 
-        {overflows && progress > 0.01 && (
+        {overflows && !atStart && (
           <Step side="left" y={coverCentre} onClick={() => rail.nudge(-1)} />
         )}
-        {overflows && progress < 0.99 && (
+        {overflows && !atEnd && (
           <Step side="right" y={coverCentre} onClick={() => rail.nudge(1)} />
         )}
       </div>
@@ -121,13 +119,11 @@ export function Rail({
             : 'pointer-events-none opacity-0'
         }`}
       >
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-fg/[0.07] transition-[height] duration-150 group-hover/bar:h-2.5">
+        <div className="h-2.5 w-full overflow-hidden rounded-full bg-fg/[0.07]">
+          {/* Its width and position are written by the hook, not rendered. */}
           <div
-            className="h-full rounded-full bg-fg/40 transition-colors group-hover/bar:bg-fg/60"
-            style={{
-              width: `${thumb}%`,
-              transform: `translateX(${(progress * (100 - thumb) * 100) / thumb}%)`,
-            }}
+            ref={rail.thumbRef}
+            className="h-full w-full rounded-full bg-fg/40 transition-colors group-hover/bar:bg-fg/60"
           />
         </div>
       </div>
