@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Disc3, Library, ListMusic } from 'lucide-react';
 import { useSetTrackSource } from '@/hooks/multiplayer/useSetTrackSource';
-import { SetChips } from '@/components/features/track-group/SetChips';
+import { SetPicker } from '@/components/features/track-group/SetPicker';
 import { trackSourceSummary } from '@/lib/track-source';
 import { RoomDtoTrackSourceEnum } from '@/sdk';
 import type { RoomDto } from '@/sdk';
@@ -137,7 +137,7 @@ export function TrackSourcePicker({
 
       {selected === RoomDtoTrackSourceEnum.Set && (
         <div className="rounded-xl border border-fg/10 bg-fg/[0.02] p-3">
-          <SetChips
+          <SetPicker
             includeSpecial
             selectedId={selectedSetId}
             disabled={setTrackSource.isPending}

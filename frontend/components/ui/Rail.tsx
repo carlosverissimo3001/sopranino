@@ -13,6 +13,8 @@ interface RailProps {
   seeAll?: { href: string; count: number };
   /** Beside the title: a filter, an action, whatever the section owns. */
   actions?: ReactNode;
+  /** For a panel rather than a page: a quiet heading and smaller cards. */
+  compact?: boolean;
   children: ReactNode;
 }
 
@@ -25,6 +27,7 @@ export function Rail({
   titleLabel,
   seeAll,
   actions,
+  compact = false,
   children,
 }: RailProps) {
   const card = useRef<HTMLDivElement>(null);
@@ -54,10 +57,18 @@ export function Rail({
 
   return (
     <section className="group/rail relative">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-1">
-        <h2 className="text-xl font-black tracking-tighter text-fg sm:text-2xl">
-          {title}
-        </h2>
+      <div
+        className={`flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-1 ${compact ? 'mb-1.5' : 'mb-3'}`}
+      >
+        {compact ? (
+          <h2 className="text-[11px] font-bold uppercase tracking-wider text-fg/40">
+            {title}
+          </h2>
+        ) : (
+          <h2 className="text-xl font-black tracking-tighter text-fg sm:text-2xl">
+            {title}
+          </h2>
+        )}
         <div className="flex items-center gap-3">
           {actions}
           {seeAll && overflows && (
@@ -83,9 +94,9 @@ export function Rail({
           tabIndex={overflows ? 0 : -1}
           role="group"
           aria-label={`${titleLabel}, scrollable`}
-          className={`-mx-4 flex gap-3 overflow-x-auto px-4 pb-2 outline-none [scrollbar-width:none] focus-visible:ring-2 focus-visible:ring-spotify-green/40 sm:gap-4 [&::-webkit-scrollbar]:hidden ${
-            dragging ? 'cursor-grabbing select-none' : 'cursor-grab'
-          }`}
+          className={`flex overflow-x-auto pb-2 outline-none [scrollbar-width:none] focus-visible:ring-2 focus-visible:ring-spotify-green/40 [&::-webkit-scrollbar]:hidden ${
+            compact ? 'gap-2' : '-mx-4 gap-3 px-4 sm:gap-4'
+          } ${dragging ? 'cursor-grabbing select-none' : 'cursor-grab'}`}
         >
           {/* Flattened: a caller passing a list and a trailing card would
               otherwise put the whole list in one cell. */}
@@ -93,7 +104,7 @@ export function Rail({
             <div
               key={index}
               ref={index === 0 ? card : undefined}
-              className="w-[42%] shrink-0 sm:w-[220px]"
+              className={`shrink-0 ${compact ? 'w-[34%] sm:w-[132px]' : 'w-[42%] sm:w-[220px]'}`}
             >
               {child}
             </div>

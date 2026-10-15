@@ -10,7 +10,7 @@ import {
   Timer,
   Users,
 } from 'lucide-react';
-import { SetChips } from '@/components/features/track-group/SetChips';
+import { SetPicker } from '@/components/features/track-group/SetPicker';
 import {
   Drawer,
   DrawerContent,
@@ -169,7 +169,7 @@ export function ShuffleModeNav({
             {/* Chrome on iOS keeps its toolbar over the page and reports no
                 safe-area inset, so the room has to be asked for. */}
             <div className="overflow-y-auto px-4 pb-[calc(env(safe-area-inset-bottom)+3.5rem)]">
-              <SetChips
+              <SetPicker
                 selectedId={trackGroupId ?? selectedPlaylistId}
                 onPick={(set) =>
                   pick(trackGroupId === set.id ? undefined : set)
@@ -186,9 +186,9 @@ export function ShuffleModeNav({
           <div
             role="dialog"
             aria-label="Pick a set"
-            className="absolute inset-x-0 top-full z-40 mx-auto mt-2 w-full max-w-[27rem] rounded-2xl border border-fg/10 bg-[rgb(var(--surface))] p-3 text-left shadow-2xl shadow-black/50"
+            className="absolute inset-x-0 top-full z-40 mx-auto mt-2 max-h-[min(32rem,70vh)] w-full max-w-[34rem] overflow-y-auto rounded-2xl border border-fg/10 bg-[rgb(var(--surface))] p-3 text-left shadow-2xl shadow-black/50 [scrollbar-width:thin]"
           >
-            <SetChips
+            <SetPicker
               selectedId={trackGroupId ?? selectedPlaylistId}
               onPick={(set) => pick(trackGroupId === set.id ? undefined : set)}
               onPickPlaylist={onPlaylistChange ? pickPlaylist : undefined}
