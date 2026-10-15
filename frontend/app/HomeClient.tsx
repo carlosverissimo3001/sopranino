@@ -16,10 +16,8 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useTimezoneSync } from '@/hooks/user-preferences/useTimezoneSync';
 import { useSpotifyReturnMark } from '@/hooks/auth/useSpotifyReturnMark';
 import { UnverifiedEmailBanner } from '@/components/auth/UnverifiedEmailBanner';
-import { TrackGroupView } from '@/components/features/track-group/TrackGroupView';
 import { YourPlaylists } from '@/components/features/playlists/YourPlaylists';
-import { CuratedGroups } from '@/components/features/track-group/CuratedGroups';
-import { TrackGroupDtoTypeEnum } from '@/sdk';
+import { CuratedRails } from '@/components/features/track-group/CuratedRails';
 
 export function HomeClient({
   canSignIn,
@@ -126,7 +124,7 @@ export function HomeClient({
       <AppHeader user={user} />
 
       <div className="flex-1 px-4 sm:px-6 py-2 sm:py-8 relative z-10">
-        <div className="max-w-5xl mx-auto flex flex-col gap-3 sm:gap-6">
+        <div className="max-w-[1200px] mx-auto flex flex-col gap-3 sm:gap-6">
           <ErrorBanner error={error} />
           <UnverifiedEmailBanner user={user} />
 
@@ -139,17 +137,11 @@ export function HomeClient({
             >
               <GameModesGallery />
 
-              <YourPlaylists defaultOpen />
+              <YourPlaylists />
 
               {/* Rendered for everyone: the server answers with nothing for
                   anyone it is not for, and nothing renders nothing. */}
-              <TrackGroupView
-                type={TrackGroupDtoTypeEnum.Special}
-                title="Special"
-                defaultOpen
-              />
-
-              <CuratedGroups defaultOpen={!hasSpotify} />
+              <CuratedRails />
             </motion.div>
           ) : null}
         </div>
