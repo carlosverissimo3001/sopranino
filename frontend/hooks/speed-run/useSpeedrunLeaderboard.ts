@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queryKeys';
 import { api } from '@/sdk/client';
 import {
@@ -20,5 +20,8 @@ export function useGauntletLeaderboard(
     queryKey: queryKeys.gauntlet.leaderboard(period, difficulty),
     queryFn: () =>
       api.gauntletControllerGetLeaderboard({ period, difficulty, limit: 50 }),
+    // Switching period or difficulty keeps the board on screen instead of
+    // collapsing it to a spinner and back.
+    placeholderData: keepPreviousData,
   });
 }

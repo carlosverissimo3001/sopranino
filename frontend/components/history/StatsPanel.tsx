@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import { GameStatsDtoUnitEnum } from '@/sdk';
 import type { GameStatsDto } from '@/sdk';
@@ -109,12 +108,7 @@ export function StatsPanel({
   const dash = (value: string | number) => (isEmpty ? '—' : value);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="rounded-2xl bg-fg/[0.03] border border-fg/10 backdrop-blur-sm overflow-hidden"
-    >
+    <div className="rounded-2xl bg-fg/[0.03] border border-fg/10 backdrop-blur-sm overflow-hidden">
       <div className="p-4 lg:p-5">
         {/* One row on a phone, so the history is not pushed off the screen by
             the numbers above it; the column layout returns on a wide screen. */}
@@ -175,6 +169,6 @@ export function StatsPanel({
       </div>
 
       {children}
-    </motion.div>
+    </div>
   );
 }

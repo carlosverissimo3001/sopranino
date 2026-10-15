@@ -36,7 +36,7 @@ export function HintPanel({ hints, currentRound, known }: HintPanelProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: [0, 1, 1, 0] }}
           transition={{ duration: 5, times: [0, 0.1, 0.8, 1], delay: 0.5 }}
-          className="pointer-events-none absolute inset-x-0 -top-2 flex h-5 items-center justify-center gap-2 text-xs text-zinc-500 sm:-top-7 sm:text-sm md:-top-8"
+          className="pointer-events-none absolute inset-x-0 -top-2 flex h-5 items-center justify-center gap-2 text-xs text-fg/40 sm:-top-7 sm:text-sm md:-top-8"
         >
           <Lightbulb className="h-3.5 w-3.5" />
           <span>Every guess or skip unlocks a hint</span>
@@ -58,7 +58,7 @@ export function HintPanel({ hints, currentRound, known }: HintPanelProps) {
   return (
     // One scrolling row on a phone: the page holds its height from the start.
     <div className="mx-auto mb-3 flex w-fit max-w-full items-center gap-1.5 overflow-x-auto px-4 [scrollbar-width:none] sm:mb-5 sm:flex-wrap sm:justify-center">
-      <span className="shrink-0 text-[10px] text-zinc-500 font-semibold uppercase tracking-widest mr-0.5">
+      <span className="shrink-0 text-[10px] text-fg/40 font-semibold uppercase tracking-widest mr-0.5">
         Hints
       </span>
       {proved.map(({ label, value, Icon }) => (

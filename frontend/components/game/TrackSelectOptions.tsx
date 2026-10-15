@@ -90,7 +90,7 @@ export function TrackSelectOptions({
                     />
                   ) : (
                     <div className="w-10 h-10 rounded bg-fg/10 flex items-center justify-center flex-shrink-0">
-                      <Disc3 className="w-5 h-5 text-gray-500" />
+                      <Disc3 className="w-5 h-5 text-fg/40" />
                     </div>
                   )}
                   <div className="min-w-0 flex-1">
