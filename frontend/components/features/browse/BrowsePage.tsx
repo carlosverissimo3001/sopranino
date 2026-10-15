@@ -112,6 +112,14 @@ export function BrowsePage() {
 
   const searching = query.trim().length > 0;
 
+  /** A search spans every kind, so it starts and ends on a real chip. */
+  const search = (next: string) => {
+    if (next.trim() && !query.trim()) setKind(EVERY);
+    if (!next.trim())
+      setKind((previous) => (previous === EVERY ? Kind.Artist : previous));
+    setQuery(next);
+  };
+
   /** A name that starts with what was typed comes before one that contains it. */
   const rank = (name: string, needle: string) =>
     name.toLowerCase().startsWith(needle) ? 0 : 1;
@@ -192,13 +200,7 @@ export function BrowsePage() {
           />
           <input
             value={query}
-            onChange={(event) => {
-              const next = event.target.value;
-              // A search spans every kind, so it starts there.
-              if (next.trim() && !query.trim()) setKind(EVERY);
-              if (!next.trim() && kind === EVERY) setKind(Kind.Artist);
-              setQuery(next);
-            }}
+            onChange={(event) => search(event.target.value)}
             placeholder="Search sets and playlists"
             aria-label="Search sets and playlists"
             className="w-full rounded-full border border-fg/10 bg-fg/[0.04] py-3 pl-11 pr-11 text-sm text-fg placeholder:text-fg/35 focus:border-spotify-green/40 focus:outline-none"
@@ -206,7 +208,7 @@ export function BrowsePage() {
           {searching && (
             <button
               type="button"
-              onClick={() => setQuery('')}
+              onClick={() => search('')}
               aria-label="Clear search"
               className="absolute right-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-fg/40 transition-colors hover:bg-fg/10 hover:text-fg"
             >
@@ -294,7 +296,7 @@ export function BrowsePage() {
               )
             }
           />
-        ) : artists.isPending ? (
+        ) : artists.isPending || (kind === YOURS && library.isPending) ? (
           <Grid>
             {Array.from({ length: 10 }).map((_, index) => (
               <CardSkeleton key={`set-skeleton-${index}`} />
@@ -426,5 +428,31 @@ function SearchResults({
         </section>
       ))}
     </div>
+  );
+}
+
+/** The page's shape before it has anything to put in it. */
+export function BrowseSkeleton() {
+  return (
+    <main className="relative flex min-h-screen flex-col text-fg">
+      <div className="relative z-10 mx-auto w-full max-w-[1200px] flex-1 px-4 py-6 sm:px-6 sm:py-10">
+        <div className="mb-6 h-4 w-16 rounded-full bg-fg/[0.06]" />
+        <div className="mb-5 h-12 w-full rounded-full border border-fg/10 bg-fg/[0.04]" />
+        <div className="mb-6 flex flex-wrap gap-1.5">
+          {[64, 72, 80, 68, 70].map((width) => (
+            <div
+              key={width}
+              style={{ width }}
+              className="h-9 rounded-full bg-fg/[0.05]"
+            />
+          ))}
+        </div>
+        <Grid>
+          {Array.from({ length: 10 }).map((_, index) => (
+            <CardSkeleton key={`browse-skeleton-${index}`} />
+          ))}
+        </Grid>
+      </div>
+    </main>
   );
 }
