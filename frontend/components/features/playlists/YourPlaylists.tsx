@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Plus, X } from 'lucide-react';
-import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
-import { PlaylistSkeleton } from '@/components/playlist/PlaylistSkeleton';
+import { Rail } from '@/components/ui/Rail';
+import { CardSkeleton } from '@/components/ui/CardSkeleton';
 import { PlaylistCard } from '@/components/playlist/PlaylistCard';
 import { PlaylistFilters } from '@/components/features/playlist/PlaylistFilters';
 import { ImportPanel } from '@/components/features/imports/ImportPanel';
@@ -16,9 +16,6 @@ import { usePlaylistFilters } from '@/hooks/playlists/usePlaylistFilters';
 import { useMyPlaylistLibrary } from '@/hooks/playlists/useMyPlaylistLibrary';
 import { PlaylistSource } from '@/lib/playlist-links';
 import { PlaylistItemKind } from '@/sdk';
-
-const GRID =
-  'grid grid-cols-2 md:grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-3 sm:gap-6 justify-center';
 
 const KINDS = [
   // Neutral: colour names a kind, and "all" is not one.
@@ -36,7 +33,7 @@ const KINDS = [
   },
 ];
 
-export function YourPlaylists({ defaultOpen }: { defaultOpen: boolean }) {
+export function YourPlaylists() {
   const { data: user } = useMe();
   const allowed = canImport(user);
   const filters = usePlaylistFilters();
@@ -75,13 +72,15 @@ export function YourPlaylists({ defaultOpen }: { defaultOpen: boolean }) {
   const hasItems = allowed && items.length > 0;
   const showAdder = !hasItems || isAdding;
 
+  const title = 'Your playlists';
+
   const actions = hasItems && (
     <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-3">
       <button
         type="button"
         onClick={() => setIsAdding(!isAdding)}
         aria-expanded={isAdding}
-        className="hidden h-9 items-center gap-1.5 px-1 text-xs font-bold text-fg/60 transition-colors hover:text-fg sm:inline-flex"
+        className="inline-flex h-9 items-center gap-1.5 px-1 text-xs font-bold text-fg/60 transition-colors hover:text-fg"
       >
         {isAdding ? (
           <X className="h-3.5 w-3.5" />
@@ -90,43 +89,67 @@ export function YourPlaylists({ defaultOpen }: { defaultOpen: boolean }) {
         )}
         {isAdding ? 'Close' : 'Import'}
       </button>
+      {/* Sorting belongs to /browse, where the whole library is listed. */}
       <PlaylistFilters
         kinds={hasBoth ? KINDS : undefined}
         kind={filters.kind}
         onKindChange={filters.setKind}
-        sortBy={filters.sortBy}
-        order={filters.order}
-        onSortByChange={filters.chooseSort}
       />
     </div>
   );
 
-  // Beside the title on a phone, where the labelled one would sit alone on
-  // its own row above the filters.
-  const addToggle = hasItems && (
-    <button
-      type="button"
-      onClick={() => setIsAdding(!isAdding)}
-      aria-expanded={isAdding}
-      aria-label={isAdding ? 'Close import' : 'Import a playlist'}
-      className="flex h-8 w-8 items-center justify-center rounded-full text-fg/60 transition-colors hover:bg-fg/10 hover:text-fg"
-    >
-      {isAdding ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-    </button>
-  );
-
   return (
-    <CollapsibleSection
-      title="Your playlists"
-      titleLabel="Your playlists"
-      actions={actions || undefined}
-      titleAction={addToggle || undefined}
-      defaultOpen={defaultOpen}
-    >
+    <div className="space-y-3">
       {!hasItems && !isLoading && (
         <p className="-mt-2 mb-4 text-sm text-fg/60 sm:-mt-3 sm:mb-5 sm:text-base">
           Play songs from your own playlists. Only you see what you import.
         </p>
+      )}
+
+      {data?.spotifyUnavailable && (
+        <p role="status" className="mb-4 text-xs text-fg/50">
+          Spotify isn&apos;t answering right now, so only your imported
+          playlists are listed.
+        </p>
+      )}
+
+      {isLoading ? (
+        <Rail title={title} titleLabel="Your playlists">
+          {/* Enough to run past the edge, so the row does not grow as it fills. */}
+          {Array.from({ length: 10 }).map((_, i) => (
+            <CardSkeleton key={`playlist-skeleton-${i}`} />
+          ))}
+        </Rail>
+      ) : (
+        hasItems && (
+          <Rail
+            title={title}
+            titleLabel="Your playlists"
+            actions={actions || undefined}
+            seeAll={{
+              href: `/browse?kind=YOURS${filters.kind === 'ALL' ? '' : `&source=${filters.kind}`}`,
+              count: shown.length,
+            }}
+          >
+            {shown.map((item, index) =>
+              item.kind === PlaylistItemKind.Imported ? (
+                <ImportedPlaylistCard key={item.id} set={item} />
+              ) : (
+                <PlaylistCard
+                  key={item.id}
+                  index={index}
+                  playlist={{
+                    id: item.id,
+                    name: item.name,
+                    imageUrl: item.imageUrl ?? '',
+                    totalTracks: item.trackCount,
+                  }}
+                  source={PlaylistSource.Spotify}
+                />
+              ),
+            )}
+          </Rail>
+        )
       )}
 
       {showAdder && !isLoading && (
@@ -141,7 +164,7 @@ export function YourPlaylists({ defaultOpen }: { defaultOpen: boolean }) {
               });
             }
           }}
-          className={`space-y-3 sm:space-y-4 ${hasItems ? 'mb-6' : ''}`}
+          className={`space-y-3 sm:space-y-4 ${hasItems ? 'mt-4' : ''}`}
         >
           <ImportPanel
             onImported={() => setIsAdding(false)}
@@ -149,46 +172,6 @@ export function YourPlaylists({ defaultOpen }: { defaultOpen: boolean }) {
           />
         </div>
       )}
-
-      {data?.spotifyUnavailable && (
-        <p role="status" className="mb-4 text-xs text-fg/50">
-          Spotify isn&apos;t answering right now, so only your imported
-          playlists are listed.
-        </p>
-      )}
-
-      {isLoading ? (
-        <div className={GRID}>
-          {Array.from({ length: 4 }).map((_, i) => (
-            <PlaylistSkeleton key={`playlist-skeleton-${i}`} />
-          ))}
-        </div>
-      ) : (
-        hasItems && (
-          <div className={GRID}>
-            {shown.map((item, index) =>
-              item.kind === PlaylistItemKind.Imported ? (
-                <div key={item.id} className="group/card">
-                  <ImportedPlaylistCard set={item} />
-                </div>
-              ) : (
-                <div key={item.id} className="relative h-full">
-                  <PlaylistCard
-                    index={index}
-                    playlist={{
-                      id: item.id,
-                      name: item.name,
-                      imageUrl: item.imageUrl ?? '',
-                      totalTracks: item.trackCount,
-                    }}
-                    source={PlaylistSource.Spotify}
-                  />
-                </div>
-              ),
-            )}
-          </div>
-        )
-      )}
-    </CollapsibleSection>
+    </div>
   );
 }

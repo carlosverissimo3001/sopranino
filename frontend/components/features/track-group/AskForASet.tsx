@@ -11,7 +11,13 @@ const NAME_MAX = 80;
 const NAME_MIN = 3;
 const THANKS = 'Got it, thanks for asking.';
 
-export function AskForASet() {
+interface AskForASetProps {
+  /** A card has the room for a proper field; a line under a row does not. */
+  variant?: 'inline' | 'card';
+}
+
+export function AskForASet({ variant = 'inline' }: AskForASetProps) {
+  const card = variant === 'card';
   const submit = useSubmitFeedback();
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState('');
@@ -40,7 +46,14 @@ export function AskForASet() {
   };
 
   const form = (
-    <form onSubmit={send} className="flex flex-wrap items-center gap-2">
+    <form
+      onSubmit={send}
+      className={
+        card
+          ? 'flex w-full flex-col items-stretch gap-2'
+          : 'flex flex-wrap items-center gap-2'
+      }
+    >
       <label className="min-w-0 flex-1">
         <span className="sr-only">Artist name</span>
         {/* Beats the global 16px input rule. */}
@@ -57,7 +70,9 @@ export function AskForASet() {
           maxLength={NAME_MAX}
           autoFocus
           placeholder="Which artist?"
-          className="block w-full min-w-0 rounded-full border border-fg/10 bg-fg/5 px-3 py-1.5 !text-[10px] text-fg placeholder:text-fg/30 focus:border-spotify-green/40 focus:outline-none"
+          className={`block w-full min-w-0 rounded-full border border-fg/10 bg-fg/5 text-fg placeholder:text-fg/30 focus:border-spotify-green/40 focus:outline-none ${
+            card ? 'px-4 py-2.5 !text-sm' : 'px-3 py-1.5 !text-[10px]'
+          }`}
         />
       </label>
 
@@ -80,7 +95,9 @@ export function AskForASet() {
       <button
         type="submit"
         disabled={!canSend}
-        className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full bg-spotify-green px-3.5 py-1.5 text-xs font-semibold text-black transition-colors hover:bg-[#1ed760] disabled:cursor-not-allowed disabled:bg-fg/10 disabled:text-fg/30"
+        className={`inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full bg-spotify-green font-semibold text-black transition-colors hover:bg-[#1ed760] disabled:cursor-not-allowed disabled:bg-fg/10 disabled:text-fg/30 ${
+          card ? 'w-full py-2.5 text-sm' : 'px-3.5 py-1.5 text-xs'
+        }`}
       >
         {submit.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
         Ask
@@ -90,9 +107,11 @@ export function AskForASet() {
         type="button"
         onClick={close}
         aria-label="Cancel"
-        className="shrink-0 rounded-full p-1 text-fg/30 transition-colors hover:text-fg/70"
+        className={`shrink-0 rounded-full text-fg/30 transition-colors hover:text-fg/70 ${
+          card ? 'mx-auto px-3 py-1 text-xs' : 'p-1'
+        }`}
       >
-        <X className="h-3.5 w-3.5" />
+        {card ? 'Cancel' : <X className="h-3.5 w-3.5" />}
       </button>
 
       {submit.isError && (
@@ -121,10 +140,18 @@ export function AskForASet() {
       type="button"
       onClick={() => setIsOpen(true)}
       // A line of 10px text is not a tap target; the padding is the target.
-      className="-mx-2 inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-xs text-fg/40 transition-colors hover:text-fg/70"
+      className={
+        card
+          ? 'flex h-full w-full flex-col items-center justify-center gap-2 rounded-xl text-sm font-semibold text-fg/50 transition-colors hover:text-fg'
+          : '-mx-2 inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-xs text-fg/40 transition-colors hover:text-fg/70'
+      }
     >
-      <Plus className="h-3.5 w-3.5 shrink-0" />
-      Missing an artist? Tell us
+      <Plus
+        className={
+          card ? 'h-7 w-7 shrink-0 text-fg/30' : 'h-3.5 w-3.5 shrink-0'
+        }
+      />
+      {card ? 'Missing an artist?' : 'Missing an artist? Tell us'}
     </button>
   );
 }

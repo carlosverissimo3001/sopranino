@@ -34,10 +34,11 @@ interface PlaylistFiltersProps {
   }[];
   kind?: KindFilter;
   onKindChange?: (value: KindFilter) => void;
-  sortBy: SortPlaylistsBy;
+  /** Left out where the order is not the player's to choose, as on a rail. */
+  sortBy?: SortPlaylistsBy;
   /** Which way the chosen order runs; picking it again turns it around. */
-  order: SortOrder;
-  onSortByChange: (value: SortPlaylistsBy) => void;
+  order?: SortOrder;
+  onSortByChange?: (value: SortPlaylistsBy) => void;
 }
 
 /** One row per order; each says which way it runs once it is the chosen one. */
@@ -82,13 +83,13 @@ function PlaylistFiltersComponent({
   kind,
   onKindChange,
   sortBy,
-  order,
+  order = SortOrder.Asc,
   onSortByChange,
 }: PlaylistFiltersProps) {
   const indicatorId = useId();
   const active = SORT_OPTIONS.find((option) => option.value === sortBy);
   const activeSort = rowState(active ?? SORT_OPTIONS[0], order);
-  const isSortActive = sortBy !== SortPlaylistsBy.Default;
+  const isSortActive = !!sortBy && sortBy !== SortPlaylistsBy.Default;
 
   return (
     <div className="flex flex-wrap items-center gap-1.5 sm:gap-3">
@@ -124,57 +125,59 @@ function PlaylistFiltersComponent({
         </div>
       )}
 
-      <DropdownMenu modal={false}>
-        <DropdownMenuTrigger asChild>
-          <button
-            className={`${PILL_BASE} ml-0.5 sm:ml-1 gap-1.5 outline-none ${isSortActive ? PILL_ACTIVE : PILL_INACTIVE}`}
-          >
-            {isSortActive && (
-              <span className="absolute inset-1 rounded-full bg-spotify-green blur-md opacity-40 animate-pulse -z-10" />
-            )}
-            {isSortActive && (
-              <span className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/20 to-transparent pointer-events-none" />
-            )}
-            <span className="relative z-10 flex items-center gap-1.5">
-              {isSortActive ? activeSort.label : 'Sort'}
-              <ChevronDown className="size-3 opacity-60" />
-            </span>
-          </button>
-        </DropdownMenuTrigger>
+      {sortBy && (
+        <DropdownMenu modal={false}>
+          <DropdownMenuTrigger asChild>
+            <button
+              className={`${PILL_BASE} ml-0.5 sm:ml-1 gap-1.5 outline-none ${isSortActive ? PILL_ACTIVE : PILL_INACTIVE}`}
+            >
+              {isSortActive && (
+                <span className="absolute inset-1 rounded-full bg-spotify-green blur-md opacity-40 animate-pulse -z-10" />
+              )}
+              {isSortActive && (
+                <span className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/20 to-transparent pointer-events-none" />
+              )}
+              <span className="relative z-10 flex items-center gap-1.5">
+                {isSortActive ? activeSort.label : 'Sort'}
+                <ChevronDown className="size-3 opacity-60" />
+              </span>
+            </button>
+          </DropdownMenuTrigger>
 
-        <DropdownMenuContent
-          align="end"
-          className="min-w-[160px] bg-surface/80 backdrop-blur-md border border-fg/10"
-        >
-          <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-fg/30 font-bold">
-            Sort by
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator className="bg-fg/5" />
-          <DropdownMenuRadioGroup
-            value={sortBy}
-            onValueChange={(v) => onSortByChange(v as SortPlaylistsBy)}
+          <DropdownMenuContent
+            align="end"
+            className="min-w-[160px] bg-surface/80 backdrop-blur-md border border-fg/10"
           >
-            {SORT_OPTIONS.map((option) => {
-              // A row that is not the chosen one shows the way it would start.
-              const chosen = option.value === sortBy;
-              const { label, Icon } = rowState(
-                option,
-                chosen ? order : NATURAL_ORDER[option.value],
-              );
-              return (
-                <DropdownMenuRadioItem
-                  key={option.value}
-                  value={option.value}
-                  className="text-xs text-fg/70 focus:bg-fg/[0.08] focus:text-fg data-[state=checked]:text-fg cursor-pointer gap-2"
-                >
-                  <Icon className="size-3.5 opacity-50" />
-                  {label}
-                </DropdownMenuRadioItem>
-              );
-            })}
-          </DropdownMenuRadioGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
+            <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-fg/30 font-bold">
+              Sort by
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator className="bg-fg/5" />
+            <DropdownMenuRadioGroup
+              value={sortBy}
+              onValueChange={(v) => onSortByChange?.(v as SortPlaylistsBy)}
+            >
+              {SORT_OPTIONS.map((option) => {
+                // A row that is not the chosen one shows the way it would start.
+                const chosen = option.value === sortBy;
+                const { label, Icon } = rowState(
+                  option,
+                  chosen ? order : NATURAL_ORDER[option.value],
+                );
+                return (
+                  <DropdownMenuRadioItem
+                    key={option.value}
+                    value={option.value}
+                    className="text-xs text-fg/70 focus:bg-fg/[0.08] focus:text-fg data-[state=checked]:text-fg cursor-pointer gap-2"
+                  >
+                    <Icon className="size-3.5 opacity-50" />
+                    {label}
+                  </DropdownMenuRadioItem>
+                );
+              })}
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
     </div>
   );
 }
