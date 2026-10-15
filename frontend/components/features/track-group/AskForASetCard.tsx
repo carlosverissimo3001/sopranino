@@ -8,7 +8,7 @@ import { AskForASet } from './AskForASet';
  */
 export function AskForASetCard() {
   return (
-    <div className="mx-auto flex aspect-[220/289] w-full max-w-[400px] flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-fg/15 bg-fg/[0.02] p-3 text-center transition-colors hover:border-fg/30 sm:rounded-2xl sm:p-5">
+    <div className="mx-auto flex h-full min-h-[220px] w-full max-w-[400px] flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-fg/15 bg-fg/[0.02] p-3 text-center transition-colors hover:border-fg/30 sm:rounded-2xl sm:p-5">
       <AskForASet variant="card" />
     </div>
   );

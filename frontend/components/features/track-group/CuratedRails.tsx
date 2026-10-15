@@ -14,11 +14,13 @@ import type { TrackGroupDto } from '@/sdk';
  * specials as they are; the rest lead with their fullest sets.
  */
 const KINDS = [
+  // Specials lead: only the few who can see them have them, and they are the
+  // reason those players came.
+  { type: Kind.Special, title: 'Specials', keepServerOrder: true },
   { type: Kind.Artist, title: 'Artists', keepServerOrder: false },
   { type: Kind.Decade, title: 'Decades', keepServerOrder: false },
   { type: Kind.Genre, title: 'Genres', keepServerOrder: false },
   { type: Kind.Chart, title: 'Charts', keepServerOrder: true },
-  { type: Kind.Special, title: 'Specials', keepServerOrder: true },
 ] as const;
 
 const bySize = (a: TrackGroupDto, b: TrackGroupDto) =>

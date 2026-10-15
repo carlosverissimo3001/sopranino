@@ -22,16 +22,21 @@ function rubberband(overshoot: number, width: number, constant = 0.55): number {
   );
 }
 
+/**
+ * Only what changes the page: the indicator's own position is written to its
+ * element, because a row re-rendering its cards on every scroll event is the
+ * lag you feel dragging one.
+ */
 interface RailState {
   /** The row is moving, or was a moment ago: the indicator lives this long. */
   moving: boolean;
-  /** How far along the row is, 0 to 1, for the progress line. */
-  progress: number;
-  /** Fraction of the row on screen; 1 when nothing overflows. */
-  visible: number;
   overflows: boolean;
+  atStart: boolean;
+  atEnd: boolean;
   dragging: boolean;
 }
+
+const MIN_THUMB_PERCENT = 8;
 
 export function useRail(cardStep: () => number) {
   const ref = useRef<HTMLDivElement>(null);
@@ -49,11 +54,13 @@ export function useRail(cardStep: () => number) {
   const scrubbing = useRef(false);
   /** Where along the thumb it was grabbed. */
   const held = useRef(0);
+  /** The indicator, written to directly rather than rendered. */
+  const thumb = useRef<HTMLDivElement | null>(null);
   const [state, setState] = useState<RailState>({
     moving: false,
-    progress: 0,
-    visible: 1,
     overflows: false,
+    atStart: true,
+    atEnd: true,
     dragging: false,
   });
 
@@ -67,14 +74,36 @@ export function useRail(cardStep: () => number) {
         900,
       );
     }
+
     const span = el.scrollWidth - el.clientWidth;
-    setState((previous) => ({
-      ...previous,
-      moving: moving || previous.moving,
-      overflows: span > 8,
-      visible: el.clientWidth / el.scrollWidth,
-      progress: span > 0 ? Math.min(1, Math.max(0, el.scrollLeft / span)) : 0,
-    }));
+    const progress =
+      span > 0 ? Math.min(1, Math.max(0, el.scrollLeft / span)) : 0;
+    const width = Math.max(
+      MIN_THUMB_PERCENT,
+      (el.clientWidth / el.scrollWidth) * 100,
+    );
+    if (thumb.current) {
+      thumb.current.style.width = `${width}%`;
+      thumb.current.style.transform = `translateX(${(progress * (100 - width) * 100) / width}%)`;
+    }
+
+    setState((previous) => {
+      const next = {
+        ...previous,
+        moving: moving || previous.moving,
+        overflows: span > 8,
+        atStart: el.scrollLeft <= 20,
+        atEnd: el.scrollLeft + el.clientWidth >= el.scrollWidth - 8,
+      };
+      // Scrolling changes none of these most frames, and an identical object
+      // would still re-render every card in the row.
+      return next.moving === previous.moving &&
+        next.overflows === previous.overflows &&
+        next.atStart === previous.atStart &&
+        next.atEnd === previous.atEnd
+        ? previous
+        : next;
+    });
   }, []);
 
   /**
@@ -269,6 +298,7 @@ export function useRail(cardStep: () => number) {
 
   return {
     ref: attach,
+    thumbRef: thumb,
     state,
     nudge,
     onScroll: () => read(true),
