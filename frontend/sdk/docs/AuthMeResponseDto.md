@@ -11,6 +11,7 @@ Name | Type
 `hasLinkedAccount` | boolean
 `hasAccount` | boolean
 `googleLinked` | boolean
+`hasPassword` | boolean
 `email` | string
 `emailVerified` | boolean
 `pendingEmail` | string
@@ -36,6 +37,7 @@ const example = {
   "hasLinkedAccount": false,
   "hasAccount": false,
   "googleLinked": false,
+  "hasPassword": true,
   "email": null,
   "emailVerified": false,
   "pendingEmail": null,

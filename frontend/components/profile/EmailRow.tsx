@@ -29,8 +29,14 @@ export function EmailRow({ user }: { user: AuthMeResponseDto }) {
     setPanel(panel === next ? null : next);
   };
 
+  // With nothing under the address it is one line, and sits centred like the
+  // provider rows below it; with actions or notices it aligns to the top.
+  const hasDetails = user.hasPassword || !verified || !!user.pendingEmail;
+
   return (
-    <div className="flex items-start gap-3 px-5 py-4">
+    <div
+      className={`flex gap-3 px-5 py-4 ${hasDetails ? 'items-start' : 'items-center'}`}
+    >
       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-fg/5 text-fg/50">
         <Mail className="h-4 w-4" />
       </span>
@@ -76,26 +82,30 @@ export function EmailRow({ user }: { user: AuthMeResponseDto }) {
 
         {user.pendingEmail && <PendingChange email={user.pendingEmail} />}
 
-        <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1.5">
-          {!user.pendingEmail && (
+        {/* Both forms ask for the current password, so an account that signs
+            in through Google alone has nothing to type into them. */}
+        {user.hasPassword && (
+          <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1.5">
+            {!user.pendingEmail && (
+              <button
+                type="button"
+                aria-expanded={panel === 'email'}
+                onClick={() => toggle('email')}
+                className={ACTION}
+              >
+                Change email
+              </button>
+            )}
             <button
               type="button"
-              aria-expanded={panel === 'email'}
-              onClick={() => toggle('email')}
+              aria-expanded={panel === 'password'}
+              onClick={() => toggle('password')}
               className={ACTION}
             >
-              Change email
+              Change password
             </button>
-          )}
-          <button
-            type="button"
-            aria-expanded={panel === 'password'}
-            onClick={() => toggle('password')}
-            className={ACTION}
-          >
-            Change password
-          </button>
-        </div>
+          </div>
+        )}
 
         {note && <p className="mt-2 text-xs text-fg/60">{note}</p>}
 

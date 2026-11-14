@@ -3202,6 +3202,11 @@
             "example": false,
             "description": "Whether a Google account can sign in to this one"
           },
+          "hasPassword": {
+            "type": "boolean",
+            "example": true,
+            "description": "Whether the account has a password. Changing it, or the email, asks for the current one, so neither is offered without."
+          },
           "email": {
             "type": "string",
             "description": "Email of the account, when it was created with one"
@@ -3265,6 +3270,7 @@
           "hasLinkedAccount",
           "hasAccount",
           "googleLinked",
+          "hasPassword",
           "emailVerified",
           "preferences",
           "displayName",

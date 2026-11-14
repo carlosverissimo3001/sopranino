@@ -61,7 +61,7 @@ const mockUserRepository = {
   setGoogleUserId: jest.fn(),
 };
 
-const mockAccountMerge = { merge: jest.fn() };
+const mockAccountMerge = { merge: jest.fn(), absorbGoogleOnly: jest.fn() };
 
 // ── Test Suite ───────────────────────────────────────────────────────
 
@@ -305,18 +305,56 @@ describe('GoogleAuthService', () => {
       expect(mockAccountMerge.merge).not.toHaveBeenCalled();
     });
 
-    it('refuses a Google account that already signs in elsewhere', async () => {
-      linkStartedBy(account.id);
-      playingAs(account);
-      mockUserRepository.findByGoogleUserId.mockResolvedValue(
-        makeUser({ id: 'someone-else', googleUserId: GOOGLE_SUB }),
+    it('folds in an account that only Google opens, instead of refusing', async () => {
+      // Signed in with Google before linking it: a second, Google-only account.
+      const googleOnly = makeUser({
+        id: 'google-only',
+        googleUserId: GOOGLE_SUB,
+        email: EMAIL,
+        emailVerifiedAt: new Date(),
+      });
+      const spotifyAccount = makeUser({ id: 'spotify-1', spotifyUserId: 'sp' });
+      linkStartedBy(spotifyAccount.id);
+      playingAs(spotifyAccount);
+      mockUserRepository.findByGoogleUserId.mockResolvedValue(googleOnly);
+
+      const result = await service.handleCallback(
+        'code',
+        'state',
+        'account-session',
       );
 
-      await expect(
-        service.handleCallback('code', 'state', 'account-session'),
-      ).rejects.toThrow(GoogleAccountInUseError);
+      expect(result).toEqual({ linked: true });
+      expect(mockAccountMerge.absorbGoogleOnly).toHaveBeenCalledWith(
+        googleOnly.id,
+        spotifyAccount.id,
+      );
       expect(mockUserRepository.setGoogleUserId).not.toHaveBeenCalled();
     });
+
+    it.each([
+      ['Spotify', { spotifyUserId: 'spotify-other' }],
+      ['a password', { passwordHash: 'hash' }],
+    ])(
+      'refuses a Google account whose account also opens with %s',
+      async (_, credential) => {
+        linkStartedBy(account.id);
+        playingAs(account);
+        mockUserRepository.findByGoogleUserId.mockResolvedValue(
+          makeUser({
+            id: 'someone-else',
+            googleUserId: GOOGLE_SUB,
+            ...credential,
+          }),
+        );
+
+        await expect(
+          service.handleCallback('code', 'state', 'account-session'),
+        ).rejects.toThrow(GoogleAccountInUseError);
+        expect(mockUserRepository.setGoogleUserId).not.toHaveBeenCalled();
+        expect(mockAccountMerge.absorbGoogleOnly).not.toHaveBeenCalled();
+      },
+    );
 
     it('refuses when the browser is no longer signed in to that account', async () => {
       linkStartedBy(account.id);

@@ -58,6 +58,12 @@ export interface AuthMeResponseDto {
      */
     googleLinked: boolean;
     /**
+     * Whether the account has a password. Changing it, or the email, asks for the current one, so neither is offered without.
+     * @type {boolean}
+     * @memberof AuthMeResponseDto
+     */
+    hasPassword: boolean;
+    /**
      * Email of the account, when it was created with one
      * @type {string}
      * @memberof AuthMeResponseDto
@@ -150,6 +156,7 @@ export function instanceOfAuthMeResponseDto(value: object): value is AuthMeRespo
     if (!('hasLinkedAccount' in value) || value['hasLinkedAccount'] === undefined) return false;
     if (!('hasAccount' in value) || value['hasAccount'] === undefined) return false;
     if (!('googleLinked' in value) || value['googleLinked'] === undefined) return false;
+    if (!('hasPassword' in value) || value['hasPassword'] === undefined) return false;
     if (!('emailVerified' in value) || value['emailVerified'] === undefined) return false;
     if (!('preferences' in value) || value['preferences'] === undefined) return false;
     if (!('displayName' in value) || value['displayName'] === undefined) return false;
@@ -174,6 +181,7 @@ export function AuthMeResponseDtoFromJSONTyped(json: any, ignoreDiscriminator: b
         'hasLinkedAccount': json['hasLinkedAccount'],
         'hasAccount': json['hasAccount'],
         'googleLinked': json['googleLinked'],
+        'hasPassword': json['hasPassword'],
         'email': json['email'] == null ? undefined : json['email'],
         'emailVerified': json['emailVerified'],
         'pendingEmail': json['pendingEmail'] == null ? undefined : json['pendingEmail'],
@@ -205,6 +213,7 @@ export function AuthMeResponseDtoToJSONTyped(value?: AuthMeResponseDto | null, i
         'hasLinkedAccount': value['hasLinkedAccount'],
         'hasAccount': value['hasAccount'],
         'googleLinked': value['googleLinked'],
+        'hasPassword': value['hasPassword'],
         'email': value['email'],
         'emailVerified': value['emailVerified'],
         'pendingEmail': value['pendingEmail'],

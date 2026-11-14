@@ -103,22 +103,32 @@ export class GoogleAuthService {
       throw new UnauthorizedException('The session that started this changed');
     }
 
-    const holder = await this.userRepository.findByGoogleUserId(googleUserId);
-    if (holder) {
-      if (holder.id === linkUserId) return; // Linked already; nothing to do.
-      throw new GoogleAccountInUseError();
-    }
-
     const user = await this.userRepository.findById(linkUserId);
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
+    if (user.googleUserId === googleUserId) return; // Linked already.
     // Swapping one Google account for another is not what this button is for.
     if (user.googleUserId) {
       throw new ConflictException('A different Google account is linked');
     }
 
-    await this.userRepository.setGoogleUserId(linkUserId, googleUserId);
+    const holder = await this.userRepository.findByGoogleUserId(googleUserId);
+    if (!holder) {
+      await this.userRepository.setGoogleUserId(linkUserId, googleUserId);
+      return;
+    }
+
+    // Someone who tried Google before linking it has a second account that
+    // only Google opens. They just proved Google and are signed in here, so
+    // both are theirs: fold it in rather than leave their progress split.
+    if (!holder.spotifyUserId && !holder.passwordHash) {
+      await this.accountMergeService.absorbGoogleOnly(holder.id, linkUserId);
+      return;
+    }
+
+    // That account has a way in of its own; it is not this button's to take.
+    throw new GoogleAccountInUseError();
   }
 
   private async signIn(
