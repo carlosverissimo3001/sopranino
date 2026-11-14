@@ -27,6 +27,19 @@ export class AuthMeResponseDto {
   })
   hasAccount: boolean;
 
+  @ApiProperty({
+    example: false,
+    description: 'Whether a Google account can sign in to this one',
+  })
+  googleLinked: boolean;
+
+  @ApiProperty({
+    example: true,
+    description:
+      'Whether the account has a password. Changing it, or the email, asks for the current one, so neither is offered without.',
+  })
+  hasPassword: boolean;
+
   @ApiPropertyOptional({
     description: 'Email of the account, when it was created with one',
   })

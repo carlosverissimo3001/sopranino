@@ -23,6 +23,7 @@ import { AvatarPicker } from './AvatarPicker';
 import { EditableName } from './EditableName';
 import { LinkAccountSection } from './LinkAccountSection';
 import { EmailRow } from './EmailRow';
+import { GOOGLE_LINK_URL } from '@/components/auth/GoogleButton';
 
 interface ToggleRowProps {
   label: string;
@@ -170,6 +171,7 @@ export function ProfilePage({ canSignIn }: { canSignIn: boolean }) {
           <Card title="Account">
             {user.email && <EmailRow user={user} />}
             <SpotifyRow linked={!!user.spotifyUserId} />
+            <GoogleRow linked={user.googleLinked} />
             <div className="px-5 py-3">
               <button
                 type="button"
@@ -215,6 +217,31 @@ function SpotifyRow({ linked }: { linked: boolean }) {
           five accounts. Anyone can play their own playlists through Deezer.
         </PopoverContent>
       </Popover>
+    </div>
+  );
+}
+
+/**
+ * Unlike Spotify's row this one can act: Google admits anyone, so an account
+ * without it is one redirect away from a second way in.
+ */
+function GoogleRow({ linked }: { linked: boolean }) {
+  return (
+    <div className="flex items-center gap-3 px-5 py-4">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white">
+        <Image src="/google-icon.svg" alt="" width={16} height={16} />
+      </span>
+      <p className="flex-1 text-sm font-bold text-fg">Google</p>
+      {linked ? (
+        <span className="text-xs font-semibold text-spotify-green">Linked</span>
+      ) : (
+        <a
+          href={GOOGLE_LINK_URL}
+          className="rounded-full border border-fg/15 px-3 py-1 text-xs font-semibold text-fg/70 transition-colors hover:border-fg/30 hover:bg-fg/5 hover:text-fg"
+        >
+          Link
+        </a>
+      )}
     </div>
   );
 }

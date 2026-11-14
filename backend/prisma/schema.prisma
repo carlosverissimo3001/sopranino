@@ -14,6 +14,7 @@ enum AvatarSource {
 model User {
   id                    String       @id @default(uuid())
   spotifyUserId         String?      @unique @map("spotify_user_id")
+  googleUserId          String?      @unique @map("google_user_id")
   email                 String?      @unique
   passwordHash          String?      @map("password_hash")
   displayName           String       @map("display_name")

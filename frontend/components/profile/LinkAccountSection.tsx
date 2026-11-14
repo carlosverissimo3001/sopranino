@@ -6,6 +6,7 @@ import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CredentialsForm } from '@/components/auth/CredentialsForm';
 import { InviteForm } from '@/components/auth/InviteForm';
+import { GoogleButton } from '@/components/auth/GoogleButton';
 
 /** Where a guest turns into an account holder. */
 export function LinkAccountSection({ canSignIn }: { canSignIn: boolean }) {
@@ -30,6 +31,16 @@ export function LinkAccountSection({ canSignIn }: { canSignIn: boolean }) {
 
       <CredentialsForm />
 
+      <div className="flex items-center gap-3">
+        <span className="h-px flex-1 bg-fg/10" />
+        <span className="text-[10px] uppercase tracking-widest text-fg/30">
+          or
+        </span>
+        <span className="h-px flex-1 bg-fg/10" />
+      </div>
+
+      <GoogleButton />
+
       {!canSignIn &&
         (showInvite ? (
           <InviteForm />
@@ -49,14 +60,6 @@ export function LinkAccountSection({ canSignIn }: { canSignIn: boolean }) {
 
       {canSignIn && (
         <>
-          <div className="flex items-center gap-3">
-            <span className="h-px flex-1 bg-fg/10" />
-            <span className="text-[10px] uppercase tracking-widest text-fg/30">
-              or
-            </span>
-            <span className="h-px flex-1 bg-fg/10" />
-          </div>
-
           <a href="/api/auth/login" className="block">
             <Button
               variant="spotify"

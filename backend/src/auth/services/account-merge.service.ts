@@ -26,7 +26,7 @@ export class AccountMergeService {
 
     // This deletes the source row, so it refuses anything that could be a
     // real account. The caller checks too; this is the primitive's own guard.
-    if (source.spotifyUserId) {
+    if (source.spotifyUserId || source.googleUserId) {
       throw new BadRequestException('Cannot merge away an account');
     }
 
@@ -64,6 +64,89 @@ export class AccountMergeService {
     // StreakFreezeUsage needs nothing: it cascades, and only a trusted user
     // can have any, which a credential-free row never is.
     await this.prismaService.user.delete({ where: { id: sourceUserId } });
+  }
+
+  /**
+   * Folds an account whose only way in is Google into the survivor, which
+   * takes that Google account over, and its address if it has none of its own.
+   *
+   * Only for the link flow, where the player has just proved both sides: they
+   * are signed in to the survivor and Google vouched for the source. A source
+   * with Spotify or a password has a way in of its own, and is refused.
+   */
+  @Transactional()
+  async absorbGoogleOnly(
+    sourceUserId: string,
+    survivorUserId: string,
+  ): Promise<void> {
+    const [source, survivor] = await Promise.all([
+      this.prismaService.user.findUniqueOrThrow({
+        where: { id: sourceUserId },
+      }),
+      this.prismaService.user.findUniqueOrThrow({
+        where: { id: survivorUserId },
+      }),
+    ]);
+
+    if (!source.googleUserId || source.spotifyUserId || source.passwordHash) {
+      throw new BadRequestException('Only a Google-only account can be folded');
+    }
+    if (survivor.googleUserId) {
+      throw new BadRequestException('The survivor already has Google');
+    }
+
+    // A guest never has these, so merge() leaves them; an account may.
+    await this.mergeGroupMemberships(sourceUserId, survivorUserId);
+    await this.prismaService.feedback.updateMany({
+      where: { userId: sourceUserId },
+      data: { userId: survivorUserId },
+    });
+
+    // Released first: both columns are unique, and merge() refuses a row that
+    // still holds a credential.
+    await this.prismaService.user.update({
+      where: { id: sourceUserId },
+      data: { googleUserId: null, email: null, emailVerifiedAt: null },
+    });
+
+    await this.merge(sourceUserId, survivorUserId);
+
+    const takeEmail = !survivor.email && !!source.email;
+    await this.prismaService.user.update({
+      where: { id: survivorUserId },
+      data: {
+        googleUserId: source.googleUserId,
+        ...(takeEmail && {
+          email: source.email,
+          emailVerifiedAt: source.emailVerifiedAt,
+        }),
+      },
+    });
+  }
+
+  /** Keyed on (user, group): a group both were in keeps the survivor's row. */
+  private async mergeGroupMemberships(
+    sourceUserId: string,
+    survivorUserId: string,
+  ): Promise<void> {
+    const [sourceRows, survivorRows] = await Promise.all([
+      this.prismaService.trackGroupMember.findMany({
+        where: { userId: sourceUserId },
+      }),
+      this.prismaService.trackGroupMember.findMany({
+        where: { userId: survivorUserId },
+      }),
+    ]);
+
+    const joined = new Set(survivorRows.map((row) => row.trackGroupId));
+    const moving = sourceRows.filter((row) => !joined.has(row.trackGroupId));
+
+    if (moving.length > 0) {
+      await this.prismaService.trackGroupMember.createMany({
+        data: moving.map((row) => ({ ...row, userId: survivorUserId })),
+      });
+    }
+    // The rest go with the source row, by cascade.
   }
 
   private async mergeStats(

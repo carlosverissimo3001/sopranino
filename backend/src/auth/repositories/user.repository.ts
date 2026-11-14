@@ -190,6 +190,87 @@ export class UserRepository {
     return this.fromPrisma(user);
   }
 
+  async findByGoogleUserId(googleUserId: string): Promise<UserEntity | null> {
+    const user = await this.prismaService.user.findUnique({
+      where: { googleUserId },
+    });
+    return user ? this.fromPrisma(user) : null;
+  }
+
+  /**
+   * Adds Google to an account already holding the address Google vouched for.
+   * Google proving the inbox settles who owns it: if the row had only claimed
+   * the address, its password goes, because whoever set it may not be the
+   * person who can read the mail. They can set a new one through a reset.
+   */
+  async linkGoogle(userId: string, googleUserId: string): Promise<UserEntity> {
+    const user = await this.prismaService.$transaction(async (tx) => {
+      const row = await tx.user.findUniqueOrThrow({
+        where: { id: userId },
+        select: { emailVerifiedAt: true },
+      });
+      return tx.user.update({
+        where: { id: userId },
+        data: {
+          googleUserId,
+          ...(!row.emailVerifiedAt && {
+            emailVerifiedAt: new Date(),
+            passwordHash: null,
+          }),
+        },
+      });
+    });
+    return this.fromPrisma(user);
+  }
+
+  /** Adds Google as another way into an account the player is signed in to. */
+  async setGoogleUserId(userId: string, googleUserId: string): Promise<void> {
+    await this.prismaService.user.update({
+      where: { id: userId },
+      data: { googleUserId },
+    });
+  }
+
+  /**
+   * Turns a guest row into a Google account, keeping everything it has played.
+   * The address is only stored when Google has verified it.
+   */
+  async attachGoogle(
+    userId: string,
+    googleUserId: string,
+    verifiedEmail?: string,
+  ): Promise<UserEntity> {
+    const user = await this.prismaService.user.update({
+      where: { id: userId },
+      data: {
+        googleUserId,
+        ...(verifiedEmail && {
+          email: verifiedEmail,
+          emailVerifiedAt: new Date(),
+        }),
+      },
+    });
+    return this.fromPrisma(user);
+  }
+
+  async createWithGoogle(
+    googleUserId: string,
+    displayName: string,
+    verifiedEmail?: string,
+  ): Promise<UserEntity> {
+    const user = await this.prismaService.user.create({
+      data: {
+        googleUserId,
+        displayName,
+        ...(verifiedEmail && {
+          email: verifiedEmail,
+          emailVerifiedAt: new Date(),
+        }),
+      },
+    });
+    return this.fromPrisma(user);
+  }
+
   /**
    * Maps a Prisma user to a UserEntity
    * @param user - The Prisma user
@@ -199,6 +280,7 @@ export class UserRepository {
     return {
       ...user,
       spotifyUserId: user.spotifyUserId ?? undefined,
+      googleUserId: user.googleUserId ?? undefined,
       email: user.email ?? undefined,
       passwordHash: user.passwordHash ?? undefined,
       avatarUrl: user.avatarUrl ?? undefined,

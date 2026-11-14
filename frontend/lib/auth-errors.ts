@@ -1,7 +1,10 @@
 const MESSAGES: Record<string, string> = {
   spotify_invite_only:
     "Connecting Spotify is limited to a handful of invited accounts, by Spotify's rules. Every other mode works without it.",
-  access_denied: 'Spotify sign-in was cancelled.',
+  // Either provider sends this when the consent screen is closed.
+  access_denied: 'Sign-in was cancelled.',
+  google_in_use:
+    'That Google account already signs in to a different account. Sign in with it there, or link another Google account.',
 };
 
 const FALLBACK = 'Sign-in did not go through. Try again.';

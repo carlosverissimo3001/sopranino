@@ -6,8 +6,12 @@ describe('authErrorMessage', () => {
   });
 
   it('reads a cancelled consent as cancelled', () => {
-    expect(authErrorMessage('access_denied')).toBe(
-      'Spotify sign-in was cancelled.',
+    expect(authErrorMessage('access_denied')).toBe('Sign-in was cancelled.');
+  });
+
+  it('explains a Google account that belongs to another account', () => {
+    expect(authErrorMessage('google_in_use')).toMatch(
+      /already signs in to a different account/,
     );
   });
 

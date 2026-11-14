@@ -58,7 +58,10 @@ import {
   THROTTLE_TTL,
 } from '@throttle/throttle.constants';
 import { SpotifyOAuthCallbackDto } from '../dto/spotify/spotify-oauth-callback.dto';
+import { GoogleOAuthCallbackDto } from '../dto/google-oauth-callback.dto';
+import { GoogleAuthService } from '../services/google-auth.service';
 import {
+  AUTH_FAILED,
   buildErrorRedirect,
   callbackErrorCode,
   getClearCookieOptions,
@@ -75,6 +78,7 @@ export class AuthController {
 
   constructor(
     private authService: AuthService,
+    private readonly googleAuth: GoogleAuthService,
     private readonly emailVerification: EmailVerificationService,
     private readonly passwordReset: PasswordResetService,
     private readonly emailChange: EmailChangeService,
@@ -150,6 +154,98 @@ export class AuthController {
       res.redirect(this.frontendUrl);
     } catch (err) {
       this.logger.error('OAuth callback error:', err);
+      res.redirect(
+        buildErrorRedirect(this.frontendUrl, callbackErrorCode(err)),
+      );
+    }
+  }
+
+  @Get('google/login')
+  @ApiOperation({ summary: 'Start Google sign-in' })
+  @ApiResponse({ status: 302, description: 'Redirects to Google' })
+  async googleLogin(@Res() res: Response) {
+    const { authUrl, state } = await this.googleAuth.startLogin();
+
+    // Same reason as the Spotify flow: the state must belong to this browser.
+    res.cookie(
+      OAUTH_STATE_COOKIE_NAME,
+      state,
+      getCookieOptions({ sessionMaxAge: OAUTH_STATE_TTL }),
+    );
+
+    res.redirect(authUrl);
+  }
+
+  @Get('google/link')
+  @ApiOperation({ summary: 'Start linking Google to the signed-in account' })
+  @ApiCookieAuth()
+  @ApiResponse({ status: 302, description: 'Redirects to Google' })
+  async googleLink(@Req() req: Request, @Res() res: Response) {
+    const sessionId = req.cookies?.[SESSION_COOKIE_NAME] as string | undefined;
+
+    let started: { authUrl: string; state: string };
+    try {
+      started = await this.googleAuth.startLink(sessionId);
+    } catch {
+      // A plain navigation, so a redirect the app can explain, not a 401 page.
+      return res.redirect(buildErrorRedirect(this.frontendUrl, AUTH_FAILED));
+    }
+
+    res.cookie(
+      OAUTH_STATE_COOKIE_NAME,
+      started.state,
+      getCookieOptions({ sessionMaxAge: OAUTH_STATE_TTL }),
+    );
+    res.redirect(started.authUrl);
+  }
+
+  @Get('google/callback')
+  @ApiOperation({ summary: 'Handle the redirect back from Google' })
+  @ApiResponse({ status: 302, description: 'Redirects to frontend after auth' })
+  async googleCallback(
+    @Query() params: GoogleOAuthCallbackDto,
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
+    const { code, state, error } = params;
+
+    const expectedState = req.cookies?.[OAUTH_STATE_COOKIE_NAME] as
+      | string
+      | undefined;
+    res.clearCookie(OAUTH_STATE_COOKIE_NAME, getClearCookieOptions());
+
+    if (error) {
+      return res.redirect(buildErrorRedirect(this.frontendUrl, error));
+    }
+
+    if (!code || !state || !expectedState || expectedState !== state) {
+      this.logger.warn('Google callback state did not match this browser');
+      return res.redirect(buildErrorRedirect(this.frontendUrl, AUTH_FAILED));
+    }
+
+    try {
+      const currentSessionId = req.cookies?.[SESSION_COOKIE_NAME] as
+        | string
+        | undefined;
+      const result = await this.googleAuth.handleCallback(
+        code,
+        state,
+        currentSessionId,
+      );
+
+      // Linking happened from the profile, so that is where it ends.
+      if (result.linked) {
+        return res.redirect(`${this.frontendUrl}/profile`);
+      }
+
+      res.cookie(
+        SESSION_COOKIE_NAME,
+        result.sessionId,
+        getCookieOptions({ sessionMaxAge: this.sessionMaxAge }),
+      );
+      res.redirect(this.frontendUrl);
+    } catch (err) {
+      this.logger.error('Google callback error:', err);
       res.redirect(
         buildErrorRedirect(this.frontendUrl, callbackErrorCode(err)),
       );

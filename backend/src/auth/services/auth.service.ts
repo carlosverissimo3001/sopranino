@@ -276,6 +276,8 @@ export class AuthService {
       // the other whether their progress survives this browser.
       hasLinkedAccount: !!user.spotifyUserId,
       hasAccount: hasCredential(user),
+      googleLinked: !!user.googleUserId,
+      hasPassword: !!user.passwordHash,
       email: user.email,
       emailVerified: !!user.emailVerifiedAt,
       pendingEmail: pendingEmail ?? undefined,

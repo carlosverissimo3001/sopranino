@@ -45,6 +45,8 @@ const mockPrismaService = {
   gauntletRun: { updateMany: jest.fn() },
   multiplayerRoom: { updateMany: jest.fn() },
   roomPlayer: { findMany: jest.fn(), update: jest.fn(), delete: jest.fn() },
+  trackGroupMember: { findMany: jest.fn(), createMany: jest.fn() },
+  feedback: { updateMany: jest.fn() },
 };
 
 // ── Tests ────────────────────────────────────────────────────────────
@@ -241,6 +243,23 @@ describe('AccountMergeService', () => {
     expect(mockPrismaService.user.delete).not.toHaveBeenCalled();
   });
 
+  it('refuses to merge away a Google-only account', async () => {
+    mockPrismaService.stats.findMany.mockResolvedValue([]);
+    mockPrismaService.user.findUniqueOrThrow.mockImplementation(
+      ({ where }: { where: { id: string } }) =>
+        Promise.resolve({
+          id: where.id,
+          answeredQuestionIds: [],
+          googleUserId: where.id === SOURCE ? 'google-1' : null,
+        }),
+    );
+
+    await expect(service.merge(SOURCE, SURVIVOR)).rejects.toThrow(
+      'Cannot merge away an account',
+    );
+    expect(mockPrismaService.user.delete).not.toHaveBeenCalled();
+  });
+
   it('sums distributions over the longer of the two', async () => {
     mockPrismaService.stats.findMany.mockResolvedValue([
       makeStats(SOURCE, { roundDistribution: [1, 1, 1, 1, 1, 1, 1, 5] }),
@@ -265,6 +284,121 @@ describe('AccountMergeService', () => {
 
     expect(mockPrismaService.user.delete).toHaveBeenCalledWith({
       where: { id: SOURCE },
+    });
+  });
+  describe('absorbGoogleOnly', () => {
+    const VERIFIED_AT = new Date('2026-11-14');
+    let rows: Record<string, Record<string, unknown>>;
+
+    /** Rows that change when updated, as merge() re-reads the source. */
+    function withRows(source: object, survivor: object) {
+      rows = {
+        [SOURCE]: { id: SOURCE, answeredQuestionIds: [], ...source },
+        [SURVIVOR]: { id: SURVIVOR, answeredQuestionIds: [], ...survivor },
+      };
+      mockPrismaService.user.findUniqueOrThrow.mockImplementation(
+        ({ where }: { where: { id: string } }) =>
+          Promise.resolve({ ...rows[where.id] }),
+      );
+      mockPrismaService.user.update.mockImplementation(
+        ({ where, data }: { where: { id: string }; data: object }) => {
+          rows[where.id] = { ...rows[where.id], ...data };
+          return Promise.resolve(rows[where.id]);
+        },
+      );
+    }
+
+    beforeEach(() => {
+      mockPrismaService.stats.findMany.mockResolvedValue([]);
+      mockPrismaService.trackGroupMember.findMany.mockResolvedValue([]);
+    });
+
+    const googleOnly = {
+      googleUserId: 'google-1',
+      email: 'player@example.com',
+      emailVerifiedAt: VERIFIED_AT,
+    };
+
+    it('hands the Google account and its address to the survivor', async () => {
+      withRows(googleOnly, { spotifyUserId: 'spotify-1' });
+
+      await service.absorbGoogleOnly(SOURCE, SURVIVOR);
+
+      expect(rows[SURVIVOR]).toMatchObject({
+        googleUserId: 'google-1',
+        email: 'player@example.com',
+        emailVerifiedAt: VERIFIED_AT,
+      });
+      expect(mockPrismaService.user.delete).toHaveBeenCalledWith({
+        where: { id: SOURCE },
+      });
+    });
+
+    it('keeps the survivor its own address', async () => {
+      withRows(googleOnly, { email: 'mine@example.com', passwordHash: 'h' });
+
+      await service.absorbGoogleOnly(SOURCE, SURVIVOR);
+
+      expect(rows[SURVIVOR]).toMatchObject({
+        googleUserId: 'google-1',
+        email: 'mine@example.com',
+      });
+    });
+
+    it('brings group memberships along, except groups already shared', async () => {
+      withRows(googleOnly, { spotifyUserId: 'spotify-1' });
+      mockPrismaService.trackGroupMember.findMany.mockImplementation(
+        ({ where }: { where: { userId: string } }) =>
+          Promise.resolve(
+            where.userId === SOURCE
+              ? [
+                  { userId: SOURCE, trackGroupId: 'g1', origin: null },
+                  { userId: SOURCE, trackGroupId: 'shared', origin: null },
+                ]
+              : [{ userId: SURVIVOR, trackGroupId: 'shared', origin: null }],
+          ),
+      );
+
+      await service.absorbGoogleOnly(SOURCE, SURVIVOR);
+
+      expect(
+        mockPrismaService.trackGroupMember.createMany,
+      ).toHaveBeenCalledWith({
+        data: [{ userId: SURVIVOR, trackGroupId: 'g1', origin: null }],
+      });
+    });
+
+    it('moves feedback rather than leaving it without an author', async () => {
+      withRows(googleOnly, { spotifyUserId: 'spotify-1' });
+
+      await service.absorbGoogleOnly(SOURCE, SURVIVOR);
+
+      expect(mockPrismaService.feedback.updateMany).toHaveBeenCalledWith({
+        where: { userId: SOURCE },
+        data: { userId: SURVIVOR },
+      });
+    });
+
+    it.each([
+      ['has Spotify', { ...googleOnly, spotifyUserId: 'spotify-2' }],
+      ['has a password', { ...googleOnly, passwordHash: 'hash' }],
+      ['has no Google account', { email: 'x@example.com' }],
+    ])('refuses a source that %s', async (_, source) => {
+      withRows(source, { spotifyUserId: 'spotify-1' });
+
+      await expect(service.absorbGoogleOnly(SOURCE, SURVIVOR)).rejects.toThrow(
+        'Only a Google-only account can be folded',
+      );
+      expect(mockPrismaService.user.delete).not.toHaveBeenCalled();
+    });
+
+    it('refuses a survivor that already has Google', async () => {
+      withRows(googleOnly, { googleUserId: 'google-2' });
+
+      await expect(service.absorbGoogleOnly(SOURCE, SURVIVOR)).rejects.toThrow(
+        'The survivor already has Google',
+      );
+      expect(mockPrismaService.user.delete).not.toHaveBeenCalled();
     });
   });
 });
