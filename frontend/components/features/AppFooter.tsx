@@ -22,6 +22,9 @@ function AppFooterComponent() {
           <Link href="/about" className={linkClass}>
             About
           </Link>
+          <Link href="/privacy" className={linkClass}>
+            Privacy
+          </Link>
           <External href={SOURCE}>Source</External>
           <Link href={reportBugHref(pathname)} className={linkClass}>
             Report a bug
