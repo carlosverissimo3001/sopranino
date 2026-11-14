@@ -11,6 +11,8 @@ export default function robots(): MetadataRoute.Robots {
       allow: [
         '/$',
         '/about',
+        // Google's consent screen links here and checks it can be read.
+        '/privacy',
         '/speed-run/leaderboard',
         // One page per curated set, all of them in the sitemap. A private
         // group is not listed and answers 404 to a crawler anyway.
