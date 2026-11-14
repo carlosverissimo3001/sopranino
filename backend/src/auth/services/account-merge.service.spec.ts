@@ -241,6 +241,23 @@ describe('AccountMergeService', () => {
     expect(mockPrismaService.user.delete).not.toHaveBeenCalled();
   });
 
+  it('refuses to merge away a Google-only account', async () => {
+    mockPrismaService.stats.findMany.mockResolvedValue([]);
+    mockPrismaService.user.findUniqueOrThrow.mockImplementation(
+      ({ where }: { where: { id: string } }) =>
+        Promise.resolve({
+          id: where.id,
+          answeredQuestionIds: [],
+          googleUserId: where.id === SOURCE ? 'google-1' : null,
+        }),
+    );
+
+    await expect(service.merge(SOURCE, SURVIVOR)).rejects.toThrow(
+      'Cannot merge away an account',
+    );
+    expect(mockPrismaService.user.delete).not.toHaveBeenCalled();
+  });
+
   it('sums distributions over the longer of the two', async () => {
     mockPrismaService.stats.findMany.mockResolvedValue([
       makeStats(SOURCE, { roundDistribution: [1, 1, 1, 1, 1, 1, 1, 5] }),

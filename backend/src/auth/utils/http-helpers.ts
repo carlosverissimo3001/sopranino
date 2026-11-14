@@ -1,5 +1,6 @@
 import { CookieOptions } from 'express';
 import { SpotifyNotAllowlistedError } from '../errors/spotify-not-allowlisted.error';
+import { GoogleAccountInUseError } from '../errors/google-account-in-use.error';
 
 export interface SessionCookieConfig {
   sessionMaxAge: number;
@@ -48,11 +49,12 @@ export function getClearCookieOptions(): CookieOptions {
 /** The error codes the frontend knows how to explain. */
 export const AUTH_FAILED = 'auth_failed';
 export const SPOTIFY_INVITE_ONLY = 'spotify_invite_only';
+export const GOOGLE_IN_USE = 'google_in_use';
 
 export function callbackErrorCode(err: unknown): string {
-  return err instanceof SpotifyNotAllowlistedError
-    ? SPOTIFY_INVITE_ONLY
-    : AUTH_FAILED;
+  if (err instanceof SpotifyNotAllowlistedError) return SPOTIFY_INVITE_ONLY;
+  if (err instanceof GoogleAccountInUseError) return GOOGLE_IN_USE;
+  return AUTH_FAILED;
 }
 
 export function buildErrorRedirect(frontendUrl: string, error: string): string {

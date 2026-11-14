@@ -3,9 +3,11 @@ import {
   AUTH_FAILED,
   SPOTIFY_INVITE_ONLY,
   callbackErrorCode,
+  GOOGLE_IN_USE,
   getClearCookieOptions,
   getCookieOptions,
 } from './http-helpers';
+import { GoogleAccountInUseError } from '../errors/google-account-in-use.error';
 
 describe('cookie options', () => {
   const env = process.env.COOKIE_DOMAIN;
@@ -60,6 +62,12 @@ describe('callbackErrorCode', () => {
   it('names the allowlist refusal, so the player is told why', () => {
     expect(callbackErrorCode(new SpotifyNotAllowlistedError())).toBe(
       SPOTIFY_INVITE_ONLY,
+    );
+  });
+
+  it('names a Google account that belongs to someone else', () => {
+    expect(callbackErrorCode(new GoogleAccountInUseError())).toBe(
+      GOOGLE_IN_USE,
     );
   });
 

@@ -68,6 +68,129 @@
         ]
       }
     },
+    "/auth/google/login": {
+      "get": {
+        "operationId": "AuthController_googleLogin",
+        "parameters": [],
+        "responses": {
+          "302": {
+            "description": "Redirects to Google"
+          }
+        },
+        "summary": "Start Google sign-in",
+        "tags": [
+          "Api"
+        ]
+      }
+    },
+    "/auth/google/link": {
+      "get": {
+        "operationId": "AuthController_googleLink",
+        "parameters": [],
+        "responses": {
+          "302": {
+            "description": "Redirects to Google"
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Start linking Google to the signed-in account",
+        "tags": [
+          "Api"
+        ]
+      }
+    },
+    "/auth/google/callback": {
+      "get": {
+        "operationId": "AuthController_googleCallback",
+        "parameters": [
+          {
+            "name": "code",
+            "required": false,
+            "in": "query",
+            "description": "Authorization code. Absent when the user declined.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "state",
+            "required": false,
+            "in": "query",
+            "description": "State parameter for CSRF protection",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "error",
+            "required": false,
+            "in": "query",
+            "description": "Set when authorization failed",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scope",
+            "required": false,
+            "in": "query",
+            "description": "Scopes granted",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "authuser",
+            "required": false,
+            "in": "query",
+            "description": "Index of the signed-in Google account",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "prompt",
+            "required": false,
+            "in": "query",
+            "description": "Prompt Google showed",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "hd",
+            "required": false,
+            "in": "query",
+            "description": "Workspace domain, for such accounts",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "iss",
+            "required": false,
+            "in": "query",
+            "description": "Issuer of the authorization response",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirects to frontend after auth"
+          }
+        },
+        "summary": "Handle the redirect back from Google",
+        "tags": [
+          "Api"
+        ]
+      }
+    },
     "/auth/session": {
       "post": {
         "operationId": "AuthController_ensureSession",
@@ -3074,6 +3197,11 @@
             "example": false,
             "description": "Whether this player has any credential at all, Spotify or email. False means an anonymous player whose progress lives on this device."
           },
+          "googleLinked": {
+            "type": "boolean",
+            "example": false,
+            "description": "Whether a Google account can sign in to this one"
+          },
           "email": {
             "type": "string",
             "description": "Email of the account, when it was created with one"
@@ -3136,6 +3264,7 @@
           "userId",
           "hasLinkedAccount",
           "hasAccount",
+          "googleLinked",
           "emailVerified",
           "preferences",
           "displayName",

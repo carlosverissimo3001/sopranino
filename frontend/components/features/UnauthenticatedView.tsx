@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useEnsureSession } from '@/hooks/auth/useEnsureSession';
 import { CredentialsForm } from '@/components/auth/CredentialsForm';
 import { InviteForm } from '@/components/auth/InviteForm';
+import { GoogleButton } from '@/components/auth/GoogleButton';
 import { forgetSignedIn, readSignedInAs } from '@/lib/returning-player';
 
 /**
@@ -159,8 +160,9 @@ function UnauthenticatedViewComponent({ canSignIn }: { canSignIn: boolean }) {
           {/* Without this an account made on another device has no way back in
               from here: both buttons above start something new. */}
           {returningAs ? null : showSignIn ? (
-            <div className="w-full max-w-xs">
+            <div className="w-full max-w-xs flex flex-col gap-3">
               <CredentialsForm initialMode="login" warnAboutSpotify />
+              <GoogleButton />
             </div>
           ) : (
             <button

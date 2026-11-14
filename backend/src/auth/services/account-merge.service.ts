@@ -26,7 +26,7 @@ export class AccountMergeService {
 
     // This deletes the source row, so it refuses anything that could be a
     // real account. The caller checks too; this is the primitive's own guard.
-    if (source.spotifyUserId) {
+    if (source.spotifyUserId || source.googleUserId) {
       throw new BadRequestException('Cannot merge away an account');
     }
 

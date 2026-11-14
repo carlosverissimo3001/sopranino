@@ -22,6 +22,9 @@ All URIs are relative to *http://localhost*
 | [**authControllerConfirmEmailChange**](ApiApi.md#authcontrollerconfirmemailchange) | **POST** /auth/email-change/confirm | Spend the link sent to the new address |
 | [**authControllerConfirmPasswordReset**](ApiApi.md#authcontrollerconfirmpasswordreset) | **POST** /auth/password-reset/confirm | Spend a reset link and set a new password |
 | [**authControllerEnsureSession**](ApiApi.md#authcontrollerensuresession) | **POST** /auth/session | Ensure the caller has an identity, minting one if they have none |
+| [**authControllerGoogleCallback**](ApiApi.md#authcontrollergooglecallback) | **GET** /auth/google/callback | Handle the redirect back from Google |
+| [**authControllerGoogleLink**](ApiApi.md#authcontrollergooglelink) | **GET** /auth/google/link | Start linking Google to the signed-in account |
+| [**authControllerGoogleLogin**](ApiApi.md#authcontrollergooglelogin) | **GET** /auth/google/login | Start Google sign-in |
 | [**authControllerLogin**](ApiApi.md#authcontrollerlogin) | **GET** /auth/login | Start Spotify OAuth flow |
 | [**authControllerLoginWithPassword**](ApiApi.md#authcontrollerloginwithpassword) | **POST** /auth/signin | Sign in with an email and password |
 | [**authControllerLogout**](ApiApi.md#authcontrollerlogout) | **POST** /auth/logout | Logout and clear session |
@@ -1326,6 +1329,210 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** |  |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## authControllerGoogleCallback
+
+> authControllerGoogleCallback(code, state, error, scope, authuser, prompt, hd, iss)
+
+Handle the redirect back from Google
+
+### Example
+
+```ts
+import {
+  Configuration,
+  ApiApi,
+} from '';
+import type { AuthControllerGoogleCallbackRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const api = new ApiApi();
+
+  const body = {
+    // string | Authorization code. Absent when the user declined. (optional)
+    code: code_example,
+    // string | State parameter for CSRF protection (optional)
+    state: state_example,
+    // string | Set when authorization failed (optional)
+    error: error_example,
+    // string | Scopes granted (optional)
+    scope: scope_example,
+    // string | Index of the signed-in Google account (optional)
+    authuser: authuser_example,
+    // string | Prompt Google showed (optional)
+    prompt: prompt_example,
+    // string | Workspace domain, for such accounts (optional)
+    hd: hd_example,
+    // string | Issuer of the authorization response (optional)
+    iss: iss_example,
+  } satisfies AuthControllerGoogleCallbackRequest;
+
+  try {
+    const data = await api.authControllerGoogleCallback(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **code** | `string` | Authorization code. Absent when the user declined. | [Optional] [Defaults to `undefined`] |
+| **state** | `string` | State parameter for CSRF protection | [Optional] [Defaults to `undefined`] |
+| **error** | `string` | Set when authorization failed | [Optional] [Defaults to `undefined`] |
+| **scope** | `string` | Scopes granted | [Optional] [Defaults to `undefined`] |
+| **authuser** | `string` | Index of the signed-in Google account | [Optional] [Defaults to `undefined`] |
+| **prompt** | `string` | Prompt Google showed | [Optional] [Defaults to `undefined`] |
+| **hd** | `string` | Workspace domain, for such accounts | [Optional] [Defaults to `undefined`] |
+| **iss** | `string` | Issuer of the authorization response | [Optional] [Defaults to `undefined`] |
+
+### Return type
+
+`void` (Empty response body)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: Not defined
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **302** | Redirects to frontend after auth |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## authControllerGoogleLink
+
+> authControllerGoogleLink()
+
+Start linking Google to the signed-in account
+
+### Example
+
+```ts
+import {
+  Configuration,
+  ApiApi,
+} from '';
+import type { AuthControllerGoogleLinkRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: cookie
+    apiKey: "YOUR API KEY",
+  });
+  const api = new ApiApi(config);
+
+  try {
+    const data = await api.authControllerGoogleLink();
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+`void` (Empty response body)
+
+### Authorization
+
+[cookie](../README.md#cookie)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: Not defined
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **302** | Redirects to Google |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## authControllerGoogleLogin
+
+> authControllerGoogleLogin()
+
+Start Google sign-in
+
+### Example
+
+```ts
+import {
+  Configuration,
+  ApiApi,
+} from '';
+import type { AuthControllerGoogleLoginRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const api = new ApiApi();
+
+  try {
+    const data = await api.authControllerGoogleLogin();
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+`void` (Empty response body)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: Not defined
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **302** | Redirects to Google |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 

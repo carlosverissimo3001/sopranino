@@ -294,6 +294,17 @@ export interface AuthControllerConfirmPasswordResetRequest {
     confirmPasswordResetDto: ConfirmPasswordResetDto;
 }
 
+export interface AuthControllerGoogleCallbackRequest {
+    code?: string;
+    state?: string;
+    error?: string;
+    scope?: string;
+    authuser?: string;
+    prompt?: string;
+    hd?: string;
+    iss?: string;
+}
+
 export interface AuthControllerLoginWithPasswordRequest {
     loginDto: LoginDto;
 }
@@ -1223,6 +1234,122 @@ export class ApiApi extends runtime.BaseAPI {
     async authControllerEnsureSession(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AuthMeResponseDto> {
         const response = await this.authControllerEnsureSessionRaw(initOverrides);
         return await response.value();
+    }
+
+    /**
+     * Handle the redirect back from Google
+     */
+    async authControllerGoogleCallbackRaw(requestParameters: AuthControllerGoogleCallbackRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        const queryParameters: any = {};
+
+        if (requestParameters['code'] != null) {
+            queryParameters['code'] = requestParameters['code'];
+        }
+
+        if (requestParameters['state'] != null) {
+            queryParameters['state'] = requestParameters['state'];
+        }
+
+        if (requestParameters['error'] != null) {
+            queryParameters['error'] = requestParameters['error'];
+        }
+
+        if (requestParameters['scope'] != null) {
+            queryParameters['scope'] = requestParameters['scope'];
+        }
+
+        if (requestParameters['authuser'] != null) {
+            queryParameters['authuser'] = requestParameters['authuser'];
+        }
+
+        if (requestParameters['prompt'] != null) {
+            queryParameters['prompt'] = requestParameters['prompt'];
+        }
+
+        if (requestParameters['hd'] != null) {
+            queryParameters['hd'] = requestParameters['hd'];
+        }
+
+        if (requestParameters['iss'] != null) {
+            queryParameters['iss'] = requestParameters['iss'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/auth/google/callback`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Handle the redirect back from Google
+     */
+    async authControllerGoogleCallback(requestParameters: AuthControllerGoogleCallbackRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.authControllerGoogleCallbackRaw(requestParameters, initOverrides);
+    }
+
+    /**
+     * Start linking Google to the signed-in account
+     */
+    async authControllerGoogleLinkRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/auth/google/link`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Start linking Google to the signed-in account
+     */
+    async authControllerGoogleLink(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.authControllerGoogleLinkRaw(initOverrides);
+    }
+
+    /**
+     * Start Google sign-in
+     */
+    async authControllerGoogleLoginRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/auth/google/login`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Start Google sign-in
+     */
+    async authControllerGoogleLogin(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.authControllerGoogleLoginRaw(initOverrides);
     }
 
     /**

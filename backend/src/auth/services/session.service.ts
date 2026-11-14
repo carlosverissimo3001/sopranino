@@ -11,6 +11,7 @@ export interface CreateSessionParams {
   displayName: string;
   isTrusted: boolean;
   spotifyUserId?: string;
+  googleUserId?: string;
   email?: string;
 }
 
@@ -31,11 +32,17 @@ export class SessionService {
    * Store PKCE state temporarily during OAuth flow
    * @param state - The state
    * @param codeVerifier - The code verifier
+   * @param linkUserId - The account to link to, when this is a link and not a sign-in
    */
-  async storePkceState(state: string, codeVerifier: string): Promise<void> {
+  async storePkceState(
+    state: string,
+    codeVerifier: string,
+    linkUserId?: string,
+  ): Promise<void> {
     const data: PkceStateDto = {
       codeVerifier,
       createdAt: Date.now(),
+      ...(linkUserId && { linkUserId }),
     };
     await this.redisService.set(
       `pkce:${state}`,
@@ -76,6 +83,7 @@ export class SessionService {
       sessionId,
       userId: params.userId,
       spotifyUserId: params.spotifyUserId,
+      googleUserId: params.googleUserId,
       email: params.email,
       displayName: params.displayName,
       isTrusted: params.isTrusted,

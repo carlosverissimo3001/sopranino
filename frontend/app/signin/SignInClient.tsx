@@ -8,6 +8,7 @@ import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CredentialsForm } from '@/components/auth/CredentialsForm';
 import { CheckYourEmail } from '@/components/auth/CheckYourEmail';
+import { GoogleButton } from '@/components/auth/GoogleButton';
 import { InviteForm } from '@/components/auth/InviteForm';
 import { useMe } from '@/hooks/auth/useMe';
 import { readSignedInAs } from '@/lib/returning-player';
@@ -100,6 +101,9 @@ export function SignInClient({ canSignIn }: { canSignIn: boolean }) {
             </span>
             <span className="h-px flex-1 bg-fg/10" />
           </div>
+
+          {/* First, being the one door open to everybody. */}
+          <GoogleButton />
 
           {/* Shown even when closed, as on the home page: a missing button reads
             as a broken page, a disabled one says why. */}

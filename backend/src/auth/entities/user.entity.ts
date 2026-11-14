@@ -11,6 +11,11 @@ export class UserEntity {
   spotifyUserId?: string;
 
   @ApiPropertyOptional({
+    description: "The Google account's subject id, when signed in with Google",
+  })
+  googleUserId?: string;
+
+  @ApiPropertyOptional({
     description: 'Email address, when the account was created with one',
   })
   email?: string;

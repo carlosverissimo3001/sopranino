@@ -10,6 +10,7 @@ Name | Type
 `spotifyUserId` | string
 `hasLinkedAccount` | boolean
 `hasAccount` | boolean
+`googleLinked` | boolean
 `email` | string
 `emailVerified` | boolean
 `pendingEmail` | string
@@ -34,6 +35,7 @@ const example = {
   "spotifyUserId": null,
   "hasLinkedAccount": false,
   "hasAccount": false,
+  "googleLinked": false,
   "email": null,
   "emailVerified": false,
   "pendingEmail": null,

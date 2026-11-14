@@ -20,6 +20,13 @@ export class UserSessionDto {
   spotifyUserId?: string;
 
   @ApiPropertyOptional({
+    description: 'Google subject id, present only when signed in with Google',
+  })
+  @IsOptional()
+  @IsString()
+  googleUserId?: string;
+
+  @ApiPropertyOptional({
     description: 'Email, present only when the account was made with one',
   })
   @IsOptional()
